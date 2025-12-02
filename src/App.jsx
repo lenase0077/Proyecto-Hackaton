@@ -9,6 +9,7 @@ import 'reactflow/dist/style.css';
 
 import './App.css';
 import { getLayoutElements, updateNodeStyles } from './utils';
+import CarreraSelector from './components/CarreraSelector';
 
 // Inicializamos layout
 const { nodes: initialNodes, edges: initialEdges } = getLayoutElements();
@@ -19,6 +20,15 @@ export default function App() {
   
   // Estado para guardar las materias que el usuario aprobó (IDs)
   const [aprobadas, setAprobadas] = useState([]);
+
+  // Selector de carrera
+  const [carrera, setCarrera] = useState('programacion');
+  const [carreraSeleccionada, setCarreraSeleccionada] = useState(null);
+
+  const handleCarreraChange = (e) => {
+    setCarrera(e.target.value);
+    // Aquí podrías actualizar los nodos/edges según la carrera elegida
+  };
 
   // Efecto inicial para pintar los nodos correctos al cargar
   useEffect(() => {
@@ -52,6 +62,17 @@ export default function App() {
             <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
         </div>
       </header>
+
+      {/* Nueva sección para mostrar la carrera seleccionada */}
+      <div>
+        <h2>Selecciona tu carrera</h2>
+        <CarreraSelector onSelect={setCarreraSeleccionada} />
+        {carreraSeleccionada && (
+          <div style={{ marginTop: '2rem', fontSize: '1.2rem' }}>
+            Has seleccionado: <strong>{carreraSeleccionada}</strong>
+          </div>
+        )}
+      </div>
 
       {/* ÁREA DEL GRAFO */}
       <div className="flow-container">
