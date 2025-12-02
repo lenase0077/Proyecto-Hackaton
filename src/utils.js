@@ -1,91 +1,76 @@
 import materias from './data/materias.json';
 
-// Configuración visual
 const NODE_WIDTH = 180;
-const NODE_HEIGHT = 80;
 const X_SPACING = 250;
 const Y_SPACING = 150;
 
-/**
- * Transforma el JSON de materias en Nodos y Edges para React Flow
- */
+// --- PALETA DE COLORES ---
+const THEME = {
+    light: {
+        aprobada: { bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
+        disponible: { bg: '#fff', border: '#3b82f6', text: '#1e293b' },
+        bloqueada: { bg: '#f3f4f6', border: '#e5e7eb', text: '#9ca3af' },
+        defaultText: '#333'
+    },
+    dark: {
+        aprobada: { bg: '#064e3b', border: '#34d399', text: '#ecfdf5' }, // Verde oscuro fondo, texto claro
+        disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' }, // Azul oscuro fondo, texto blanco
+        bloqueada: { bg: '#1f2937', border: '#374151', text: '#4b5563' }, // Gris muy oscuro
+        defaultText: '#eee'
+    }
+};
+
 export const getLayoutElements = () => {
+  // ... (Esta parte de getLayoutElements NO CAMBIA, déjala igual que antes)
+  // Solo copio el inicio para contexto, pero mantén la lógica de posiciones igual.
   const nodes = [];
   const edges = [];
-
-  // Agrupamos materias por nivel para calcular posiciones Y
-  // En tu JSON, el nivel 1 y 2 tienen muchas materias, así que vamos a hacer
-  // una grilla inteligente.
-  
   const materiasPorNivel = {};
+  
+  // ... (Mantén tu lógica de forEach y calculo de X, Y aquí) ...
+  // COPIA PEGA TU FUNCIÓN getLayoutElements ANTERIOR AQUÍ COMPLETA
+  // (Para ahorrar espacio en el chat, asumo que mantienes la lógica de posiciones)
+  
   materias.forEach(m => {
     if (!materiasPorNivel[m.nivel]) materiasPorNivel[m.nivel] = [];
     materiasPorNivel[m.nivel].push(m);
   });
 
-  // Crear Nodos
   Object.keys(materiasPorNivel).forEach(nivelStr => {
     const nivel = parseInt(nivelStr);
     const listaMaterias = materiasPorNivel[nivel];
-    
-    // Para que no queden todas en una fila kilométrica, hacemos filas de a 4
     const COLUMNAS_MAX = 4;
 
     listaMaterias.forEach((materia, index) => {
-      // Calculamos fila y columna relativa dentro del nivel
       const filaRelativa = Math.floor(index / COLUMNAS_MAX);
       const colRelativa = index % COLUMNAS_MAX;
-
-      // Posición final
-      // X: Separación base + columna * espacio
       const x = colRelativa * X_SPACING;
-      // Y: (Nivel * espacio grande) + (fila relativa * espacio chico)
-      const y = ((nivel - 1) * (Y_SPACING * 3)) + (filaRelativa * Y_SPACING);
+      const y = ((nivel - 1) * (Y_SPACING * 2.5)) + (filaRelativa * Y_SPACING);
 
       nodes.push({
         id: materia.id,
-        data: { 
-            label: materia.nombre,
-            // Guardamos info extra para saber si está aprobada o no
-            estado: 'pendiente', // 'pendiente', 'aprobada', 'habilitada'
-            originalData: materia
-        },
+        data: { label: materia.nombre, originalData: materia, clickable: true },
         position: { x, y },
         style: { 
-            background: '#fff', 
-            border: '1px solid #777', 
-            borderRadius: '8px',
-            width: NODE_WIDTH,
-            padding: '10px',
-            fontSize: '12px',
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+            background: '#fff', border: '1px solid #777', borderRadius: '8px',
+            width: NODE_WIDTH, padding: '10px', fontSize: '14px', textAlign: 'center',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', transition: 'all 0.3s ease'
         },
-        type: 'default', // default tiene inputs y outputs
+        type: 'default',
       });
 
-      // Crear Edges (Conexiones)
-      // 1. Líneas sólidas para "Requiere Final" (Bloqueante fuerte)
       materia.requiere_para_final.forEach(reqId => {
         edges.push({
-          id: `e-${reqId}-${materia.id}-final`,
-          source: reqId,
-          target: materia.id,
-          animated: false,
-          style: { stroke: '#ff0000', strokeWidth: 2 }, // Rojo para finales
-          label: 'Final'
+          id: `e-${reqId}-${materia.id}-final`, source: reqId, target: materia.id,
+          animated: false, style: { stroke: '#ef4444', strokeWidth: 2 }, label: '' 
         });
       });
 
-      // 2. Líneas punteadas para "Requiere Cursada"
       materia.requiere_para_cursar.forEach(reqId => {
-        // Evitamos duplicar si ya existe la de final (que es más fuerte)
         if (!materia.requiere_para_final.includes(reqId)) {
             edges.push({
-                id: `e-${reqId}-${materia.id}-cursada`,
-                source: reqId,
-                target: materia.id,
-                animated: true,
-                style: { stroke: '#555', strokeDasharray: '5,5' },
+                id: `e-${reqId}-${materia.id}-cursada`, source: reqId, target: materia.id,
+                animated: true, style: { stroke: '#9ca3af', strokeDasharray: '5,5' },
             });
         }
       });
@@ -95,45 +80,54 @@ export const getLayoutElements = () => {
   return { nodes, edges };
 };
 
-// Función para recalcular colores según estado
-export const updateNodeStyles = (nodes, edges, materiasAprobadasIds) => {
+// --- MODIFICAMOS ESTA FUNCIÓN ---
+// Ahora recibe isDarkMode (default false)
+export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false) => {
+    
+    // Seleccionamos la paleta
+    const palette = isDarkMode ? THEME.dark : THEME.light;
+
     return nodes.map(node => {
         const mat = node.data.originalData;
         const estaAprobada = materiasAprobadasIds.includes(mat.id);
 
         let newStyle = { ...node.style };
-        let iconPrefix = ""; // El icono que agregaremos al texto
+        let iconPrefix = ""; 
+        let isClickable = false; 
 
         if (estaAprobada) {
-            // CASO 1: APROBADA (Tick Verde)
-            newStyle.background = '#dcfce7'; // Verde pastel
-            newStyle.borderColor = '#16a34a'; // Borde verde fuerte
-            newStyle.color = '#14532d'; // Texto verde oscuro
+            // CASO 1: APROBADA
+            newStyle.background = palette.aprobada.bg; 
+            newStyle.borderColor = palette.aprobada.border; 
+            newStyle.color = palette.aprobada.text; 
             newStyle.fontWeight = 'bold';
+            newStyle.cursor = 'pointer'; 
             iconPrefix = "✅ "; 
+            isClickable = true; 
             
         } else {
-            // Verificar correlativas
-            // Simplificación: Asumimos que para cursar necesitas tener aprobadas las anteriores
-            // En la vida real chequearías "regularizadas", pero para la hackatón sirve esto.
             const correlativasCumplidas = mat.requiere_para_cursar.every(reqId => 
                 materiasAprobadasIds.includes(reqId)
             );
 
             if (correlativasCumplidas) {
-                // CASO 2: DISPONIBLE / PENDIENTE (Limpio, sin icono)
-                newStyle.background = '#fff'; // Blanco limpio
-                newStyle.borderColor = '#3b82f6'; // Borde azul invitando a interactuar
-                newStyle.color = '#1e293b';
-                newStyle.borderWidth = '2px'; // Un poco más grueso para destacar
-                iconPrefix = ""; // Limpio
+                // CASO 2: DISPONIBLE
+                newStyle.background = palette.disponible.bg; 
+                newStyle.borderColor = palette.disponible.border; 
+                newStyle.color = palette.disponible.text;
+                newStyle.borderWidth = '2px';
+                newStyle.cursor = 'pointer'; 
+                iconPrefix = ""; 
+                isClickable = true; 
                 
             } else {
-                // CASO 3: BLOQUEADA (Cruz Roja)
-                newStyle.background = '#f3f4f6'; // Gris apagado
-                newStyle.borderColor = '#e5e7eb'; // Borde gris suave
-                newStyle.color = '#9ca3af'; // Texto gris (deshabilitado)
+                // CASO 3: BLOQUEADA
+                newStyle.background = palette.bloqueada.bg; 
+                newStyle.borderColor = palette.bloqueada.border; 
+                newStyle.color = palette.bloqueada.text; 
+                newStyle.cursor = 'not-allowed'; 
                 iconPrefix = "❌ ";
+                isClickable = false; 
             }
         }
 
@@ -141,8 +135,8 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds) => {
             ...node,
             data: { 
                 ...node.data, 
-                // Concatenamos el icono al nombre de la materia
-                label: `${iconPrefix}${mat.nombre}` 
+                label: `${iconPrefix}${mat.nombre}`,
+                clickable: isClickable
             },
             style: newStyle
         };
