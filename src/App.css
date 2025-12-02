@@ -9,21 +9,28 @@ body, html, #root {
   width: 100%;
   height: 100%;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow: hidden; /* Evitamos doble scroll */
+  overflow: hidden; 
 }
 
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f8fafc; /* Fondo claro por defecto */
+  transition: background-color 0.3s ease;
 }
 
-/* Header Estilo Landing Page */
+/* --- MODO OSCURO GLOBAL --- */
+.app-container.dark-mode {
+  background-color: #111827; /* Fondo oscuro */
+  color: #f3f4f6;
+}
+/* -------------------------- */
+
 .main-header {
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   color: white;
-  padding: 1.5rem 2rem;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,14 +38,36 @@ body, html, #root {
   z-index: 10;
 }
 
+/* Contenedor de acciones del header */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Botón del sol/luna */
+.theme-toggle {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  font-size: 1.2rem;
+  padding: 5px 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.theme-toggle:hover {
+  transform: scale(1.1);
+  background: rgba(255,255,255,0.3);
+}
+
 .header-content h1 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin-bottom: 0.2rem;
 }
 
 .header-content p {
   opacity: 0.9;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .stats-card {
@@ -48,11 +77,10 @@ body, html, #root {
   backdrop-filter: blur(5px);
 }
 
-/* Contenedor del Grafo */
 .flow-container {
-  flex: 1; /* Ocupa el resto del espacio */
+  flex: 1; 
   position: relative;
-  background-color: #f0f2f5;
+  /* Quitamos el background color de aquí para que herede del padre */
 }
 
 /* Leyenda Flotante */
@@ -68,6 +96,17 @@ body, html, #root {
   gap: 15px;
   font-size: 0.9rem;
   z-index: 5;
+  transition: background 0.3s ease;
+}
+
+/* Leyenda en Modo Oscuro */
+.instructions.dark {
+  background: #1f2937;
+  color: #f3f4f6;
+  border: 1px solid #374151;
+}
+.instructions.dark .leyenda-item {
+  color: #f3f4f6;
 }
 
 .leyenda-item {
@@ -88,7 +127,11 @@ body, html, #root {
 .dot.amarillo { background-color: #fef9c3; border: 2px solid #ca8a04; }
 .dot.gris { background-color: #f3f4f6; border: 2px solid #e5e7eb; }
 
-/* Estilos para React Flow */
+/* En modo oscuro, ajustamos los puntitos de la leyenda también para que resalten */
+.instructions.dark .dot.gris { background-color: #374151; border-color: #4b5563; }
+.instructions.dark .dot.amarillo { background-color: #1e293b; border-color: #60a5fa; }
+.instructions.dark .dot.verde { background-color: #064e3b; border-color: #34d399; }
+
 .react-flow__node {
   font-weight: 500;
   transition: all 0.3s ease;
