@@ -1,12 +1,102 @@
-#root {
-  max-width: 100%;
+/* Reset básico */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  text-align: left;
 }
 
-.layout-container {
-  width: 100vw;
+body, html, #root {
+  width: 100%;
+  height: 100%;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden; /* Evitamos doble scroll */
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
   height: 100vh;
-  background-color: #1a1a1a;
+  background-color: #f8fafc;
+}
+
+/* Header Estilo Landing Page */
+.main-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.header-content h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.header-content p {
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.stats-card {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+/* Contenedor del Grafo */
+.flow-container {
+  flex: 1; /* Ocupa el resto del espacio */
+  position: relative;
+  background-color: #f0f2f5;
+}
+
+/* Leyenda Flotante */
+.instructions {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  gap: 15px;
+  font-size: 0.9rem;
+  z-index: 5;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #333;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.verde { background-color: #dcfce7; border: 2px solid #16a34a; }
+.dot.amarillo { background-color: #fef9c3; border: 2px solid #ca8a04; }
+.dot.gris { background-color: #f3f4f6; border: 2px solid #e5e7eb; }
+
+/* Estilos para React Flow */
+.react-flow__node {
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.react-flow__node:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 100;
 }

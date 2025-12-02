@@ -1,44 +1,80 @@
-import React, { useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactFlow, {
-  MiniMap,
   Controls,
   Background,
   useNodesState,
   useEdgesState,
-  addEdge,
 } from 'reactflow';
-
-// Importante: Estilos de ReactFlow
 import 'reactflow/dist/style.css';
 
 import './App.css';
-import { initialNodes, initialEdges } from './materiaData';
+import { getLayoutElements, updateNodeStyles } from './utils';
+
+// Inicializamos layout
+const { nodes: initialNodes, edges: initialEdges } = getLayoutElements();
 
 export default function App() {
-  // Hooks para manejar el estado de nodos y conexiones
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  
+  // Estado para guardar las materias que el usuario aprobó (IDs)
+  const [aprobadas, setAprobadas] = useState([]);
 
-  // Función por si quisieras conectar nodos manualmente (útil para debug)
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
-  );
+  // Efecto inicial para pintar los nodos correctos al cargar
+  useEffect(() => {
+    const updatedNodes = updateNodeStyles(nodes, edges, aprobadas);
+    setNodes(updatedNodes);
+  }, [aprobadas]); // Se ejecuta cada vez que cambia 'aprobadas'
+
+  // Manejador de clic en nodo
+  const onNodeClick = useCallback((event, node) => {
+    const matId = node.id;
+    
+    setAprobadas((prev) => {
+      // Si ya estaba, la sacamos. Si no, la agregamos.
+      if (prev.includes(matId)) {
+        return prev.filter(id => id !== matId);
+      } else {
+        return [...prev, matId];
+      }
+    });
+  }, []);
 
   return (
-    <div className="layout-container">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        fitView // Ajusta la cámara para ver todos los nodos al inicio
-      >
-        <Controls />
-        <MiniMap />
-        <Background variant="dots" gap={12} size={1} />
-      </ReactFlow>
+    <div className="app-container">
+      {/* HEADER TIPO WEB */}
+      <header className="main-header">
+        <div className="header-content">
+          <h1>🎓 UTN Pathfinder</h1>
+          <p>Hackea tu carrera. Visualiza tu camino.</p>
+        </div>
+        <div className="stats-card">
+            <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
+        </div>
+      </header>
+
+      {/* ÁREA DEL GRAFO */}
+      <div className="flow-container">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick} // ¡La magia del clic!
+          fitView
+          minZoom={0.2}
+        >
+          <Background color="#aaa" gap={16} />
+          <Controls />
+        </ReactFlow>
+      </div>
+      
+      {/* INSTRUCCIONES FLOTANTES */}
+      <div className="instructions">
+        <div className="leyenda-item"><span className="dot verde"></span> Aprobada</div>
+        <div className="leyenda-item"><span className="dot amarillo"></span> Disponible</div>
+        <div className="leyenda-item"><span className="dot gris"></span> Bloqueada</div>
+      </div>
     </div>
   );
 }

@@ -8,7 +8,7 @@
   },
   {
     "id": "2",
-    "nombre": "Arquitectura y Sistemas operativos",
+    "nombre": "Arq. y Sist. Operativos",
     "nivel": 1,
     "requiere_para_cursar": [],
     "requiere_para_final": []
@@ -22,7 +22,7 @@
   },
   {
     "id": "4",
-    "nombre": "Organización empresarial",
+    "nombre": "Org. Empresarial",
     "nivel": 1,
     "requiere_para_cursar": [],
     "requiere_para_final": []
@@ -36,7 +36,7 @@
   },
   {
     "id": "6",
-    "nombre": "Probabilidad y Estadística",
+    "nombre": "Probabilidad y Est.",
     "nivel": 1,
     "requiere_para_cursar": ["3"],
     "requiere_para_final": []
@@ -71,7 +71,7 @@
   },
   {
     "id": "11",
-    "nombre": "Metodología de Sistemas I",
+    "nombre": "Metodología de Sist. I",
     "nivel": 2,
     "requiere_para_cursar": ["5", "7"],
     "requiere_para_final": ["1", "4"]
@@ -92,14 +92,14 @@
   },
   {
     "id": "14",
-    "nombre": "Metodología de Sistemas II",
+    "nombre": "Metodología de Sist. II",
     "nivel": 2,
     "requiere_para_cursar": ["11"],
     "requiere_para_final": ["4"]
   },
   {
     "id": "15",
-    "nombre": "Introducción al análisis de datos",
+    "nombre": "Intro al Análisis de Datos",
     "nivel": 2,
     "requiere_para_cursar": ["10"],
     "requiere_para_final": ["6", "7"]
@@ -113,7 +113,7 @@
   },
   {
     "id": "17",
-    "nombre": "Gestión de desarrollo de software",
+    "nombre": "Gestión de Des. Software",
     "nivel": 2,
     "requiere_para_cursar": ["9", "10"],
     "requiere_para_final": ["5", "7"]
