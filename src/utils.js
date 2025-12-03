@@ -22,13 +22,15 @@ const THEME = {
         disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' },
         bloqueada: { bg: '#1f2937', border: '#374151', text: '#4b5563' },
     },
+    // WONG PALETTE (Accesibilidad)
     colorblind: {
-        aprobada: { bg: '#ffedd5', border: '#d55e00', text: '#9a3412' },
-        disponible: { bg: '#f0f9ff', border: '#56b4e9', text: '#0c4a6e' },
-        bloqueada: { bg: '#e5e5e5', border: '#000000', text: '#000000' },
+        aprobada: { bg: '#ffedd5', border: '#d55e00', text: '#9a3412' }, // Vermilion
+        disponible: { bg: '#f0f9ff', border: '#56b4e9', text: '#0c4a6e' }, // Sky Blue
+        bloqueada: { bg: '#e5e5e5', border: '#000000', text: '#000000' }, // High Contrast
     }
 };
 
+// Colores estándar y de lógica de distancias
 const EDGE_COLORS = {
     standard: '#94a3b8',
     longJump: '#a855f7',
@@ -36,6 +38,17 @@ const EDGE_COLORS = {
     hoverNear: '#3b82f6',
     hoverFar: '#f97316'
 };
+
+// Colores específicos para modo daltónico
+const LINE_COLORS_ACCESSIBLE = {
+    final: '#d55e00',   // Vermilion
+    cursada: '#777777', // Dark Gray
+    active: '#56b4e9'   // Sky Blue
+};
+
+// ============================================================
+// GENERACIÓN DE LAYOUT (Nodos y Edges)
+// ============================================================
 
 export const getLayoutElements = (materias, isMobile = false) => {
     const nodes = [];
@@ -98,9 +111,6 @@ export const getLayoutElements = (materias, isMobile = false) => {
                 type: 'default',
             });
 
-            // --- CORRECCIÓN DE EDGES ---
-            // Usamos type: 'smoothstep' (visual) y data: { tipo: '...' } (lógico)
-
             // A. Edges de FINAL
             if (materia.requiere_para_final) {
                 materia.requiere_para_final.forEach(reqId => {
@@ -109,8 +119,8 @@ export const getLayoutElements = (materias, isMobile = false) => {
                         source: reqId, 
                         target: materia.id, 
                         animated: false, 
-                        type: 'smoothstep', // <--- CAMBIO AQUÍ (Visual)
-                        data: { tipo: 'final' }, // <--- CAMBIO AQUÍ (Lógico)
+                        type: 'smoothstep', 
+                        data: { tipo: 'final' }, 
                         style: { stroke: EDGE_COLORS.final, strokeWidth: 2 }
                     });
                 });
@@ -124,6 +134,8 @@ export const getLayoutElements = (materias, isMobile = false) => {
                         const nivelSource = nivelMap[reqId] || 0;
                         const nivelTarget = nivel;
                         const distancia = Math.abs(nivelTarget - nivelSource);
+                        
+                        // Lógica de visualización para saltos grandes
                         const edgeColor = distancia > 1 ? EDGE_COLORS.longJump : EDGE_COLORS.standard;
                         const edgeWidth = distancia > 1 ? 2 : 1; 
 
@@ -132,8 +144,8 @@ export const getLayoutElements = (materias, isMobile = false) => {
                             source: reqId, 
                             target: materia.id, 
                             animated: true, 
-                            type: 'smoothstep', // <--- CAMBIO AQUÍ (Visual)
-                            data: { tipo: 'cursar' }, // <--- CAMBIO AQUÍ (Lógico)
+                            type: 'smoothstep', 
+                            data: { tipo: 'cursar' }, 
                             style: { 
                                 stroke: edgeColor, 
                                 strokeDasharray: '5,5',
@@ -150,7 +162,7 @@ export const getLayoutElements = (materias, isMobile = false) => {
 };
 
 // ---------------------------------------------------------
-// FUNCIÓN DE ESTILOS (NODOS)
+// FUNCIÓN DE ESTILOS (NODOS) - Soporta Colorblind
 // ---------------------------------------------------------
 export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false, isColorblind = false) => {
     let palette;
@@ -206,8 +218,10 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             }
         }
         
+        // Patrones visuales para daltónicos
         if (isColorblind) {
             newStyle.borderWidth = '3px';
+            // Bordes punteados para bloqueadas
             newStyle.borderStyle = estaAprobada ? 'solid' : (cssClass === "node-blocked" ? 'dashed' : 'solid');
         }
 
@@ -221,12 +235,11 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
 };
 
 // ---------------------------------------------------------
-// FILTRO ACTUALIZADO (Ahora mira data.tipo)
+// FILTRO (Mira data.tipo)
 // ---------------------------------------------------------
 export const filterEdgesByMode = (edges, viewMode = 'todas') => {
     if (!Array.isArray(edges)) return [];
     if (viewMode === 'todas') return edges;
-    // CORRECCIÓN: Miramos e.data.tipo en lugar de e.type
     if (viewMode === 'cursar') return edges.filter(e => e.data?.tipo === 'cursar');
     if (viewMode === 'final') return edges.filter(e => e.data?.tipo === 'final');
     if (Array.isArray(viewMode)) return edges.filter(e => viewMode.includes(e.data?.tipo));
@@ -234,13 +247,14 @@ export const filterEdgesByMode = (edges, viewMode = 'todas') => {
 };
 
 // ---------------------------------------------------------
-// HIGHLIGHT ACTUALIZADO (Ahora mira data.tipo)
+// HIGHLIGHT ACTUALIZADO (Logic Main + Accessibility Head)
 // ---------------------------------------------------------
-export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas') => {
+export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas', isColorblind = false) => {
     const allNodes = Array.isArray(nodes) ? nodes : [];
     const allEdges = Array.isArray(edges) ? edges : [];
     const edgeIdOf = (edge) => edge.id || `${edge.source}->${edge.target}`;
 
+    // Mapa para calcular distancias en modo standard
     const nodeMap = new Map();
     allNodes.forEach(n => nodeMap.set(n.id, n));
 
@@ -251,8 +265,17 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             nodes: allNodes.map(n => ({ ...n, className: '', style: { ...n.style, opacity: 1 } })),
             edges: allEdges.map(edge => {
                 const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
-                // Restauramos lógica visual
-                const isFinal = edge.data?.tipo === 'final'; // CORRECCIÓN
+                const isFinal = edge.data?.tipo === 'final';
+                
+                // Determinamos color base según modo
+                let strokeColor;
+                if (isColorblind) {
+                    strokeColor = isFinal ? LINE_COLORS_ACCESSIBLE.final : LINE_COLORS_ACCESSIBLE.cursada;
+                } else {
+                    // Mantenemos colores originales si no es colorblind
+                    strokeColor = edge.style.stroke; 
+                }
+
                 return {
                     ...edge,
                     className: '',
@@ -261,6 +284,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
                     style: { 
                         ...edge.style, 
                         opacity: 1, 
+                        stroke: strokeColor,
                         strokeWidth: isFinal ? 2 : (edge.style.stroke === EDGE_COLORS.longJump ? 2 : 1) 
                     }
                 };
@@ -290,13 +314,14 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
 
         if (isHovered) {
             newStyle.opacity = 1;
-            newStyle.borderColor = '#f59e0b';
+            newStyle.borderColor = isColorblind ? '#d55e00' : '#f59e0b';
             newStyle.borderWidth = '3px';
             newStyle.zIndex = 2000;
             className = 'selected-hover';
         } else if (isNeighbor) {
             newStyle.opacity = 1;
-            newStyle.borderColor = isDarkMode ? '#60a5fa' : '#3b82f6';
+            // Vecinos en azul/celeste
+            newStyle.borderColor = isColorblind ? '#56b4e9' : (isDarkMode ? '#60a5fa' : '#3b82f6');
             newStyle.borderWidth = '3px';
             newStyle.zIndex = 1500;
             className = 'connected';
@@ -314,22 +339,30 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         if (!isVisible) return { ...edge, hidden: true };
 
         const isConnected = connectedEdgeIds.has(eid);
+        
         if (isConnected) {
-            const sourceNode = nodeMap.get(edge.source);
-            const targetNode = nodeMap.get(edge.target);
-            const sourceLevel = sourceNode?.data?.originalData?.nivel || 0;
-            const targetLevel = targetNode?.data?.originalData?.nivel || 0;
-            const dist = Math.abs(targetLevel - sourceLevel);
-
             let highlightColor;
-            
-            // CORRECCIÓN: Usamos data.tipo
-            if (edge.data?.tipo === 'final') {
-                highlightColor = EDGE_COLORS.final; 
-            } else if (dist > 1) {
-                highlightColor = EDGE_COLORS.hoverFar;
+
+            if (isColorblind) {
+                // Modo accesible simple: Rojo/Naranja para final, Celeste para activo
+                highlightColor = edge.data?.tipo === 'final' 
+                    ? LINE_COLORS_ACCESSIBLE.final 
+                    : LINE_COLORS_ACCESSIBLE.active;
             } else {
-                highlightColor = EDGE_COLORS.hoverNear;
+                // Modo standard complejo: Distancias y saltos
+                const sourceNode = nodeMap.get(edge.source);
+                const targetNode = nodeMap.get(edge.target);
+                const sourceLevel = sourceNode?.data?.originalData?.nivel || 0;
+                const targetLevel = targetNode?.data?.originalData?.nivel || 0;
+                const dist = Math.abs(targetLevel - sourceLevel);
+
+                if (edge.data?.tipo === 'final') {
+                    highlightColor = EDGE_COLORS.final; 
+                } else if (dist > 1) {
+                    highlightColor = EDGE_COLORS.hoverFar;
+                } else {
+                    highlightColor = EDGE_COLORS.hoverNear;
+                }
             }
 
             return {
@@ -348,7 +381,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         } else {
             return {
                 ...edge,
-                hidden: true,
+                hidden: true, // Ocultar no conectados en hover para limpieza
                 className: '',
                 animated: false,
                 style: { ...edge.style, opacity: 0 }
