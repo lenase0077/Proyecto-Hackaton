@@ -1,171 +1,305 @@
-/* Reset básico */
+/* 
+===========================================
+RESET BÁSICO - Restablece estilos por defecto
+===========================================
+*/
+
+/* * = selecciona TODOS los elementos HTML de la página */
 * {
+  /* border-box hace que padding y border se cuenten dentro del ancho/alto */
   box-sizing: border-box;
+  
+  /* Elimina márgenes externos de todos los elementos */
   margin: 0;
+  
+  /* Elimina rellenos internos de todos los elementos */
   padding: 0;
 }
 
+
+/* 
+===========================================
+CONFIGURACIÓN DE ESTRUCTURA PRINCIPAL
+===========================================
+*/
+
+/* Aplica estos estilos a body, html y el div con id="root" */
 body, html, #root {
+  /* Ocupa el 100% del ancho disponible */
   width: 100%;
-  height: 100%;
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow: hidden; 
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #f8fafc; /* Fondo claro por defecto */
-  transition: background-color 0.3s ease;
-}
-
-/* --- MODO OSCURO GLOBAL --- */
-.app-container.dark-mode {
-  background-color: #111827; /* Fondo oscuro */
-  color: #f3f4f6;
-}
-
-.main-header {
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-  color: white;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.theme-toggle {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  font-size: 1.2rem;
-  padding: 5px 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.theme-toggle:hover {
-  transform: scale(1.1);
-  background: rgba(255,255,255,0.3);
-}
-
-.header-content h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0.2rem;
-}
-
-.header-content p {
-  opacity: 0.9;
-  font-size: 0.8rem;
-}
-
-.stats-card {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  backdrop-filter: blur(5px);
-}
-
-.flow-container {
-  flex: 1; 
-  position: relative;
-}
-
-/* Leyenda Flotante */
-.instructions {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  display: flex;
-  gap: 15px;
-  font-size: 0.9rem;
-  z-index: 5;
-  transition: background 0.3s ease;
-}
-
-.instructions.dark {
-  background: #1f2937;
-  color: #f3f4f6;
-  border: 1px solid #374151;
-}
-
-.leyenda-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #333;
-}
-.instructions.dark .leyenda-item {
-  color: #f3f4f6;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.dot.verde { background-color: #dcfce7; border: 2px solid #16a34a; }
-.dot.amarillo { background-color: #fef9c3; border: 2px solid #ca8a04; }
-.dot.gris { background-color: #f3f4f6; border: 2px solid #e5e7eb; }
-
-.instructions.dark .dot.gris { background-color: #374151; border-color: #4b5563; }
-.instructions.dark .dot.amarillo { background-color: #1e293b; border-color: #60a5fa; }
-.instructions.dark .dot.verde { background-color: #064e3b; border-color: #34d399; }
-
-
-/* --- EFECTOS DINÁMICOS DE NODOS (FIXED) --- */
-
-.react-flow__node {
-  /* Transición suave solo para propiedades seguras */
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-}
-
-/* 1. EFECTO PARA DISPONIBLES (Neon Glow) */
-/* IMPORTANTE: No usamos 'transform' aquí porque rompe la posición X/Y de ReactFlow */
-.react-flow__node.node-available:hover {
-  z-index: 1000; /* Traer al frente */
   
-  /* Simulamos el "pop" con una sombra muy difusa y un borde grueso */
-  box-shadow: 
-    0 0 0 4px rgba(59, 130, 246, 0.3), /* Halo exterior */
-    0 20px 25px -5px rgba(59, 130, 246, 0.4), /* Sombra profunda azulada */
-    0 8px 10px -6px rgba(59, 130, 246, 0.4) !important;
-    
-  border-color: #2563eb !important;
-  background-color: #eff6ff !important; /* Un blanco azulado muy sutil */
+  /* Ocupa el 100% del alto disponible */
+  height: 100%;
+  
+  /* Define la fuente principal del texto */
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Oculta las barras de scroll (no se puede hacer scroll) */
+  overflow: hidden;
 }
 
-/* 2. EFECTO PARA APROBADAS */
-.react-flow__node.node-approved:hover {
-  z-index: 1000;
-  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.4) !important;
+
+/* 
+===========================================
+CONTENEDOR PRINCIPAL DE LA APLICACIÓN
+===========================================
+*/
+
+/* El contenedor principal que envuelve toda la app */
+.app-container {
+  /* Usa flexbox para organizar elementos */
+  display: flex;
+  
+  /* Los elementos se apilan verticalmente (uno debajo de otro) */
+  flex-direction: column;
+  
+  /* Ocupa toda la altura de la ventana */
+  height: 100vh; /* 100% del viewport height */
+  
+  /* Color de fondo en modo claro */
+  background-color: #f8fafc;
+  
+  /* Color del texto en modo claro */
+  color: #1e293b;
 }
 
-/* 3. EFECTO PARA BLOQUEADAS */
-.react-flow__node.node-blocked:hover {
-  cursor: not-allowed;
-  opacity: 0.7; /* Se apaga un poco */
+
+/* 
+===========================================
+MODO OSCURO - Estilos cuando está activo
+===========================================
+*/
+
+/* .dark-mode se aplica cuando app-container también tiene clase dark-mode */
+.app-container.dark-mode {
+  /* Color de fondo en modo oscuro (gris muy oscuro) */
+  background-color: #111827;
+  
+  /* Color del texto en modo oscuro (gris claro) */
+  color: #f3f4f6;
 }
 
-/* Ajuste para modo oscuro */
-.app-container.dark-mode .react-flow__node.node-available:hover {
-  box-shadow: 
-    0 0 0 4px rgba(96, 165, 250, 0.2),
-    0 20px 25px -5px rgba(96, 165, 250, 0.4) !important;
-  border-color: #60a5fa !important;
-  background-color: #1e40af !important; /* Azul más intenso en modo oscuro */
+
+/* 
+===========================================
+ESTILOS PARA REACT FLOW (Biblioteca de gráficos)
+===========================================
+*/
+
+/* Estilos para los NODOS (cajas/cuadrados de materias) */
+.react-flow__node {
+  /* Cambia el cursor a manito cuando pasas el mouse */
+  cursor: pointer;
+  
+  /* Suaviza todas las transiciones (cambios de estilo) */
+  transition: all 0.3s ease;
+}
+
+/* Cuando pasas el mouse sobre un nodo */
+.react-flow__node:hover {
+  /* Agranda el nodo un 5% */
+  transform: scale(1.05);
+  
+  /* Agrega sombra para efecto 3D */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  
+  /* Asegura que esté por encima de otros elementos */
+  z-index: 100;
+}
+
+
+/* 
+===========================================
+PERSONALIZACIÓN DE BARRAS DE SCROLL
+===========================================
+*/
+
+/* Para navegadores WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  /* Ancho de la barra de scroll vertical */
+  width: 8px;
+  
+  /* Alto de la barra de scroll horizontal */
+  height: 8px;
+}
+
+/* Fondo de la barra de scroll */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Parte que se mueve de la barra de scroll */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+/* Cuando pasas el mouse sobre la barra */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+
+/* 
+===========================================
+BARRAS DE SCROLL EN MODO OSCURO
+===========================================
+*/
+
+/* Fondo de barra en modo oscuro */
+.app-container.dark-mode ::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+/* Barra móvil en modo oscuro */
+.app-container.dark-mode ::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
+/* Barra móvil en hover (modo oscuro) */
+.app-container.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+
+/* 
+===========================================
+MEJORAS PARA HOVER DE NODOS
+===========================================
+*/
+
+/* Cuando pasas el mouse sobre un nodo (versión mejorada) */
+.react-flow__node:hover {
+  /* Agranda un 8% (más que el anterior) */
+  transform: scale(1.08);
+  
+  /* Sombra más pronunciada */
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.3);
+  
+  /* Prioridad más alta para estar por encima */
+  z-index: 1000 !important; /* !important fuerza este estilo */
+}
+
+/* Cuando un nodo está seleccionado con hover (naranja) */
+.react-flow__node.selected-hover {
+  /* Borde más grueso */
+  border-width: 3px !important;
+  
+  /* Color naranja para el borde */
+  border-color: #f59e0b !important;
+  
+  /* Sombra naranja alrededor */
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3) !important;
+  
+  /* Aplica la animación "pulse" */
+  animation: pulse 2s infinite;
+}
+
+
+/* 
+===========================================
+CONEXIONES (LÍNEAS ENTRE MATERIAS)
+===========================================
+*/
+
+/* Conexiones NO activas (cuando hay hover en otra materia) */
+.react-flow__edge.inactive {
+  /* Casi transparente (15% de opacidad) */
+  opacity: 0.15 !important;
+  
+  /* Suaviza el cambio de opacidad */
+  transition: opacity 0.3s ease;
+}
+
+/* Conexiones activas (conectadas a la materia con hover) */
+.react-flow__edge.active {
+  /* Totalmente visible */
+  opacity: 1 !important;
+  
+  /* Línea más gruesa */
+  stroke-width: 3px !important;
+  
+  /* Sombra para destacar */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+
+/* 
+===========================================
+ANIMACIÓN DE PULSO (efecto latido)
+===========================================
+*/
+
+/* Define una animación llamada "pulse" */
+@keyframes pulse {
+  /* Inicio: sombra invisible */
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  
+  /* Mitad: sombra grande y transparente */
+  70% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+  
+  /* Final: vuelve a invisible */
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+
+/* 
+===========================================
+TOOLTIP (cuadrito de información)
+===========================================
+*/
+
+/* Estilos para el tooltip que aparece sobre los nodos */
+.node-tooltip {
+  /* Posición absoluta respecto al contenedor */
+  position: absolute;
+  
+  /* Fondo negro semi-transparente */
+  background: rgba(0, 0, 0, 0.8);
+  
+  /* Texto blanco */
+  color: white;
+  
+  /* Espaciado interno */
+  padding: 8px 12px;
+  
+  /* Bordes redondeados */
+  border-radius: 6px;
+  
+  /* Texto pequeño */
+  font-size: 12px;
+  
+  /* No captura clicks del mouse */
+  pointer-events: none;
+  
+  /* Siempre por encima de todo */
+  z-index: 10000;
+  
+  /* Ancho máximo */
+  max-width: 200px;
+  
+  /* Permite saltos de línea */
+  white-space: normal;
+  
+  /* Efecto de desenfoque detrás */
+  backdrop-filter: blur(4px);
+}
+
+
+/* 
+===========================================
+MEJORA DE CONEXIONES
+===========================================
+*/
+
+/* Para que las líneas sean clickeables */
+.react-flow__edge-path {
+  /* Acepta eventos del mouse (clicks, hover) */
+  pointer-events: all;
 }
