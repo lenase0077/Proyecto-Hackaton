@@ -76,13 +76,17 @@ export default function App() {
     // Le pasamos isColorblind a la función de estilos
     const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind);
     
-    const { nodes: finalNodes } = applyHighlightStyles(
-        styledNodes, 
-        hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode), 
-        hoveredNodeId, 
-        isDarkMode
+    const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
+        styledNodes,
+        filterEdgesByMode(allEdgesCache, viewMode),
+        hoveredNodeId,
+        isDarkMode,
+        viewMode
     );
+
     setNodes(finalNodes);
+    setEdges(finalEdges);
+
   }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length]); // Agregamos isColorblind a dependencias
 
   useEffect(() => {
