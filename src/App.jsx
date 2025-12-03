@@ -154,6 +154,9 @@ const onNodeClick = useCallback((event, node) => {
         // --- EFECTO 1: POP (Siempre que aprobamos una materia individual) ---
         const audioPop = new Audio('/sounds/pop.mp3'); 
         audioPop.volume = 0.5; 
+        audioPop.playbackRate = 0.8 + Math.random() * 0.4;
+        audioPop.preservesPitch = false;
+
         audioPop.play().catch(e => console.error("Error audio pop:", e));
         
         // --- EFECTO 2: VICTORIA (Solo si completamos TODA la carrera) ---
