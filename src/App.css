@@ -1,10 +1,10 @@
 /* ===========================================
-   ACCESIBILIDAD (Solo agregué esto al inicio)
+   ACCESIBILIDAD
 =========================================== */
 @import url('https://cdn.jsdelivr.net/npm/opendyslexic@2.0.0/open-dyslexic.min.css');
 
 /* ===========================================
-RESET BÁSICO - Restablece estilos por defecto
+RESET BÁSICO
 ===========================================
 */
 * {
@@ -13,7 +13,7 @@ RESET BÁSICO - Restablece estilos por defecto
   padding: 0;
 }
 
-/* CONFIGURACIÓN DE ESTRUCTURA PRINCIPAL */
+/* CONFIGURACIÓN ESTRUCTURA */
 body, html, #root {
   width: 100%;
   height: 100%;
@@ -21,7 +21,7 @@ body, html, #root {
   overflow: hidden;
 }
 
-/* CONTENEDOR PRINCIPAL DE LA APLICACIÓN */
+/* CONTENEDOR PRINCIPAL */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -30,13 +30,13 @@ body, html, #root {
   color: #1e293b;
 }
 
-/* MODO OSCURO */
+/* DARK MODE */
 .app-container.dark-mode {
   background-color: #111827;
   color: #f3f4f6;
 }
 
-/* ESTILOS PARA REACT FLOW */
+/* REACT FLOW STYLES */
 .react-flow__node {
   cursor: pointer;
   transition: all 0.3s ease;
@@ -48,7 +48,7 @@ body, html, #root {
   z-index: 100;
 }
 
-/* BARRAS DE SCROLL */
+/* SCROLLBARS */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
@@ -58,7 +58,7 @@ body, html, #root {
 .app-container.dark-mode ::-webkit-scrollbar-thumb { background: #6b7280; }
 .app-container.dark-mode ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-/* MEJORAS PARA HOVER DE NODOS */
+/* NODE HOVER */
 .react-flow__node:hover {
   transform: scale(1.08);
   box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.3);
@@ -72,18 +72,16 @@ body, html, #root {
   animation: pulse 2s infinite;
 }
 
-/* CONEXIONES */
+/* CONNECTIONS */
 .react-flow__edge.inactive { opacity: 0.15 !important; transition: opacity 0.3s ease; }
 .react-flow__edge.active { opacity: 1 !important; stroke-width: 3px !important; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); }
 
-/* ANIMACIÓN DE PULSO */
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
   70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
   100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
 }
 
-/* TOOLTIP */
 .node-tooltip {
   position: absolute;
   background: rgba(0, 0, 0, 0.8);
@@ -101,11 +99,9 @@ body, html, #root {
 .react-flow__edge-path { pointer-events: all; }
 
 /* ===========================================
-   AQUÍ ABAJO ESTÁ TU FOOTER ORIGINAL
+   FOOTER DESPLEGABLE
    ===========================================
 */
-
-/* FOOTER DESPLEGABLE */
 .app-footer {
   position: fixed;
   bottom: 0; left: 0; width: 100%; z-index: 9000;
@@ -154,7 +150,7 @@ body, html, #root {
 .team-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -1px; left: 0; right: 0; margin: 0 auto; background-color: #3b82f6; transition: width 0.3s ease; }
 .team-link:hover::after { width: 100%; }
 
-/* Modo Oscuro Footer */
+/* DARK MODE FOOTER */
 .app-container.dark-mode .app-footer { background-color: rgba(17, 24, 39, 0.98); color: #9ca3af; border-top: 1px solid #374151; }
 .app-container.dark-mode .footer-toggle-btn { background-color: #374151; color: #e5e7eb; border: 1px solid #4b5563; border-bottom: none; }
 .app-container.dark-mode .footer-toggle-btn:hover { background-color: #4b5563; }
@@ -213,8 +209,7 @@ body, html, #root {
 }
 
 /* ===========================================
-   LO NUEVO PARA DISLEXIA
-   (Se aplica solo cuando la clase existe)
+   DISLEXIA
    =========================================== 
 */
 .app-container.dyslexic-mode,
@@ -224,18 +219,21 @@ body, html, #root {
   letter-spacing: 0.05em !important;
 }
 
-/*==========MODO DALTONICO=========*/
+/* ===========================================
+   COLORBLIND MODE OVERRIDES
+   =========================================== 
+*/
 .app-container.colorblind-mode .legend-dot.aprobada {
   background: #ffedd5;
-  border: 2px solid #d55e00; /* Naranja fuerte */
+  border: 2px solid #d55e00; /* Vermilion */
 }
 
 .app-container.colorblind-mode .legend-dot.disponible {
   background: #f0f9ff;
-  border: 2px solid #56b4e9; /* Celeste fuerte */
+  border: 2px solid #56b4e9; /* Sky Blue */
 }
 
 .app-container.colorblind-mode .legend-dot.bloqueada {
   background: #e5e5e5;
-  border: 2px solid #000000; /* Negro */
+  border: 2px solid #000000; /* Black */
 }

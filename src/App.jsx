@@ -11,6 +11,8 @@ import './App.css';
 import dbMaterias from './data/materias.json'; 
 import CarreraSelector from './components/CarreraSelector';
 
+// SIN IMPORT DE THEME TOGGLE (Porque lo haremos directo aquí)
+
 import { 
   getLayoutElements, 
   updateNodeStyles, 
@@ -19,7 +21,6 @@ import {
 } from './utils';
 
 export default function App() {
-  // --- ESTADOS ---
   const [selectedCarrera, setSelectedCarrera] = useState('tup');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -33,7 +34,6 @@ export default function App() {
     return localStorage.getItem('appTheme') === 'dark';
   });
 
-  // ESTADO DISLEXIA
   const [isDyslexic, setIsDyslexic] = useState(() => {
     return localStorage.getItem('dyslexicMode') === 'true';
   });
@@ -43,7 +43,7 @@ export default function App() {
     return localStorage.getItem('colorblindMode') === 'true';
   });
   
-  // Guardar preferencias
+  // Storage
   useEffect(() => { localStorage.setItem('dyslexicMode', isDyslexic); }, [isDyslexic]);
   useEffect(() => { localStorage.setItem('colorblindMode', isColorblind); }, [isColorblind]);
   useEffect(() => { localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'); }, [isDarkMode]);
@@ -61,9 +61,6 @@ export default function App() {
     { name: "Serrano Leandro", linkedin: "https://www.linkedin.com/" },
   ];
 
-  // --- EFECTOS DE CARGA ---
-
-  // 1. Cargar Carrera
   useEffect(() => {
     const listaMaterias = dbMaterias[selectedCarrera] || [];
     const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias);
@@ -73,129 +70,49 @@ export default function App() {
     setViewMode('todas');
   }, [selectedCarrera, setNodes, setEdges]);
 
-  // 2. Actualización de Estilos (Incluye Colorblind)
+  // Actualización de Estilos (NODOS Y LÍNEAS)
   useEffect(() => {
     if (nodes.length === 0) return;
     
-    // Le pasamos isColorblind a la función de estilos
+    // 1. Estilos de Nodos
     const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind);
     
+    // 2. Estilos de Líneas
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
-        styledNodes,
-        filterEdgesByMode(allEdgesCache, viewMode),
+        styledNodes, 
+        hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode), 
         hoveredNodeId,
         isDarkMode,
-        viewMode
+        viewMode,
+        isColorblind
     );
-
+    
     setNodes(finalNodes);
     setEdges(finalEdges);
 
-  }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length]); 
-
-  // 3. Filtrado de Edges
-  useEffect(() => {
-      if (!hoveredNodeId) {
-          const filtered = filterEdgesByMode(allEdgesCache, viewMode);
-          setEdges(filtered);
-      }
-  }, [viewMode, allEdgesCache, hoveredNodeId, setEdges]);
+  }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length, viewMode]);
 
   const handleCarreraChange = (nuevaCarrera) => setSelectedCarrera(nuevaCarrera);
 
-  // --- LÓGICA DE CLIC (FIESTA Y SONIDOS) ---
-  // Aquí integramos la lógica compleja de tu colega
   const onNodeClick = useCallback((event, node) => {
     if (!node.data?.clickable) return;
-    
     const matId = node.id;
-    // Obtenemos el nivel (1, 2, 3...) para saber qué estamos completando
-    const matNivel = node.data?.originalData?.nivel; 
-
-    const yaEstabaAprobada = aprobadas.includes(matId);
     let nuevasAprobadas;
-
-    if (yaEstabaAprobada) {
-        // Desmarcar (borrar)
+    if (aprobadas.includes(matId)) {
         nuevasAprobadas = aprobadas.filter(id => id !== matId);
     } else {
-        // Marcar (Aprobar)
         nuevasAprobadas = [...aprobadas, matId];
-
-        // =======================================================
-        // ZONA DE EFECTOS DE SONIDO Y FIESTA (De tu colega)
-        // =======================================================
-        
-        // A. Cálculos para saber si completamos algo
-        const materiasDelNivel = nodes.filter(n => n.data?.originalData?.nivel === matNivel);
-        const totalNivel = materiasDelNivel.length;
-        // Importante: filtramos sobre "nuevasAprobadas"
-        const aprobadasNivel = materiasDelNivel.filter(n => nuevasAprobadas.includes(n.id)).length;
-        
-        const totalCarrera = nodes.filter(n => n.type !== 'input').length;
-        const carreraCompletada = nuevasAprobadas.length === totalCarrera;
-
-        // B. Decidir qué celebrar
-        if (carreraCompletada) {
-             // ----------------------------------------------------
-             // CASO 1: CARRERA COMPLETADA (Juego Terminado)
-             // ----------------------------------------------------
-             // Sonido: Victory (Final)
-             const audioVictory = new Audio('/sounds/victory.mp3');
-             audioVictory.volume = 0.6;
-             audioVictory.play().catch(e => console.error(e));
-
-             // Visual: Confeti Épico (Lluvia infinita por 3 seg)
-             if (window.confetti) {
-                const duration = 3000;
-                const end = Date.now() + duration;
-                (function frame() {
-                  window.confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#3b82f6', '#10b981', '#f59e0b'] });
-                  window.confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3b82f6', '#10b981', '#f59e0b'] });
-                  if (Date.now() < end) requestAnimationFrame(frame);
-                }());
-             }
-
-        } else if (aprobadasNivel === totalNivel && totalNivel > 0) {
-             // ----------------------------------------------------
-             // CASO 2: NIVEL COMPLETADO (Año/Cuatrimestre listo)
-             // ----------------------------------------------------
-             // Sonido: Celebracion de Nivel
-             const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
-             audioLevel.volume = 0.2;
-             audioLevel.playbackRate = 0.9 + Math.random() * 0.4; // Pitch variable
-             audioLevel.preservesPitch = false;
-             audioLevel.play().catch(e => console.error(e));
-
-             // Visual: Confeti Dorado (Explosión central)
-             if (window.confetti) {
-                window.confetti({
-                    particleCount: 80,
-                    spread: 60,
-                    origin: { y: 0.7 },
-                    colors: ['#ffd700', '#ffffff'], // Dorado y Blanco
-                    disableForReducedMotion: true
-                });
-             }
-
-        } else {
-             // ----------------------------------------------------
-             // CASO 3: MATERIA INDIVIDUAL (Avance normal)
-             // ----------------------------------------------------
-             // Sonido: Pop (con pequeña variación aleatoria de tono)
-             const audioPop = new Audio('/sounds/pop.mp3'); 
-             audioPop.volume = 0.4;
-             audioPop.playbackRate = 0.9 + Math.random() * 0.2;
-             audioPop.preservesPitch = false;
-             audioPop.play().catch(e => console.error(e));
+        new Audio('/sounds/pop.mp3').play().catch(() => {});
+        const totalMaterias = nodes.filter(n => n.type !== 'input').length;
+        if (nuevasAprobadas.length === totalMaterias) {
+             new Audio('/sounds/victory.mp3').play().catch(() => {});
+             if (window.confetti) window.confetti();
         }
     }
     setAprobadas(nuevasAprobadas);
   }, [aprobadas, nodes]);
 
-  // --- RENDER ---
   return (
-    // Agregamos la clase colorblind-mode si está activo (TU CÓDIGO)
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
       
       {/* HEADER */}
@@ -207,6 +124,7 @@ export default function App() {
         borderBottom: '1px solid rgba(255,255,255,0.1)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            {/* LADO IZQUIERDO: Logo y Título */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '5px' }}>
                   <svg className="utn-logo-svg" viewBox="0 0 595.3 699.4" height="45" fill="currentColor" style={{ minWidth: '30px' }}>
@@ -219,58 +137,73 @@ export default function App() {
               </p>
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <button 
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                style={{
-                  background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white',
-                  width: '35px', height: '35px', borderRadius: '50%',
-                  cursor: 'pointer', fontSize: '1.1rem'
-                }}
-                title="Modo Oscuro"
-              >
-                {isDarkMode ? '☀️' : '🌙'}
-              </button>
+            {/* LADO DERECHO: Botones y Controles */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
               
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
-                  <div style={{
-                    background: 'rgba(255,255,255,0.2)',
-                    padding: '5px 10px', borderRadius: '6px', fontSize: '0.9rem'
-                  }}>
-                    <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
-                  </div>
+              {/* FILA 1: Botón Tema + Contador Aprobadas */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                
+                {/* 1. Botón Dark Mode (A la izquierda) */}
+                <button 
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)', 
+                    border: 'none', 
+                    color: 'white',
+                    width: '35px', 
+                    height: '35px', 
+                    borderRadius: '50%',
+                    cursor: 'pointer', 
+                    fontSize: '1.1rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: 0, lineHeight: 1
+                  }}
+                  title={isDarkMode ? "Activar modo claro" : "Activar modo oscuro"}
+                >
+                  {isDarkMode ? '☀️' : '🌙'}
+                </button>
 
-                  {/* CONTENEDOR DE BOTONES ACCESIBILIDAD (TU CÓDIGO) */}
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                      {/* Botón Dislexia */}
-                      <button
-                        onClick={() => setIsDyslexic(!isDyslexic)}
-                        style={{
-                           background: isDyslexic ? '#f59e0b' : 'transparent',
-                           border: '1px solid rgba(255,255,255,0.4)', color: 'white',
-                           borderRadius: '4px', padding: '2px 6px', fontSize: '0.7rem',
-                           cursor: 'pointer', fontWeight: 'bold'
-                        }}
-                        title="Fuente para dislexia"
-                      >
-                        {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia'}
-                      </button>
+                {/* 2. Contador (A la derecha) */}
+                <div style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  padding: '0 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.9rem',
+                  display: 'flex', 
+                  alignItems: 'center',
+                  height: '35px'
+                }}>
+                  <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
+                </div>
+              </div>
 
-                      {/* Botón Daltonismo */}
-                      <button
-                        onClick={() => setIsColorblind(!isColorblind)}
-                        style={{
-                           background: isColorblind ? '#f59e0b' : 'transparent',
-                           border: '1px solid rgba(255,255,255,0.4)', color: 'white',
-                           borderRadius: '4px', padding: '2px 6px', fontSize: '0.7rem',
-                           cursor: 'pointer', fontWeight: 'bold'
-                        }}
-                        title="Modo alto contraste para daltonismo"
-                      >
-                        {isColorblind ? '🎨 Daltónico ON' : '🎨 Daltónico'}
-                      </button>
-                  </div>
+              {/* FILA 2: Botones Accesibilidad (Bajados) */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => setIsDyslexic(!isDyslexic)}
+                    style={{
+                       background: isDyslexic ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+                       border: '1px solid rgba(255,255,255,0.3)', color: 'white',
+                       borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem',
+                       cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
+                    }}
+                    title="Fuente para dislexia"
+                  >
+                    {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia'}
+                  </button>
 
+                  <button
+                    onClick={() => setIsColorblind(!isColorblind)}
+                    style={{
+                       background: isColorblind ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+                       border: '1px solid rgba(255,255,255,0.3)', color: 'white',
+                       borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem',
+                       cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
+                    }}
+                    title="Modo alto contraste para daltonismo"
+                  >
+                    {isColorblind ? '🎨 Daltónico ON' : '🎨 Daltónico'}
+                  </button>
               </div>
             </div>
         </div>
