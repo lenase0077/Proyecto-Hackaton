@@ -51,6 +51,7 @@ export default function App() {
 
   const [viewMode, setViewMode] = useState('todas');
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
+  const [isFooterOpen, setIsFooterOpen] = useState(false);
   const [allEdgesCache, setAllEdgesCache] = useState([]); // Guardamos todas las conexiones originales de la carrera actual
 
   // Datos de los integrantes
@@ -216,7 +217,7 @@ const onNodeClick = useCallback((event, node) => {
 
   // --- RENDER ---
   return (
-    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''}`}>
       
       {/* HEADER */}
       <div style={{
@@ -330,33 +331,42 @@ const onNodeClick = useCallback((event, node) => {
         )}
       </div>
       
-      {/* LEYENDA (Misma de antes) */}
-      <div style={{
-        position: 'absolute', bottom: '80px', left: '15px',
-        background: isDarkMode ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-        padding: '10px 15px', borderRadius: '8px', display: 'flex', gap: '15px',
-        fontSize: '0.8rem', color: isDarkMode ? '#f3f4f6' : '#1f2937',
-        backdropFilter: 'blur(5px)', border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: isDarkMode ? '#064e3b' : '#dcfce7', border: `2px solid ${isDarkMode ? '#34d399' : '#16a34a'}` }}></div>
+      {/* LEYENDA*/}
+      <div className="legend-container">
+        <div className="legend-item">
+          <div className="legend-dot aprobada"></div>
           <span>Aprobada</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: isDarkMode ? '#1e293b' : '#fff', border: `2px solid ${isDarkMode ? '#60a5fa' : '#3b82f6'}` }}></div>
+        <div className="legend-item">
+          <div className="legend-dot disponible"></div>
           <span>Disponible</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: isDarkMode ? '#374151' : '#f3f4f6', border: `2px solid ${isDarkMode ? '#6b7280' : '#9ca3af'}` }}></div>
+        <div className="legend-item">
+          <div className="legend-dot bloqueada"></div>
           <span>Bloqueada</span>
         </div>
       </div>
       
-      {/*========== INICIO DE FOOTER ==========*/}
-      <footer className="app-footer">
+      {/*========== INICIO DE FOOTER DESPLEGABLE==========*/}
+      <footer className={`app-footer ${isFooterOpen ? 'open' : ''}`}>
+        
+        {/* BOTÓN PESTAÑA*/}
+        <button 
+          className="footer-toggle-btn"
+          onClick={() => setIsFooterOpen(!isFooterOpen)}
+        >
+          <span style={{ 
+            display: 'inline-block', 
+            transform: isFooterOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.3s ease',
+            marginRight: '5px'
+          }}>▲</span>
+          {isFooterOpen ? 'CERRAR' : 'CRÉDITOS'}
+        </button>
+
         <div className="footer-container">
           
-          {/* SECCIÓN IZQUIERDA: Marca y Copyright */}
+          {/* SECCIÓN IZQUIERDA*/}
           <div className="footer-brand">
             <h3>🎓 UTN Pathfinder</h3>
             <p>De los Dinamics Pointers para la UTN.</p>
@@ -364,11 +374,10 @@ const onNodeClick = useCallback((event, node) => {
             <span className="copyright">© 2025 - Todos los derechos reservados - Hecho con ❤️ para la comunidad</span>
           </div>
 
-          {/* SECCIÓN DERECHA: Los Integrantes */}
+          {/* SECCIÓN DERECHA*/}
           <div className="footer-team">
             <h4>Desarrollado por:</h4>
             <div className="team-grid">
-              {/* Aquí usamos la lista que creamos arriba para generar los nombres */}
               {teamMembers.map((member, index) => (
                 <a 
                   key={index} 
