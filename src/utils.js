@@ -3,7 +3,6 @@
 // ============================================================
 // CONSTANTES DE CONFIGURACIÓN
 // ============================================================
-
 const NODE_WIDTH = 180;
 const X_SPACING = 250;
 const Y_SPACING = 150;
@@ -11,7 +10,6 @@ const Y_SPACING = 150;
 // ============================================================
 // PALETA DE COLORES
 // ============================================================
-
 const THEME = {
     light: {
         aprobada: { bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
@@ -22,11 +20,16 @@ const THEME = {
         aprobada: { bg: '#064e3b', border: '#34d399', text: '#ecfdf5' },
         disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' },
         bloqueada: { bg: '#1f2937', border: '#374151', text: '#4b5563' },
-        defaultText: '#eee'
+    },
+    // Tema Daltónico (Wong palette / alto contraste)
+    colorblind: {
+        aprobada: { bg: '#ffedd5', border: '#d55e00', text: '#9a3412' },
+        disponible: { bg: '#f0f9ff', border: '#56b4e9', text: '#0c4a6e' },
+        bloqueada: { bg: '#e5e5e5', border: '#000000', text: '#000000' },
     }
 };
 
-// Colores para las líneas según distancia
+// Colores para las líneas según distancia / tipo
 const EDGE_COLORS = {
     standard: '#94a3b8',   // Gris (Nivel 1 -> Nivel 2)
     longJump: '#a855f7',   // Violeta (Nivel 1 -> Nivel 3+)
@@ -38,7 +41,7 @@ const EDGE_COLORS = {
 export const getLayoutElements = (materias) => {
     const nodes = [];
     const edges = [];
-    
+
     try {
         if (typeof materias === 'string') materias = JSON.parse(materias);
     } catch (e) {
@@ -66,17 +69,17 @@ export const getLayoutElements = (materias) => {
     Object.keys(materiasPorNivel).forEach(nivelStr => {
         const nivel = parseInt(nivelStr);
         const listaMaterias = materiasPorNivel[nivel];
-        
-        const COLUMNAS_MAX = 20; 
+
+        const COLUMNAS_MAX = 20;
         const numColumnasNivel = Math.min(listaMaterias.length, COLUMNAS_MAX);
         const ANCHO_GRUPO = (numColumnasNivel - 1) * X_SPACING;
         const offsetX = (800 - ANCHO_GRUPO) / 2;
         const START_X = Math.max(0, offsetX);
-            
+
         listaMaterias.forEach((materia, index) => {
             const filaRelativa = Math.floor(index / COLUMNAS_MAX);
             const colRelativa = index % COLUMNAS_MAX;
-            
+
             const x = START_X + (colRelativa * X_SPACING);
             const y = ((nivel - 1) * (Y_SPACING * 2.5)) + (filaRelativa * Y_SPACING);
 
@@ -85,15 +88,9 @@ export const getLayoutElements = (materias) => {
                 data: { label: materia.nombre, originalData: materia, clickable: true },
                 position: { x, y },
                 style: {
-                    background: '#fff',
-                    border: '1px solid #777',
-                    borderRadius: '8px',
-                    width: NODE_WIDTH,
-                    padding: '10px',
-                    fontSize: '14px',
-                    textAlign: 'center',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                    transition: 'all 0.3s ease'
+                    background: '#fff', border: '1px solid #777', borderRadius: '8px',
+                    width: NODE_WIDTH, padding: '10px', fontSize: '14px', textAlign: 'center',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', transition: 'all 0.3s ease'
                 },
                 type: 'default',
             });
@@ -118,9 +115,8 @@ export const getLayoutElements = (materias) => {
             if (materia.requiere_para_cursar) {
                 materia.requiere_para_cursar.forEach(reqId => {
                     const tieneFinal = materia.requiere_para_final && materia.requiere_para_final.includes(reqId);
-                    
                     if (!tieneFinal) {
-                        // Calcular distancia
+                        // Calcular distancia usando nivelMap
                         const nivelSource = nivelMap[reqId] || 0;
                         const nivelTarget = nivel;
                         const distancia = Math.abs(nivelTarget - nivelSource);
@@ -128,7 +124,7 @@ export const getLayoutElements = (materias) => {
                         // Determinar color por distancia (Si es > 1 es un salto largo)
                         const edgeColor = distancia > 1 ? EDGE_COLORS.longJump : EDGE_COLORS.standard;
                         // Si es salto largo, la línea es un poco más gruesa
-                        const edgeWidth = distancia > 1 ? 2 : 1; 
+                        const edgeWidth = distancia > 1 ? 2 : 1;
 
                         edges.push({
                             id: `e-${reqId}-${materia.id}-cursada`,
@@ -136,8 +132,8 @@ export const getLayoutElements = (materias) => {
                             target: materia.id,
                             animated: true,
                             type: 'cursar',
-                            style: { 
-                                stroke: edgeColor, 
+                            style: {
+                                stroke: edgeColor,
                                 strokeDasharray: '5,5',
                                 strokeWidth: edgeWidth
                             },
@@ -154,14 +150,20 @@ export const getLayoutElements = (materias) => {
 // ---------------------------------------------------------
 // FUNCIÓN DE ESTILOS (NODOS)
 // ---------------------------------------------------------
-export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false) => {
-    const palette = isDarkMode ? THEME.dark : THEME.light;
+export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false, isColorblind = false) => {
+    // 1. SELECCIÓN DE PALETA: Si es daltónico, priorizamos el tema colorblind
+    let palette;
+    if (isColorblind) {
+        palette = THEME.colorblind;
+    } else {
+        palette = isDarkMode ? THEME.dark : THEME.light;
+    }
 
     return nodes.map(node => {
-        const mat = node.data.originalData;
+        const mat = node.data?.originalData;
         if (!mat) return node;
 
-        const estaAprobada = materiasAprobadasIds.includes(mat.id);
+        const estaAprobada = Array.isArray(materiasAprobadasIds) && materiasAprobadasIds.includes(mat.id);
         let newStyle = { ...node.style };
         let iconPrefix = "";
         let isClickable = false;
@@ -178,9 +180,9 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             cssClass = "node-approved";
         } else {
             const reqCursadas = mat.requiere_para_cursar || [];
-            const tieneCursadas = reqCursadas.every(reqId => materiasAprobadasIds.includes(reqId));
+            const tieneCursadas = reqCursadas.every(reqId => Array.isArray(materiasAprobadasIds) && materiasAprobadasIds.includes(reqId));
             const reqFinales = mat.requiere_para_final || [];
-            const tieneFinales = reqFinales.every(reqId => materiasAprobadasIds.includes(reqId));
+            const tieneFinales = reqFinales.every(reqId => Array.isArray(materiasAprobadasIds) && materiasAprobadasIds.includes(reqId));
             const correlativasCumplidas = tieneCursadas && tieneFinales;
 
             if (correlativasCumplidas) {
@@ -197,10 +199,16 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
                 newStyle.borderColor = palette.bloqueada.border;
                 newStyle.color = palette.bloqueada.text;
                 newStyle.cursor = 'not-allowed';
-                iconPrefix = "🔒 "; 
+                iconPrefix = "🔒 ";
                 isClickable = false;
                 cssClass = "node-blocked";
             }
+        }
+
+        // Si es daltónico, forzamos bordes más gruesos para diferenciar mejor
+        if (isColorblind) {
+            newStyle.borderWidth = '3px';
+            newStyle.borderStyle = estaAprobada ? 'solid' : (cssClass === "node-blocked" ? 'dashed' : 'solid');
         }
 
         return {
@@ -233,28 +241,20 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
     const nodeMap = new Map();
     allNodes.forEach(n => nodeMap.set(n.id, n));
 
-    // 1. SIN HOVER
+    // 1. SIN HOVER: restaurar visibilidad según viewMode
     if (!hoveredNodeId) {
         const visibleEdges = filterEdgesByMode(allEdges, viewMode);
         return {
-            nodes: allNodes.map(n => ({ 
-                ...n, 
-                className: '', 
-                style: { ...n.style, opacity: 1 } 
-            })),
+            nodes: allNodes.map(n => ({ ...n, className: '', style: { ...n.style, opacity: 1 } })),
             edges: allEdges.map(edge => {
                 const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
-                // Restaurar color original según lógica de Layout (Gris o Violeta)
-                // Para simplificar, recalculamos o confiamos en que 'edge.style' base no se mutó destructivamente
-                // PERO, para asegurar que vuelva al color correcto, necesitamos saber si era longJump.
-                // Truco: ReactFlow guarda el estilo original si no lo sobrescribimos permanentemente.
-                // Aquí simplemente devolvemos opacidad 1.
+                const baseStrokeWidth = edge.style?.strokeWidth ?? (edge.type === 'final' ? 2 : 1);
                 return {
                     ...edge,
                     className: '',
                     hidden: !isVisible,
                     animated: isVisible && edge.type === 'cursar',
-                    style: { ...edge.style, opacity: 1, strokeWidth: edge.type === 'final' ? 2 : (edge.style.stroke === EDGE_COLORS.longJump ? 2 : 1) }
+                    style: { ...edge.style, opacity: 1, strokeWidth: baseStrokeWidth }
                 };
             })
         };
@@ -282,13 +282,11 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
 
         if (isHovered) {
             newStyle.opacity = 1;
-            newStyle.borderColor = '#f59e0b'; // Naranja brillante selección
+            newStyle.borderColor = '#f59e0b';
             newStyle.borderWidth = '3px';
             newStyle.zIndex = 2000;
             className = 'selected-hover';
         } else if (isNeighbor) {
-            // Aquí también podriamos pintar el borde del nodo vecino según cercanía,
-            // pero mantengámoslo en azul para uniformidad por ahora.
             newStyle.opacity = 1;
             newStyle.borderColor = isDarkMode ? '#60a5fa' : '#3b82f6';
             newStyle.borderWidth = '3px';
@@ -298,6 +296,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             newStyle.opacity = 0.2;
             newStyle.zIndex = 1;
         }
+
         return { ...node, className, style: newStyle };
     });
 
@@ -308,7 +307,6 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         if (!isVisible) return { ...edge, hidden: true };
 
         const isConnected = connectedEdgeIds.has(eid);
-
         if (isConnected) {
             // Calcular niveles para el color
             const sourceNode = nodeMap.get(edge.source);
@@ -319,7 +317,6 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
 
             // LOGICA DE COLOR EN HOVER:
             let highlightColor;
-            
             if (edge.type === 'final') {
                 highlightColor = EDGE_COLORS.final; // Siempre rojo para finales
             } else if (dist > 1) {
@@ -334,7 +331,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
                 className: 'active',
                 animated: true,
                 style: {
-                    ...edge.style, // Mantiene dasharray si existe
+                    ...edge.style,
                     stroke: highlightColor,
                     strokeWidth: 3,
                     opacity: 1,
