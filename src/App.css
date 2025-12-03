@@ -471,3 +471,39 @@ MEJORA DE CONEXIONES
   .footer-brand { text-align: center; }
   .team-grid { grid-template-columns: 1fr; }
 }
+
+.utn-logo-svg {
+  /* Queremos que los cambios de posición y giro sean suaves */
+  /* Usamos una curva "cubic-bezier" para darle un efecto de rebote elástico */
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.2s ease;
+
+  /* Aseguramos que el punto de pivote para el giro sea el centro */
+  transform-origin: center;
+  
+  /* Un pequeño filtro para que brille un poco en modo oscuro */
+  filter: drop-shadow(0 0 2px rgba(255,255,255,0.1));
+}
+
+.utn-logo-svg:hover {
+  /* EFECTO SALTO Y GIRO: */
+  /* Se mueve 15px hacia arriba (salto) Y gira 360 grados */
+  transform: translateY(-15px) rotate(360deg);
+
+  /* EFECTO COLORINES: */
+  /* Ejecuta la animación 'rainbow-party' de forma infinita mientras el mouse esté encima */
+  /* 'linear' hace que el cambio de color sea constante */
+  animation: rainbow-party 1.5s linear infinite;
+  
+  /* Sombra más intensa durante el efecto */
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+  cursor: grab; /* Un cursor divertido */
+}
+
+@keyframes rainbow-party {
+  0%   { fill: #ff0000; } /* Rojo */
+  20%  { fill: #ff9a00; } /* Naranja */
+  40%  { fill: #d0de21; } /* Lima */
+  60%  { fill: #4fdc4a; } /* Verde */
+  80%  { fill: #3fdad8; } /* Cian */
+  100% { fill: #ce42ff; } /* Violeta (y vuelve a empezar) */
+}
