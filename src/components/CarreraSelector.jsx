@@ -5,9 +5,8 @@ import './CarreraSelector.css';
 const CARRERAS_INFO = {
   'tup': { label: 'TUP - Programación', icon: '💻' },
   'admi': { label: 'TUA - Administración', icon: '📑' },
-  'civil': { label: 'Ing. Civil', icon: '🏗️' },
-  'automotriz': { label: 'Ind. Automotriz', icon: '🚗' },
-  'electrica': { label: 'Ing. Eléctrica', icon: '⚡' }
+  'moldes': { label: 'TSMMYD - Moldes, Matrices y Dispositivos', icon: '🔨' },
+  'automotriz': { label: 'TSGIA - Automotriz', icon: '🚗' },
 };
 
 export default function CarreraSelector({ currentCarrera, onSelect }) {
