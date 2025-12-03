@@ -4,7 +4,6 @@ const NODE_WIDTH = 180;
 const X_SPACING = 250;
 const Y_SPACING = 150;
 
-// --- PALETA DE COLORES ---
 const THEME = {
     light: {
         aprobada: { bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
@@ -13,23 +12,19 @@ const THEME = {
         defaultText: '#333'
     },
     dark: {
-        aprobada: { bg: '#064e3b', border: '#34d399', text: '#ecfdf5' }, // Verde oscuro fondo, texto claro
-        disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' }, // Azul oscuro fondo, texto blanco
-        bloqueada: { bg: '#1f2937', border: '#374151', text: '#4b5563' }, // Gris muy oscuro
+        aprobada: { bg: '#064e3b', border: '#34d399', text: '#ecfdf5' }, 
+        disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' }, 
+        bloqueada: { bg: '#1f2937', border: '#374151', text: '#4b5563' }, 
         defaultText: '#eee'
     }
 };
 
 export const getLayoutElements = () => {
-  // ... (Esta parte de getLayoutElements NO CAMBIA, déjala igual que antes)
-  // Solo copio el inicio para contexto, pero mantén la lógica de posiciones igual.
+  // ... (Esta parte NO CAMBIA, mantenla igual) ...
+  // Copia el contenido de getLayoutElements que ya tenías
   const nodes = [];
   const edges = [];
   const materiasPorNivel = {};
-  
-  // ... (Mantén tu lógica de forEach y calculo de X, Y aquí) ...
-  // COPIA PEGA TU FUNCIÓN getLayoutElements ANTERIOR AQUÍ COMPLETA
-  // (Para ahorrar espacio en el chat, asumo que mantienes la lógica de posiciones)
   
   materias.forEach(m => {
     if (!materiasPorNivel[m.nivel]) materiasPorNivel[m.nivel] = [];
@@ -52,6 +47,7 @@ export const getLayoutElements = () => {
         data: { label: materia.nombre, originalData: materia, clickable: true },
         position: { x, y },
         style: { 
+            // Estilos base
             background: '#fff', border: '1px solid #777', borderRadius: '8px',
             width: NODE_WIDTH, padding: '10px', fontSize: '14px', textAlign: 'center',
             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', transition: 'all 0.3s ease'
@@ -59,6 +55,7 @@ export const getLayoutElements = () => {
         type: 'default',
       });
 
+      // Edges Finales
       materia.requiere_para_final.forEach(reqId => {
         edges.push({
           id: `e-${reqId}-${materia.id}-final`, source: reqId, target: materia.id,
@@ -66,6 +63,7 @@ export const getLayoutElements = () => {
         });
       });
 
+      // Edges Cursadas
       materia.requiere_para_cursar.forEach(reqId => {
         if (!materia.requiere_para_final.includes(reqId)) {
             edges.push({
@@ -80,11 +78,9 @@ export const getLayoutElements = () => {
   return { nodes, edges };
 };
 
-// --- MODIFICAMOS ESTA FUNCIÓN ---
-// Ahora recibe isDarkMode (default false)
+// --- MODIFICACIÓN DE CLASES CSS AQUÍ ---
 export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false) => {
     
-    // Seleccionamos la paleta
     const palette = isDarkMode ? THEME.dark : THEME.light;
 
     return nodes.map(node => {
@@ -94,6 +90,9 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
         let newStyle = { ...node.style };
         let iconPrefix = ""; 
         let isClickable = false; 
+        
+        // Nueva variable para la clase CSS
+        let cssClass = ""; 
 
         if (estaAprobada) {
             // CASO 1: APROBADA
@@ -104,6 +103,7 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             newStyle.cursor = 'pointer'; 
             iconPrefix = "✅ "; 
             isClickable = true; 
+            cssClass = "node-approved"; // Clase para aprobadas
             
         } else {
             const correlativasCumplidas = mat.requiere_para_cursar.every(reqId => 
@@ -111,7 +111,7 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             );
 
             if (correlativasCumplidas) {
-                // CASO 2: DISPONIBLE
+                // CASO 2: DISPONIBLE (Aquí va la magia)
                 newStyle.background = palette.disponible.bg; 
                 newStyle.borderColor = palette.disponible.border; 
                 newStyle.color = palette.disponible.text;
@@ -119,6 +119,7 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
                 newStyle.cursor = 'pointer'; 
                 iconPrefix = ""; 
                 isClickable = true; 
+                cssClass = "node-available"; // <--- ESTA ES LA CLAVE
                 
             } else {
                 // CASO 3: BLOQUEADA
@@ -128,11 +129,13 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
                 newStyle.cursor = 'not-allowed'; 
                 iconPrefix = "❌ ";
                 isClickable = false; 
+                cssClass = "node-blocked";
             }
         }
 
         return {
             ...node,
+            className: cssClass, // Inyectamos la clase al nodo de ReactFlow
             data: { 
                 ...node.data, 
                 label: `${iconPrefix}${mat.nombre}`,

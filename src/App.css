@@ -25,7 +25,6 @@ body, html, #root {
   background-color: #111827; /* Fondo oscuro */
   color: #f3f4f6;
 }
-/* -------------------------- */
 
 .main-header {
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
@@ -38,14 +37,12 @@ body, html, #root {
   z-index: 10;
 }
 
-/* Contenedor de acciones del header */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-/* Botón del sol/luna */
 .theme-toggle {
   background: rgba(255,255,255,0.2);
   border: none;
@@ -80,7 +77,6 @@ body, html, #root {
 .flow-container {
   flex: 1; 
   position: relative;
-  /* Quitamos el background color de aquí para que herede del padre */
 }
 
 /* Leyenda Flotante */
@@ -99,14 +95,10 @@ body, html, #root {
   transition: background 0.3s ease;
 }
 
-/* Leyenda en Modo Oscuro */
 .instructions.dark {
   background: #1f2937;
   color: #f3f4f6;
   border: 1px solid #374151;
-}
-.instructions.dark .leyenda-item {
-  color: #f3f4f6;
 }
 
 .leyenda-item {
@@ -114,6 +106,9 @@ body, html, #root {
   align-items: center;
   gap: 6px;
   color: #333;
+}
+.instructions.dark .leyenda-item {
+  color: #f3f4f6;
 }
 
 .dot {
@@ -127,19 +122,50 @@ body, html, #root {
 .dot.amarillo { background-color: #fef9c3; border: 2px solid #ca8a04; }
 .dot.gris { background-color: #f3f4f6; border: 2px solid #e5e7eb; }
 
-/* En modo oscuro, ajustamos los puntitos de la leyenda también para que resalten */
 .instructions.dark .dot.gris { background-color: #374151; border-color: #4b5563; }
 .instructions.dark .dot.amarillo { background-color: #1e293b; border-color: #60a5fa; }
 .instructions.dark .dot.verde { background-color: #064e3b; border-color: #34d399; }
 
+
+/* --- EFECTOS DINÁMICOS DE NODOS (FIXED) --- */
+
 .react-flow__node {
-  font-weight: 500;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  /* Transición suave solo para propiedades seguras */
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.react-flow__node:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+/* 1. EFECTO PARA DISPONIBLES (Neon Glow) */
+/* IMPORTANTE: No usamos 'transform' aquí porque rompe la posición X/Y de ReactFlow */
+.react-flow__node.node-available:hover {
+  z-index: 1000; /* Traer al frente */
+  
+  /* Simulamos el "pop" con una sombra muy difusa y un borde grueso */
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.3), /* Halo exterior */
+    0 20px 25px -5px rgba(59, 130, 246, 0.4), /* Sombra profunda azulada */
+    0 8px 10px -6px rgba(59, 130, 246, 0.4) !important;
+    
+  border-color: #2563eb !important;
+  background-color: #eff6ff !important; /* Un blanco azulado muy sutil */
+}
+
+/* 2. EFECTO PARA APROBADAS */
+.react-flow__node.node-approved:hover {
+  z-index: 1000;
+  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.4) !important;
+}
+
+/* 3. EFECTO PARA BLOQUEADAS */
+.react-flow__node.node-blocked:hover {
+  cursor: not-allowed;
+  opacity: 0.7; /* Se apaga un poco */
+}
+
+/* Ajuste para modo oscuro */
+.app-container.dark-mode .react-flow__node.node-available:hover {
+  box-shadow: 
+    0 0 0 4px rgba(96, 165, 250, 0.2),
+    0 20px 25px -5px rgba(96, 165, 250, 0.4) !important;
+  border-color: #60a5fa !important;
+  background-color: #1e40af !important; /* Azul más intenso en modo oscuro */
 }
