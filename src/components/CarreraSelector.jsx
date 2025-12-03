@@ -4,7 +4,7 @@ import './CarreraSelector.css';
 // Diccionario de IDs vs Nombres Bonitos + Iconos
 const CARRERAS_INFO = {
   'tup': { label: 'TUP - Programación', icon: '💻' },
-  'mecanica': { label: 'Ing. Mecánica', icon: '⚙️' },
+  'admi': { label: 'TUA - Administración', icon: '📑' },
   'civil': { label: 'Ing. Civil', icon: '🏗️' },
   'automotriz': { label: 'Ind. Automotriz', icon: '🚗' },
   'electrica': { label: 'Ing. Eléctrica', icon: '⚡' }

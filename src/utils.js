@@ -14,6 +14,8 @@ const X_SPACING = 250;
 // Espacio vertical entre materias (en píxeles)
 const Y_SPACING = 150;
 
+
+
 // ============================================================
 // PALETA DE COLORES PARA LOS TEMAS CLARO/OSCURO
 // Similar a definir structs con colores en C++
@@ -51,8 +53,19 @@ export const getLayoutElements = (materias) => {
     const nodes = [];
     const edges = [];
     
+    // Si recibes un string JSON, intentar parsearlo
+    try {
+        if (typeof materias === 'string') materias = JSON.parse(materias);
+    } catch (e) {
+        console.error('getLayoutElements: error parseando JSON de materias', e);
+        return { nodes, edges };
+    }
+
     // Validamos que materias sea un array, si no, devolvemos vacío
-    if (!Array.isArray(materias)) return { nodes, edges };
+    if (!Array.isArray(materias)) {
+        console.warn('getLayoutElements: se esperaba un array de materias');
+        return { nodes, edges };
+    }
 
     // ---------------------------------------------------------
     // PASO 1: AGRUPAR MATERIAS POR NIVEL
@@ -62,7 +75,7 @@ export const getLayoutElements = (materias) => {
     materias.forEach(m => {
         // Si no tiene nivel, asumimos nivel 1 o usamos posY + 1 como fallback
         const nivel = m.nivel || (m.posY ? m.posY + 1 : 1);
-        
+        // <-- QUITAR LA REDECLARACIÓN QUE BORRABA EL OBJETO
         if (!materiasPorNivel[nivel]) {
             materiasPorNivel[nivel] = [];
         }
@@ -72,19 +85,38 @@ export const getLayoutElements = (materias) => {
     // ---------------------------------------------------------
     // PASO 2: CREAR NODOS (POSICIONAMIENTO)
     // ---------------------------------------------------------
-    Object.keys(materiasPorNivel).forEach(nivelStr => {
+ 
+        Object.keys(materiasPorNivel).forEach(nivelStr => {
         const nivel = parseInt(nivelStr);
         const listaMaterias = materiasPorNivel[nivel];
-        const COLUMNAS_MAX = 4; // Máximo de materias por fila visual
+        
+        // 1. Usaremos un máximo de 4 columnas para el diseño actual.
+        const COLUMNAS_MAX = 100; // Máximo de materias por fila visual
 
-        listaMaterias.forEach((materia, index) => {
+        // --- CÁLCULO DE CENTRADO HORIZONTAL (Añadido) ---
+        // Calcula cuántas columnas realmente usará la primera fila del nivel
+        const numColumnasNivel = Math.min(listaMaterias.length, COLUMNAS_MAX);
+        
+        // 1. Calcular el ancho total del grupo que se mostrará en la primera línea.
+        const ANCHO_GRUPO = (numColumnasNivel - 1) * X_SPACING;
+        
+        // 2. Calcular el desplazamiento X necesario para centrar.
+        // Usamos 800px como punto de referencia.
+        const offsetX = (800 - ANCHO_GRUPO) / 2;
+        const START_X = Math.max(0, offsetX);
+            
+
+            listaMaterias.forEach((materia, index) => {
             // Cálculo de posición en grilla
             const filaRelativa = Math.floor(index / COLUMNAS_MAX);
             const colRelativa = index % COLUMNAS_MAX;
             
-            const x = colRelativa * X_SPACING;
-            // Separación vertical mayor entre niveles distintos
-            const y = ((nivel - 1) * (Y_SPACING * 1.5)) + (filaRelativa * Y_SPACING);
+            // 1. Posición X: Usa el desplazamiento calculado para centrar.
+            const x = START_X + (colRelativa * X_SPACING);
+            
+        // 2. Posición Y: AUMENTAR el factor de 1.5 a 2.5 para separar los niveles.
+        // Esto es la clave para resolver el solapamiento.
+        const y = ((nivel - 1) * (Y_SPACING * 2.5)) + (filaRelativa * Y_SPACING);
 
             nodes.push({
                 id: materia.id,
@@ -229,78 +261,92 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
 };
 
 // Función auxiliar para filtrar (necesaria para que App.jsx no se rompa)
-export const filterEdgesByMode = (edges, viewMode) => {
+export const filterEdgesByMode = (edges, viewMode = 'todas') => {
+    if (!Array.isArray(edges)) return [];
+
     if (viewMode === 'todas') return edges;
     if (viewMode === 'cursar') return edges.filter(e => e.type === 'cursar');
     if (viewMode === 'final') return edges.filter(e => e.type === 'final');
-    // ... simplificada logic ...
+
+    // si viewMode es un set/array de tipos permitidos
+    if (Array.isArray(viewMode)) return edges.filter(e => viewMode.includes(e.type));
     return edges;
 };
 
-// Función auxiliar para highlight (necesaria para que App.jsx no se rompa)
-export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false) => {
-    // 1. Si no hay mouse encima de nada, devolvemos todo normal (limpio)
+// Función auxiliar para highlight (resalta nodo y sus conexiones según filtro de modo)
+export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas') => {
+    // Aseguramos arrays válidos
+    const allNodes = Array.isArray(nodes) ? nodes : [];
+    const allEdges = Array.isArray(edges) ? edges : [];
+
+    // Filtrar edges visibles según viewMode
+    const visibleEdges = filterEdgesByMode(allEdges, viewMode);
+
+    // Helper para obtener id consistente de edge
+    const edgeIdOf = (edge) => edge.id || `${edge.source}->${edge.target}`;
+
+    // Si no hay hover: restaurar estilos pero respetando el filtro de modo (ocultar edges no visibles)
     if (!hoveredNodeId) {
-        return { 
-            nodes: nodes.map(node => ({ 
-                ...node, 
-                className: '',        // Sin clases extra
-                selected: false,
-                style: { ...node.style, opacity: 1 } // Opacidad total
-            })), 
-            edges: edges.map(edge => ({ 
-                ...edge, 
+        return {
+            nodes: allNodes.map(node => ({
+                ...node,
                 className: '',
-                animated: edge.type === 'cursar', // Restauramos animación de cursada
-                style: { ...edge.style, opacity: 1, strokeWidth: edge.type === 'final' ? 2 : 1 }
-            }))
+                selected: false,
+                style: { ...node.style, opacity: 1 }
+            })),
+            edges: allEdges.map(edge => {
+                const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
+                return {
+                    ...edge,
+                    className: isVisible ? '' : 'hidden',
+                    animated: isVisible ? (edge.type === 'cursar') : false,
+                    style: {
+                        ...edge.style,
+                        opacity: isVisible ? 1 : 0,
+                        strokeWidth: isVisible ? (edge.type === 'final' ? 2 : (edge.style && edge.style.strokeWidth) || 1) : 0
+                    }
+                };
+            })
         };
     }
 
-    // 2. Si hay un nodo seleccionado, identificamos sus conexiones
-    const connectedNodeIds = new Set();
+    // Determinar conexiones usando solo edges visibles
     const connectedEdgeIds = new Set();
+    const connectedNodeIds = new Set([hoveredNodeId]);
 
-    edges.forEach(edge => {
-        // Si el edge sale o entra al nodo seleccionado
+    visibleEdges.forEach(edge => {
+        const eid = edgeIdOf(edge);
         if (edge.source === hoveredNodeId || edge.target === hoveredNodeId) {
-            connectedEdgeIds.add(edge.id);
+            connectedEdgeIds.add(eid);
             connectedNodeIds.add(edge.source);
             connectedNodeIds.add(edge.target);
         }
     });
 
-    // 3. Aplicamos estilos a los NODOS
-    const highlightedNodes = nodes.map(node => {
-        // ¿Es el nodo donde está el mouse?
+    // Aplicar estilos a nodos
+    const highlightedNodes = allNodes.map(node => {
         const isHovered = node.id === hoveredNodeId;
-        // ¿Es un vecino directo?
         const isNeighbor = connectedNodeIds.has(node.id);
 
         let newStyle = { ...node.style };
         let className = '';
 
         if (isHovered) {
-            // Estilo para el nodo PRINCIPAL (Naranja/Dorado)
-            newStyle.borderColor = '#f59e0b'; 
+            newStyle.borderColor = '#f59e0b';
             newStyle.borderWidth = '3px';
             newStyle.boxShadow = '0 0 15px rgba(245, 158, 11, 0.5)';
-            newStyle.zIndex = 2000; // Traer al frente
+            newStyle.zIndex = 2000;
             newStyle.opacity = 1;
             className = 'selected-hover';
-
         } else if (isNeighbor) {
-            // Estilo para los VECINOS (Azul brillante)
             newStyle.borderColor = isDarkMode ? '#60a5fa' : '#2563eb';
             newStyle.borderWidth = '2px';
-            newStyle.boxShadow = isDarkMode ? '0 0 10px rgba(96, 165, 250, 0.3)' : '0 0 10px rgba(37, 99, 235, 0.3)';
+            newStyle.boxShadow = isDarkMode ? '0 0 10px rgba(96,165,250,0.3)' : '0 0 10px rgba(37,99,235,0.3)';
             newStyle.opacity = 1;
             newStyle.zIndex = 1500;
             className = 'connected';
-
         } else {
-            // Estilo para los NO RELACIONADOS (Opacos/Apagados)
-            newStyle.opacity = 0.2; // Se vuelven casi invisibles
+            newStyle.opacity = 0.2;
             newStyle.borderColor = isDarkMode ? '#374151' : '#e5e7eb';
             newStyle.zIndex = 1;
         }
@@ -312,23 +358,32 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         };
     });
 
-    // 4. Aplicamos estilos a las CONEXIONES (Edges)
-    const highlightedEdges = edges.map(edge => {
-        // ¿Esta conexión sale o llega al nodo seleccionado?
-        const isConnectedToHover = connectedEdgeIds.has(edge.id);
+    // Aplicar estilos a edges: solo los edges visibles pueden resaltarse; los demás se ocultan
+    const highlightedEdges = allEdges.map(edge => {
+        const eid = edgeIdOf(edge);
+        const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === eid);
+        const isConnectedToHover = connectedEdgeIds.has(eid);
+
+        if (!isVisible) {
+            return {
+                ...edge,
+                className: 'hidden',
+                animated: false,
+                style: { ...edge.style, opacity: 0, strokeWidth: 0 }
+            };
+        }
 
         return {
             ...edge,
             className: isConnectedToHover ? 'active' : 'inactive',
-            animated: isConnectedToHover ? true : false, // Animamos si está activa
+            animated: isConnectedToHover ? true : false,
             style: {
                 ...edge.style,
-                // Si está conectada: Opaca y gruesa. Si no: muy transparente
-                opacity: isConnectedToHover ? 1 : 0.05, 
+                opacity: isConnectedToHover ? 1 : 0.12,
                 strokeWidth: isConnectedToHover ? 3 : 1,
-                stroke: isConnectedToHover 
-                    ? (edge.type === 'final' ? '#ef4444' : (isDarkMode ? '#fff' : '#000')) // Color resaltado
-                    : edge.style.stroke, // Color original si está apagada
+                stroke: isConnectedToHover
+                    ? (edge.type === 'final' ? '#ef4444' : (isDarkMode ? '#fff' : '#000'))
+                    : (edge.style && edge.style.stroke) || '#999',
                 zIndex: isConnectedToHover ? 2000 : 0
             }
         };
