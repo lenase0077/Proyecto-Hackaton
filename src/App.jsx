@@ -64,29 +64,22 @@ export default function App() {
         </div>
         
         <div className="header-actions">
-           {/* 4. Botón Toggle */}
-          <button onClick={toggleTheme} className="theme-toggle">
-            {isDarkMode ? '😎' : '🌚'}
-          </button>
-          
-          <div className="stats-card">
-              <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
-          </div>
-        </div>
-      </header>
+                <button onClick={toggleTheme} className="theme-toggle">
+                {isDarkMode ? '😎' : '🌚'}
+                </button>
+                
+                <div className="stats-card">
+                  <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
+                </div>
+              </div>
+              </header>
 
-      {/* Nueva sección para mostrar la carrera seleccionada */}
-      <div>
-        <h2>Selecciona tu carrera</h2>
-        <CarreraSelector onSelect={setCarreraSeleccionada} />
-        {carreraSeleccionada && (
-          <div style={{ marginTop: '2rem', fontSize: '1.2rem' }}>
-            Has seleccionado: <strong>{carreraSeleccionada}</strong>
-          </div>
-        )}
-      </div>
+              <div style={{ textAlign: 'center' }}>
+                <h2 style={{ textAlign: 'center' }}>Selecciona tu carrera</h2>
+                <CarreraSelector onSelect={setCarreraSeleccionada} isDarkMode={isDarkMode} />
+              </div>
 
-      {/* ÁREA DEL GRAFO */}
+              {/* ÁREA DEL GRAFO */}
       <div className="flow-container">
         <ReactFlow
           nodes={nodes}

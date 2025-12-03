@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import './CarreraSelector.css';
 
 const carreras = [
-  'Ingeniería',
-  'Medicina',
-  'Derecho',
-  'Arquitectura',
-  'Psicología',
+  'Administración',
+  'Gestión de la Industria Automotríz',
+  'Moldes, Matrices y Dispositivos',
+  'Programación',
 ];
 
-export default function CarreraSelector({ onSelect }) {
+export default function CarreraSelector({ onSelect, isDarkMode }) {
   const [selected, setSelected] = useState(null);
 
   const handleSelect = (carrera) => {
@@ -18,7 +17,7 @@ export default function CarreraSelector({ onSelect }) {
   };
 
   return (
-    <div className="carrera-selector">
+    <div className={`carrera-selector${isDarkMode ? ' dark' : ''}`}>
       {carreras.map((carrera) => (
         <button
           key={carrera}

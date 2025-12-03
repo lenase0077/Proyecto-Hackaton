@@ -26,3 +26,22 @@
   transform: scale(1.1);
   box-shadow: 0 4px 20px rgba(0,120,212,0.2);
 }
+
+.carrera-selector.dark {
+  background: transparent;
+}
+
+.carrera-selector.dark .carrera-btn {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+.carrera-selector.dark .carrera-btn.selected {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.2);
+}
+
+.carrera-selector.dark .carrera-btn:hover {
+  background: #374151;
+}
