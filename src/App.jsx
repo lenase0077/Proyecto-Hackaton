@@ -98,11 +98,12 @@ export default function App() {
     // 2. Estilos de Líneas
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
         styledNodes, 
-        hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode), 
+        hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode, styledNodes, aprobadas), 
         hoveredNodeId,
         isDarkMode,
         viewMode,
-        isColorblind
+        isColorblind,
+        aprobadas
     );
     
     setNodes(finalNodes);

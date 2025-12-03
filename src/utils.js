@@ -237,11 +237,58 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
 // ---------------------------------------------------------
 // FILTRO (Mira data.tipo)
 // ---------------------------------------------------------
-export const filterEdgesByMode = (edges, viewMode = 'todas') => {
+export const filterEdgesByMode = (edges, viewMode = 'todas', nodes = [], materiasAprobadasIds = []) => {
     if (!Array.isArray(edges)) return [];
     if (viewMode === 'todas') return edges;
     if (viewMode === 'cursar') return edges.filter(e => e.data?.tipo === 'cursar');
     if (viewMode === 'final') return edges.filter(e => e.data?.tipo === 'final');
+    
+    // MODO SIMPLIFICADA: mostrar solo líneas que conectan disponibles con lo que desbloquean
+    if (viewMode === 'simplificada') {
+        // Crear mapa de nodos para acceso rápido
+        const nodeMap = new Map();
+        nodes.forEach(n => nodeMap.set(n.id, n));
+        
+        // Identificar qué nodos están disponibles (no aprobados pero con correlativas cumplidas)
+        const nodosDisponibles = new Set();
+        nodes.forEach(node => {
+            const mat = node.data?.originalData;
+            if (!mat) return;
+            
+            const estaAprobada = materiasAprobadasIds.includes(mat.id);
+            if (!estaAprobada) {
+                const reqCursadas = mat.requiere_para_cursar || [];
+                const tieneCursadas = reqCursadas.every(reqId => materiasAprobadasIds.includes(reqId));
+                const reqFinales = mat.requiere_para_final || [];
+                const tieneFinales = reqFinales.every(reqId => materiasAprobadasIds.includes(reqId));
+                
+                if (tieneCursadas && tieneFinales) {
+                    nodosDisponibles.add(mat.id);
+                }
+            }
+        });
+        
+        // Filtrar edges: solo los que salen de nodos disponibles o aprobados
+        return edges.filter(edge => {
+            const sourceNode = nodeMap.get(edge.source);
+            const targetNode = nodeMap.get(edge.target);
+            
+            if (!sourceNode || !targetNode) return false;
+            
+            const sourceMat = sourceNode.data?.originalData;
+            const targetMat = targetNode.data?.originalData;
+            
+            if (!sourceMat || !targetMat) return false;
+            
+            // Incluir si el source es disponible o aprobado, y va hacia el target
+            const sourceEsDisponibleOAprobado = 
+                nodosDisponibles.has(sourceMat.id) || 
+                materiasAprobadasIds.includes(sourceMat.id);
+            
+            return sourceEsDisponibleOAprobado;
+        });
+    }
+    
     if (Array.isArray(viewMode)) return edges.filter(e => viewMode.includes(e.data?.tipo));
     return edges;
 };
@@ -249,7 +296,7 @@ export const filterEdgesByMode = (edges, viewMode = 'todas') => {
 // ---------------------------------------------------------
 // HIGHLIGHT ACTUALIZADO (Logic Main + Accessibility Head)
 // ---------------------------------------------------------
-export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas', isColorblind = false) => {
+export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas', isColorblind = false, materiasAprobadasIds = []) => {
     const allNodes = Array.isArray(nodes) ? nodes : [];
     const allEdges = Array.isArray(edges) ? edges : [];
     const edgeIdOf = (edge) => edge.id || `${edge.source}->${edge.target}`;
@@ -260,9 +307,30 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
 
     // 1. SIN HOVER
     if (!hoveredNodeId) {
-        const visibleEdges = filterEdgesByMode(allEdges, viewMode);
+        const visibleEdges = filterEdgesByMode(allEdges, viewMode, allNodes, materiasAprobadasIds);
+        
+        // En modo simplificada, identificar nodos conectados
+        let connectedNodeIds = new Set();
+        if (viewMode === 'simplificada') {
+            visibleEdges.forEach(edge => {
+                connectedNodeIds.add(edge.source);
+                connectedNodeIds.add(edge.target);
+            });
+        }
+        
         return {
-            nodes: allNodes.map(n => ({ ...n, className: '', style: { ...n.style, opacity: 1 } })),
+            nodes: allNodes.map(n => {
+                let nodeStyle = { ...n.style, opacity: 1 };
+                let hidden = false;
+                
+                // En modo simplificada, ocultar nodos no conectados
+                if (viewMode === 'simplificada' && !connectedNodeIds.has(n.id)) {
+                    nodeStyle.opacity = 0;
+                    hidden = true;
+                }
+                
+                return { ...n, className: '', style: nodeStyle, hidden };
+            }),
             edges: allEdges.map(edge => {
                 const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
                 const isFinal = edge.data?.tipo === 'final';
@@ -293,7 +361,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
     }
 
     // 2. CON HOVER
-    const visibleEdges = filterEdgesByMode(allEdges, viewMode);
+    const visibleEdges = filterEdgesByMode(allEdges, viewMode, allNodes, materiasAprobadasIds);
     const connectedEdgeIds = new Set();
     const connectedNodeIds = new Set([hoveredNodeId]);
 
@@ -311,6 +379,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         const isNeighbor = connectedNodeIds.has(node.id);
         let newStyle = { ...node.style };
         let className = '';
+        let hidden = false;
 
         if (isHovered) {
             newStyle.opacity = 1;
@@ -328,8 +397,13 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         } else {
             newStyle.opacity = 0.2;
             newStyle.zIndex = 1;
+            // En modo simplificada, ocultar completamente los nodos no conectados en hover
+            if (viewMode === 'simplificada') {
+                newStyle.opacity = 0;
+                hidden = true;
+            }
         }
-        return { ...node, className, style: newStyle };
+        return { ...node, className, style: newStyle, hidden };
     });
 
     // B. Estilar EDGES
