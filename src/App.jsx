@@ -134,78 +134,102 @@ export default function App() {
   };
 
 const onNodeClick = useCallback((event, node) => {
-    // Si la materia está bloqueada o no es clickeable, salimos
+    // 1. Si está bloqueada, no hacemos nada
     if (!node.data?.clickable) return;
     
     const matId = node.id;
-    const yaEstabaAprobada = aprobadas.includes(matId);
+    // Obtenemos el nivel (1, 2, 3...) para saber qué estamos completando
+    const matNivel = node.data?.originalData?.nivel; 
 
-    // --- LÓGICA DE ESTADO (Primero actualizamos la lista) ---
-    // Usamos una variable temporal 'nuevasAprobadas' para poder verificar la victoria al instante
+    const yaEstabaAprobada = aprobadas.includes(matId);
     let nuevasAprobadas;
-    
+
+    // --- LÓGICA DE ACTUALIZACIÓN ---
     if (yaEstabaAprobada) {
-        // Si ya estaba, la quitamos
+        // Desmarcar (borrar)
         nuevasAprobadas = aprobadas.filter(id => id !== matId);
     } else {
-        // Si no estaba, la agregamos
+        // Marcar (Aprobar)
         nuevasAprobadas = [...aprobadas, matId];
-        
-        // --- EFECTO 1: POP (Siempre que aprobamos una materia individual) ---
-        const audioPop = new Audio('/sounds/pop.mp3'); 
-        audioPop.volume = 0.5; 
-        audioPop.playbackRate = 0.8 + Math.random() * 0.4;
-        audioPop.preservesPitch = false;
 
-        audioPop.play().catch(e => console.error("Error audio pop:", e));
+        // =======================================================
+        // ZONA DE EFECTOS DE SONIDO Y FIESTA
+        // =======================================================
         
-        // --- EFECTO 2: VICTORIA (Solo si completamos TODA la carrera) ---
-        // 1. Obtenemos el total de materias de la carrera actual
-        const totalMaterias = nodes.filter(n => n.type !== 'input').length; // Filtramos por si acaso
-        // O más directo si tu JSON solo tiene materias:
-        // const totalMaterias = nodes.length;
+        // A. Cálculos para saber si completamos algo
+        const materiasDelNivel = nodes.filter(n => n.data?.originalData?.nivel === matNivel);
+        const totalNivel = materiasDelNivel.length;
+        const aprobadasNivel = materiasDelNivel.filter(n => nuevasAprobadas.includes(n.id)).length;
+        
+        const totalCarrera = nodes.filter(n => n.type !== 'input').length;
+        const carreraCompletada = nuevasAprobadas.length === totalCarrera;
 
-        // 2. Comparamos si ya tenemos todas
-        if (nuevasAprobadas.length === totalMaterias) {
+        // B. Decidir qué celebrar
+        if (carreraCompletada) {
+             // ----------------------------------------------------
+             // CASO 1: CARRERA COMPLETADA (Juego Terminado)
+             // ----------------------------------------------------
              console.log("¡CARRERA COMPLETADA!");
              
-             // A. Música de Victoria
-             const audioVictory = new Audio('/sounds/victory.mp3'); // Asegúrate que el nombre coincida
+             // Sonido: Victory (Final)
+             const audioVictory = new Audio('/sounds/victory.mp3');
              audioVictory.volume = 0.6;
-             audioVictory.play().catch(e => console.error("Error audio victory:", e));
+             audioVictory.play().catch(e => console.error(e));
 
-             // B. Súper Confeti Espectacular (Explosión lateral)
+             // Visual: Confeti Épico (Lluvia infinita por 3 seg)
              if (window.confetti) {
-                // Disparamos confeti por 3 segundos
                 const duration = 3000;
                 const end = Date.now() + duration;
-
                 (function frame() {
-                  // Lanza confeti desde la izquierda y derecha
-                  window.confetti({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
-                    colors: ['#3b82f6', '#10b981', '#f59e0b']
-                  });
-                  window.confetti({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
-                    colors: ['#3b82f6', '#10b981', '#f59e0b']
-                  });
-
-                  if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                  }
+                  window.confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#3b82f6', '#10b981', '#f59e0b'] });
+                  window.confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3b82f6', '#10b981', '#f59e0b'] });
+                  if (Date.now() < end) requestAnimationFrame(frame);
                 }());
              }
+
+        } else if (aprobadasNivel === totalNivel && totalNivel > 0) {
+             // ----------------------------------------------------
+             // CASO 2: NIVEL COMPLETADO (Año/Cuatrimestre listo)
+             // ----------------------------------------------------
+             console.log(`¡Nivel ${matNivel} Completado!`);
+             
+             // Sonido: Celebracion de Nivel (Archivo nuevo)
+             const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
+             audioLevel.volume = 0.2;
+             audioLevel.playbackRate = 0.9 + Math.random() * 0.4;
+             audioLevel.preservesPitch = false;
+             audioLevel.loop = false;
+             
+
+             // Lo reproducimos normal (sin cambiar el pitch)
+             audioLevel.play().catch(e => console.error(e));
+
+             // Visual: Confeti Dorado (Explosión central)
+             if (window.confetti) {
+                window.confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.7 },
+                    colors: ['#ffd700', '#ffffff'], // Dorado y Blanco
+                    disableForReducedMotion: true
+                });
+             }
+
+        } else {
+             // ----------------------------------------------------
+             // CASO 3: MATERIA INDIVIDUAL (Avance normal)
+             // ----------------------------------------------------
+             
+             // Sonido: Pop (con pequeña variación aleatoria de tono)
+             const audioPop = new Audio('/sounds/pop.mp3'); 
+             audioPop.volume = 0.4;
+             // Variación sutil (0.9 a 1.1) para que se sienta orgánico
+             audioPop.playbackRate = 0.9 + Math.random() * 0.2;
+             audioPop.preservesPitch = false;
+             audioPop.play().catch(e => console.error(e));
         }
     }
 
-    // Finalmente actualizamos el estado de React
     setAprobadas(nuevasAprobadas);
 
   }, [aprobadas, nodes]);
