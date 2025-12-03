@@ -91,7 +91,7 @@ export const getLayoutElements = (materias) => {
         const listaMaterias = materiasPorNivel[nivel];
         
         // 1. Usaremos un máximo de 4 columnas para el diseño actual.
-        const COLUMNAS_MAX = 100; // Máximo de materias por fila visual
+        const COLUMNAS_MAX = 5; // Máximo de materias por fila visual
 
         // --- CÁLCULO DE CENTRADO HORIZONTAL (Añadido) ---
         // Calcula cuántas columnas realmente usará la primera fila del nivel
@@ -274,43 +274,43 @@ export const filterEdgesByMode = (edges, viewMode = 'todas') => {
 };
 
 // Función auxiliar para highlight (resalta nodo y sus conexiones según filtro de modo)
+// utils.js
+
 export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas') => {
-    // Aseguramos arrays válidos
     const allNodes = Array.isArray(nodes) ? nodes : [];
     const allEdges = Array.isArray(edges) ? edges : [];
 
-    // Filtrar edges visibles según viewMode
-    const visibleEdges = filterEdgesByMode(allEdges, viewMode);
-
-    // Helper para obtener id consistente de edge
     const edgeIdOf = (edge) => edge.id || `${edge.source}->${edge.target}`;
 
-    // Si no hay hover: restaurar estilos pero respetando el filtro de modo (ocultar edges no visibles)
+    // 1. SIN HOVER: Restauramos todo a la normalidad
     if (!hoveredNodeId) {
+        const visibleEdges = filterEdgesByMode(allEdges, viewMode);
         return {
-            nodes: allNodes.map(node => ({
-                ...node,
-                className: '',
-                selected: false,
-                style: { ...node.style, opacity: 1 }
+            nodes: allNodes.map(n => ({ 
+                ...n, 
+                className: '', 
+                style: { ...n.style, opacity: 1 } 
             })),
             edges: allEdges.map(edge => {
                 const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
                 return {
                     ...edge,
-                    className: isVisible ? '' : 'hidden',
-                    animated: isVisible ? (edge.type === 'cursar') : false,
+                    className: '', // Sin clases extra
+                    hidden: !isVisible,
+                    animated: isVisible && edge.type === 'cursar',
                     style: {
                         ...edge.style,
-                        opacity: isVisible ? 1 : 0,
-                        strokeWidth: isVisible ? (edge.type === 'final' ? 2 : (edge.style && edge.style.strokeWidth) || 1) : 0
+                        opacity: 1,
+                        strokeWidth: edge.type === 'final' ? 2 : 1,
+                        stroke: edge.type === 'final' ? '#ef4444' : '#9ca3af'
                     }
                 };
             })
         };
     }
 
-    // Determinar conexiones usando solo edges visibles
+    // 2. CON HOVER: Calculamos conexiones
+    const visibleEdges = filterEdgesByMode(allEdges, viewMode);
     const connectedEdgeIds = new Set();
     const connectedNodeIds = new Set([hoveredNodeId]);
 
@@ -323,70 +323,79 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         }
     });
 
-    // Aplicar estilos a nodos
+    // 3. Estilos de NODOS
     const highlightedNodes = allNodes.map(node => {
         const isHovered = node.id === hoveredNodeId;
         const isNeighbor = connectedNodeIds.has(node.id);
-
         let newStyle = { ...node.style };
         let className = '';
 
         if (isHovered) {
+            newStyle.opacity = 1;
             newStyle.borderColor = '#f59e0b';
             newStyle.borderWidth = '3px';
-            newStyle.boxShadow = '0 0 15px rgba(245, 158, 11, 0.5)';
             newStyle.zIndex = 2000;
-            newStyle.opacity = 1;
             className = 'selected-hover';
         } else if (isNeighbor) {
-            newStyle.borderColor = isDarkMode ? '#60a5fa' : '#2563eb';
-            newStyle.borderWidth = '2px';
-            newStyle.boxShadow = isDarkMode ? '0 0 10px rgba(96,165,250,0.3)' : '0 0 10px rgba(37,99,235,0.3)';
             newStyle.opacity = 1;
+            newStyle.borderColor = isDarkMode ? '#60a5fa' : '#3b82f6';
+            newStyle.borderWidth = '3px';
             newStyle.zIndex = 1500;
-            className = 'connected';
+            className = 'connected'; // Opcional, si quieres estilar vecinos en CSS
         } else {
-            newStyle.opacity = 0.2;
-            newStyle.borderColor = isDarkMode ? '#374151' : '#e5e7eb';
+            newStyle.opacity = 0.2; // Nodos no relacionados opacos
             newStyle.zIndex = 1;
         }
 
-        return {
-            ...node,
-            className,
-            style: newStyle
-        };
+        return { ...node, className, style: newStyle };
     });
 
-    // Aplicar estilos a edges: solo los edges visibles pueden resaltarse; los demás se ocultan
+    // 4. Estilos de EDGES (LÍNEAS) - ¡AQUÍ ESTABA EL FALLO!
     const highlightedEdges = allEdges.map(edge => {
         const eid = edgeIdOf(edge);
         const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === eid);
-        const isConnectedToHover = connectedEdgeIds.has(eid);
+        
+        // Si no pasa el filtro de vista, se oculta
+        if (!isVisible) return { ...edge, hidden: true };
 
-        if (!isVisible) {
+        const isConnected = connectedEdgeIds.has(eid);
+
+        if (isConnected) {
+            // A) LÍNEA ACTIVA (Conectada)
+            const activeColor = edge.type === 'final' 
+                ? '#ef4444' 
+                : (isDarkMode ? '#60a5fa' : '#3b82f6');
+
             return {
                 ...edge,
-                className: 'hidden',
+                hidden: false,
+                className: 'active', // <--- CLAVE: Activa la clase del CSS
+                animated: true,
+                style: {
+                    ...edge.style,
+                    stroke: activeColor,
+                    strokeWidth: 3,
+                    opacity: 1,
+                    zIndex: 2000
+                }
+            };
+        } else {
+            // B) LÍNEA INACTIVA (El resto)
+            return {
+                ...edge,
+                hidden: false,
+                className: 'inactive', // <--- CLAVE: Activa la opacidad 0.15 del CSS
                 animated: false,
-                style: { ...edge.style, opacity: 0, strokeWidth: 0 }
+                style: {
+                    ...edge.style,
+                    // Forzamos un color muy sutil para que desaparezca visualmente
+                    stroke: isDarkMode ? '#374151' : '#e5e7eb', 
+                    strokeWidth: 1,
+                    zIndex: 0
+                    // NOTA: La opacidad ya la maneja la clase .inactive en App.css
+                }
             };
         }
-
-        return {
-            ...edge,
-            className: isConnectedToHover ? 'active' : 'inactive',
-            animated: isConnectedToHover ? true : false,
-            style: {
-                ...edge.style,
-                opacity: isConnectedToHover ? 1 : 0.12,
-                strokeWidth: isConnectedToHover ? 3 : 1,
-                stroke: isConnectedToHover
-                    ? (edge.type === 'final' ? '#ef4444' : (isDarkMode ? '#fff' : '#000'))
-                    : (edge.style && edge.style.stroke) || '#999',
-                zIndex: isConnectedToHover ? 2000 : 0
-            }
-        };
     });
 
     return { nodes: highlightedNodes, edges: highlightedEdges };
