@@ -86,31 +86,17 @@ export default function App() {
       }
   }, [viewMode, allEdgesCache, hoveredNodeId, setEdges]);
 
-  const handleCarreraChange = (nuevaCarrera) => setSelectedCarrera(nuevaCarrera);
-
-  const onNodeClick = useCallback((event, node) => {
   // --- HANDLERS ---
 
   const handleCarreraChange = (nuevaCarrera) => {
     setSelectedCarrera(nuevaCarrera);
   };
 
-const onNodeClick = useCallback((event, node) => {
+  const onNodeClick = useCallback((event, node) => {
     // 1. Si está bloqueada, no hacemos nada
     if (!node.data?.clickable) return;
+    
     const matId = node.id;
-    let nuevasAprobadas;
-    if (aprobadas.includes(matId)) {
-        nuevasAprobadas = aprobadas.filter(id => id !== matId);
-    } else {
-        nuevasAprobadas = [...aprobadas, matId];
-        new Audio('/sounds/pop.mp3').play().catch(() => {});
-        const totalMaterias = nodes.filter(n => n.type !== 'input').length;
-        if (nuevasAprobadas.length === totalMaterias) {
-             new Audio('/sounds/victory.mp3').play().catch(() => {});
-             if (window.confetti) window.confetti();
-        }
-    }
     // Obtenemos el nivel (1, 2, 3...) para saber qué estamos completando
     const matNivel = node.data?.originalData?.nivel; 
 
@@ -139,18 +125,18 @@ const onNodeClick = useCallback((event, node) => {
 
         // B. Decidir qué celebrar
         if (carreraCompletada) {
-             // ----------------------------------------------------
-             // CASO 1: CARRERA COMPLETADA (Juego Terminado)
-             // ----------------------------------------------------
-             console.log("¡CARRERA COMPLETADA!");
-             
-             // Sonido: Victory (Final)
-             const audioVictory = new Audio('/sounds/victory.mp3');
-             audioVictory.volume = 0.6;
-             audioVictory.play().catch(e => console.error(e));
+              // ----------------------------------------------------
+              // CASO 1: CARRERA COMPLETADA (Juego Terminado)
+              // ----------------------------------------------------
+              console.log("¡CARRERA COMPLETADA!");
+              
+              // Sonido: Victory (Final)
+              const audioVictory = new Audio('/sounds/victory.mp3');
+              audioVictory.volume = 0.6;
+              audioVictory.play().catch(e => console.error(e));
 
-             // Visual: Confeti Épico (Lluvia infinita por 3 seg)
-             if (window.confetti) {
+              // Visual: Confeti Épico (Lluvia infinita por 3 seg)
+              if (window.confetti) {
                 const duration = 3000;
                 const end = Date.now() + duration;
                 (function frame() {
@@ -158,27 +144,26 @@ const onNodeClick = useCallback((event, node) => {
                   window.confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3b82f6', '#10b981', '#f59e0b'] });
                   if (Date.now() < end) requestAnimationFrame(frame);
                 }());
-             }
+              }
 
         } else if (aprobadasNivel === totalNivel && totalNivel > 0) {
-             // ----------------------------------------------------
-             // CASO 2: NIVEL COMPLETADO (Año/Cuatrimestre listo)
-             // ----------------------------------------------------
-             console.log(`¡Nivel ${matNivel} Completado!`);
-             
-             // Sonido: Celebracion de Nivel (Archivo nuevo)
-             const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
-             audioLevel.volume = 0.2;
-             audioLevel.playbackRate = 0.9 + Math.random() * 0.4;
-             audioLevel.preservesPitch = false;
-             audioLevel.loop = false;
-             
+              // ----------------------------------------------------
+              // CASO 2: NIVEL COMPLETADO (Año/Cuatrimestre listo)
+              // ----------------------------------------------------
+              console.log(`¡Nivel ${matNivel} Completado!`);
+              
+              // Sonido: Celebracion de Nivel (Archivo nuevo)
+              const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
+              audioLevel.volume = 0.2;
+              audioLevel.playbackRate = 0.9 + Math.random() * 0.4;
+              audioLevel.preservesPitch = false;
+              audioLevel.loop = false;
+              
+              // Lo reproducimos normal (sin cambiar el pitch)
+              audioLevel.play().catch(e => console.error(e));
 
-             // Lo reproducimos normal (sin cambiar el pitch)
-             audioLevel.play().catch(e => console.error(e));
-
-             // Visual: Confeti Dorado (Explosión central)
-             if (window.confetti) {
+              // Visual: Confeti Dorado (Explosión central)
+              if (window.confetti) {
                 window.confetti({
                     particleCount: 80,
                     spread: 60,
@@ -186,20 +171,20 @@ const onNodeClick = useCallback((event, node) => {
                     colors: ['#ffd700', '#ffffff'], // Dorado y Blanco
                     disableForReducedMotion: true
                 });
-             }
+              }
 
         } else {
-             // ----------------------------------------------------
-             // CASO 3: MATERIA INDIVIDUAL (Avance normal)
-             // ----------------------------------------------------
-             
-             // Sonido: Pop (con pequeña variación aleatoria de tono)
-             const audioPop = new Audio('/sounds/pop.mp3'); 
-             audioPop.volume = 0.4;
-             // Variación sutil (0.9 a 1.1) para que se sienta orgánico
-             audioPop.playbackRate = 0.9 + Math.random() * 0.2;
-             audioPop.preservesPitch = false;
-             audioPop.play().catch(e => console.error(e));
+              // ----------------------------------------------------
+              // CASO 3: MATERIA INDIVIDUAL (Avance normal)
+              // ----------------------------------------------------
+              
+              // Sonido: Pop (con pequeña variación aleatoria de tono)
+              const audioPop = new Audio('/sounds/pop.mp3'); 
+              audioPop.volume = 0.4;
+              // Variación sutil (0.9 a 1.1) para que se sienta orgánico
+              audioPop.playbackRate = 0.9 + Math.random() * 0.2;
+              audioPop.preservesPitch = false;
+              audioPop.play().catch(e => console.error(e));
         }
     }
 
@@ -243,7 +228,7 @@ const onNodeClick = useCallback((event, node) => {
                 {isDarkMode ? '☀️' : '🌙'}
               </button>
               
-              {/* CAMBIO AQUÍ: Columna para Aprobadas + Botón Dislexia */}
+              {/* Columna para Aprobadas + Botón Dislexia */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
                   <div style={{
                     background: 'rgba(255,255,255,0.2)',
@@ -256,14 +241,14 @@ const onNodeClick = useCallback((event, node) => {
                   <button
                     onClick={() => setIsDyslexic(!isDyslexic)}
                     style={{
-                       background: isDyslexic ? '#f59e0b' : 'transparent',
-                       border: '1px solid rgba(255,255,255,0.4)',
-                       color: 'white',
-                       borderRadius: '4px',
-                       padding: '2px 6px',
-                       fontSize: '0.7rem',
-                       cursor: 'pointer',
-                       fontWeight: 'bold'
+                        background: isDyslexic ? '#f59e0b' : 'transparent',
+                        border: '1px solid rgba(255,255,255,0.4)',
+                        color: 'white',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        fontSize: '0.7rem',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
                     }}
                   >
                     {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia'}
