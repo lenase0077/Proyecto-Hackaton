@@ -121,7 +121,7 @@ export default function App() {
         <div>
           <h1 style={{ margin: 0, fontSize: '1.2rem' }}>🎓 UTN Pathfinder</h1>
           <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.9 }}>
-            {hoveredNodeId ? 'Mostrando conexiones de la materia seleccionada' : 'Visualiza tu carrera'}
+            {hoveredNodeId ? 'Mostrando conexiones de la materia seleccionada' : 'Hackea tu carrera. Visualiza tu camino.'}
           </p>
         </div>
         
