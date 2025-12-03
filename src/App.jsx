@@ -23,7 +23,9 @@ import {
 } from './utils';
 
 export default function App() {
-  const [selectedCarrera, setSelectedCarrera] = useState('tup');
+  const [selectedCarrera, setSelectedCarrera] = useState(() => {
+  return localStorage.getItem('selectedCarrera') || 'tup';
+  });
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -113,7 +115,10 @@ export default function App() {
 
   }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length, viewMode]);
 
-  const handleCarreraChange = (nuevaCarrera) => setSelectedCarrera(nuevaCarrera);
+  const handleCarreraChange = (nuevaCarrera) => {
+  setSelectedCarrera(nuevaCarrera);
+  localStorage.setItem('selectedCarrera', nuevaCarrera);
+  };
 // App.jsx - Reemplaza la función onNodeClick completa
 
   const onNodeClick = useCallback((event, node) => {
