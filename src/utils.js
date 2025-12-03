@@ -182,10 +182,13 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
 
         } else {
             // Verificamos correlativas de cursada
-            const requeridas = mat.requiere_para_cursar || [];
-            const correlativasCumplidas = requeridas.length === 0 || requeridas.every(reqId =>
-                materiasAprobadasIds.includes(reqId)
-            ) ?? true;  // Si no requiere nada, se considera cumplido
+            const reqCursadas = mat.requiere_para_cursar || [];
+            const tieneCursadas = reqCursadas.every(reqId => materiasAprobadasIds.includes(reqId));
+
+            const reqFinales = mat.requiere_para_final || [];
+            const tieneFinales = reqFinales.every(reqId => materiasAprobadasIds.includes(reqId));
+            
+            const correlativasCumplidas = tieneCursadas && tieneFinales;
 
             // CASO 2: MATERIA DISPONIBLE (color azul/blanco)
             if (correlativasCumplidas) {
