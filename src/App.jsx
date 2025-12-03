@@ -70,13 +70,16 @@ export default function App() {
   useEffect(() => {
     if (nodes.length === 0) return;
     const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode);
-    const { nodes: finalNodes } = applyHighlightStyles(
-        styledNodes, 
-        hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode), 
-        hoveredNodeId, 
-        isDarkMode
-    );
-    setNodes(finalNodes);
+const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
+    styledNodes,
+    filterEdgesByMode(allEdgesCache, viewMode), // SIEMPRE filtramos desde el cache
+    hoveredNodeId,
+    isDarkMode,
+    viewMode
+);
+
+setEdges(finalEdges);
+setNodes(finalNodes);
   }, [aprobadas, isDarkMode, hoveredNodeId, nodes.length]);
 
   useEffect(() => {

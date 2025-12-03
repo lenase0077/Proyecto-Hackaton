@@ -382,19 +382,15 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         } else {
             // B) LÍNEA INACTIVA (El resto)
             return {
-                ...edge,
-                hidden: false,
-                className: 'inactive', // <--- CLAVE: Activa la opacidad 0.15 del CSS
-                animated: false,
-                style: {
-                    ...edge.style,
-                    // Forzamos un color muy sutil para que desaparezca visualmente
-                    stroke: isDarkMode ? '#374151' : '#e5e7eb', 
-                    strokeWidth: 1,
-                    zIndex: 0
-                    // NOTA: La opacidad ya la maneja la clase .inactive en App.css
-                }
-            };
+        ...edge,
+        hidden: true,   // OCULTAR DE VERDAD
+        className: '',
+        animated: false,
+        style: {
+            ...edge.style,
+            opacity: 0
+        }
+    };
         }
     });
 
