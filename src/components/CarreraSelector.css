@@ -1,82 +1,141 @@
-/* Contenedor principal: Barra de desplazamiento horizontal invisible pero funcional */
-.carrera-selector {
-  display: flex;
-  gap: 12px;
-  padding: 8px 4px;
+/* Contenedor general */
+.selector-wrapper {
+  width: 100%;
   margin-bottom: 5px;
-  overflow-x: auto; /* Permite scroll lateral si no entran */
-  
-  /* Ocultar barra de scroll fea pero permitir scroll */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE/Edge */
-  
-  /* Centrado en desktop, alineado a la izquierda en mobile */
-  justify-content: flex-start; 
 }
 
-/* Ocultar scrollbar en Chrome/Safari */
-.carrera-selector::-webkit-scrollbar {
+/* =========================================
+   ESTILOS PARA MÓVIL (Dropdown)
+   ========================================= */
+.mobile-selector {
+  display: flex; /* Visible por defecto en móvil */
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 5px 10px;
+  width: 100%;
+}
+
+.mobile-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+/* Contenedor para hacer el truco de la flecha personalizada */
+.select-container {
+  position: relative;
+  flex: 1; /* Ocupa el resto del espacio */
+  max-width: 300px; /* Que no sea gigante en tablets */
+}
+
+.carrera-dropdown {
+  width: 100%;
+  appearance: none; /* Quita el estilo feo por defecto del navegador */
+  -webkit-appearance: none;
+  
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 35px 8px 15px; /* Padding derecho extra para la flecha */
+  
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: white;
+  cursor: pointer;
+  outline: none;
+  backdrop-filter: blur(5px);
+}
+
+/* Opciones dentro del select (Ojo: los navegadores limitan mucho el estilo aquí) */
+.carrera-dropdown option {
+  background-color: #3b82f6; /* Color sólido de fondo (azul) para que se lea */
+  color: white;
+  padding: 10px;
+}
+
+/* Flechita personalizada */
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none; /* Para que el click pase al select */
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.7rem;
+}
+
+/* OCULTAMOS LA VERSIÓN DE ESCRITORIO EN MÓVIL */
+.desktop-selector {
   display: none;
 }
 
-/* En pantallas grandes, centramos los botones */
+
+/* =========================================
+   ESTILOS PARA ESCRITORIO (Media Query)
+   ========================================= */
 @media (min-width: 768px) {
-  .carrera-selector {
+  
+  /* Ocultamos el dropdown móvil */
+  .mobile-selector {
+    display: none;
+  }
+
+  /* Mostramos los botones píldora */
+  .desktop-selector {
+    display: flex;
     justify-content: center;
+    gap: 12px;
+    padding: 8px 4px;
+    flex-wrap: wrap; /* Si son muchos, bajan de línea */
   }
 }
 
-/* ESTILO DEL BOTÓN BASE */
+/* =========================================
+   ESTILOS DE LOS BOTONES (Copiados de antes)
+   ========================================= */
 .carrera-btn {
   position: relative;
   padding: 8px 16px;
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: 0.9rem;
   font-weight: 500;
   border: none;
-  border-radius: 50px; /* Forma de píldora completa */
-  background: rgba(255, 255, 255, 0.15); /* Semi-transparente */
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  white-space: nowrap; /* Que el texto no baje de línea */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(4px); /* Efecto vidrio (glassmorphism) */
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  
-  /* Para que el icono y texto se alineen bien */
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex; align-items: center; gap: 8px;
 }
 
-/* HOVER (Cuando pasas el mouse) */
 .carrera-btn:hover {
   background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px); /* Se levanta un poquito */
+  transform: translateY(-2px);
   color: #fff;
 }
 
-/* ACTIVE / CLICK (Efecto al presionar) */
-.carrera-btn:active {
-  transform: scale(0.95); /* Se achica un poco */
-}
-
-/* --- ESTADO SELECCIONADO --- */
 .carrera-btn.selected {
   background: #fff;
-  color: #2563eb; /* Azul copado */
+  color: #2563eb;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra suave */
-  border-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* MODO OSCURO - Ajustes específicos */
-/* Como el componente está dentro del header que ya tiene fondo oscuro/azul,
-   los estilos "transparentes" de arriba funcionan bien en ambos modos.
-   Solo ajustamos el estado seleccionado para modo oscuro. */
+.indicator-dot {
+  width: 6px; height: 6px; background: currentColor; border-radius: 50%; margin-left: 4px;
+}
+
+/* MODO OSCURO */
+.app-container.dark-mode .carrera-dropdown option {
+  background-color: #1f2937; /* Fondo oscuro para el dropdown desplegado */
+  color: #fff;
+}
 
 .app-container.dark-mode .carrera-btn.selected {
-  background: #f59e0b; /* Naranja en modo oscuro para destacar más */
-  color: #1f2937; /* Texto oscuro para contraste */
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); /* Resplandor naranja */
+  background: #f59e0b;
+  color: #1f2937;
 }
