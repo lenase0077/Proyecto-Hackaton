@@ -9,6 +9,7 @@ import 'reactflow/dist/style.css';
 
 import './App.css';
 import { getLayoutElements, updateNodeStyles } from './utils';
+import CarreraSelector from './components/CarreraSelector';
 
 const { nodes: initialNodes, edges: initialEdges } = getLayoutElements();
 
@@ -22,6 +23,16 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // 2. Pasamos isDarkMode a la función de estilos
+  // Selector de carrera
+  const [carrera, setCarrera] = useState('programacion');
+  const [carreraSeleccionada, setCarreraSeleccionada] = useState(null);
+
+  const handleCarreraChange = (e) => {
+    setCarrera(e.target.value);
+    // Aquí podrías actualizar los nodos/edges según la carrera elegida
+  };
+
+  // Efecto inicial para pintar los nodos correctos al cargar
   useEffect(() => {
     const updatedNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode);
     setNodes(updatedNodes);
@@ -55,7 +66,7 @@ export default function App() {
         <div className="header-actions">
            {/* 4. Botón Toggle */}
           <button onClick={toggleTheme} className="theme-toggle">
-            {isDarkMode ? '☀️' : '🌙'}
+            {isDarkMode ? '😎' : '🌚'}
           </button>
           
           <div className="stats-card">
@@ -64,6 +75,18 @@ export default function App() {
         </div>
       </header>
 
+      {/* Nueva sección para mostrar la carrera seleccionada */}
+      <div>
+        <h2>Selecciona tu carrera</h2>
+        <CarreraSelector onSelect={setCarreraSeleccionada} />
+        {carreraSeleccionada && (
+          <div style={{ marginTop: '2rem', fontSize: '1.2rem' }}>
+            Has seleccionado: <strong>{carreraSeleccionada}</strong>
+          </div>
+        )}
+      </div>
+
+      {/* ÁREA DEL GRAFO */}
       <div className="flow-container">
         <ReactFlow
           nodes={nodes}
