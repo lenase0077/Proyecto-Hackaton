@@ -75,7 +75,7 @@ export default function App() {
               </header>
 
               <div style={{ textAlign: 'center' }}>
-                <h2 style={{ textAlign: 'center' }}>Selecciona tu carrera</h2>
+                <h2 style={{ textAlign: 'center' , color: `${isDarkMode ? "white" : "black"}`}}>Selecciona tu carrera</h2>
                 <CarreraSelector onSelect={setCarreraSeleccionada} isDarkMode={isDarkMode} />
               </div>
 
