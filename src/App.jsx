@@ -39,8 +39,16 @@ export default function App() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   
   // Estado de la app
-  const [aprobadas, setAprobadas] = useState([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [aprobadas, setAprobadas] = useState(() => {
+    const saved = localStorage.getItem('materiasAprobadas');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('appTheme');
+    return savedTheme === 'dark';
+  });
+
   const [viewMode, setViewMode] = useState('todas');
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [allEdgesCache, setAllEdgesCache] = useState([]); // Guardamos todas las conexiones originales de la carrera actual
@@ -64,10 +72,17 @@ export default function App() {
     
     // 4. Resetear materias aprobadas al cambiar de carrera
     // (Opcional: podrías guardarlas en localStorage por carrera si quisieras)
-    setAprobadas([]); 
     setViewMode('todas');
     
   }, [selectedCarrera, setNodes, setEdges]); // Se ejecuta cuando cambia selectedCarrera
+
+  useEffect(() => {
+  localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light');
+}, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas));
+  }, [aprobadas]);
 
   // 2. ACTUALIZAR ESTILOS (Aprobadas / Modo Oscuro)
   useEffect(() => {
