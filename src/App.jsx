@@ -344,11 +344,14 @@ export default function App() {
         {nodes.length > 0 ? (
           <ReactFlow
             nodes={nodes} edges={edges}
+            
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
             onNodeMouseEnter={(e, n) => setHoveredNodeId(n.id)}
             onNodeMouseLeave={() => setHoveredNodeId(null)}
             fitView minZoom={0.1}
+
+            nodesDraggable={false} nodesConnectable={false}
           >
             <Background color={isDarkMode ? "#4b5563" : "#cbd5e1"} gap={20} variant="dots"/>
             <Controls position="bottom-right" />
