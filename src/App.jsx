@@ -1,49 +1,77 @@
+// ============================================================
+// SECCIÓN 1: IMPORTACIONES (como #include en C++)
+// ============================================================
+
+// Importamos las herramientas básicas de React
 import React, { useState, useEffect, useCallback } from 'react';
+
+// Importamos ReactFlow que es una biblioteca para hacer gráficos
 import ReactFlow, {
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
+  Controls,        // Botones de zoom y mover
+  Background,      // Fondo con puntitos
+  useNodesState,   // Maneja los nodos
+  useEdgesState,   // Maneja las conexiones
 } from 'reactflow';
+
+// Importamos los estilos CSS de ReactFlow
 import 'reactflow/dist/style.css';
 
+// Importamos nuestros propios estilos
 import './App.css';
+
+// Importamos funciones que nosotros creamos
 import { getLayoutElements, updateNodeStyles, filterEdgesByMode } from './utils';
 
-// Inicializar elementos del layout
+// ============================================================
+// SECCIÓN 2: INICIALIZACIÓN FUERA DEL COMPONENTE
+// ============================================================
+
+// Esto se ejecuta UNA SOLA VEZ cuando se carga el archivo
 const { nodes: initialNodes, edges: allEdges } = getLayoutElements();
 
+// ============================================================
+// SECCIÓN 3: COMPONENTE PRINCIPAL (como main() en C++)
+// ============================================================
+
 export default function App() {
+  // ------------------------------------------------------------
+  // VARIABLES DE ESTADO (useState)
+  // ------------------------------------------------------------
+  
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  
   const [aprobadas, setAprobadas] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [viewMode, setViewMode] = useState('todas');
-  
-  // NUEVO: Estado para nodo hover
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
 
-  // 1. Inicializar
+  // ------------------------------------------------------------
+  // EFECTOS (useEffect)
+  // ------------------------------------------------------------
+  
+  // useEffect 1: Se ejecuta SOLO cuando la página se carga
   useEffect(() => {
     setNodes(initialNodes);
     setEdges(filterEdgesByMode(allEdges, 'todas'));
   }, []);
 
-  // 2. Actualizar estilos
+  // useEffect 2: Se ejecuta cuando cambian las materias aprobadas
   useEffect(() => {
     if (nodes.length === 0) return;
     const updatedNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode);
     setNodes(updatedNodes);
   }, [aprobadas, isDarkMode, nodes.length]);
 
-  // 3. Cambiar modo de vista
+  // useEffect 3: Se ejecuta cuando cambia el modo de vista
   useEffect(() => {
     const filteredEdges = filterEdgesByMode(allEdges, viewMode);
     setEdges(filteredEdges);
   }, [viewMode]);
 
-  // NUEVA: Función para manejar hover sobre nodos
+  // ------------------------------------------------------------
+  // FUNCIONES QUE MANEJAN EVENTOS DEL USUARIO
+  // ------------------------------------------------------------
+  
   const handleNodeMouseEnter = useCallback((event, node) => {
     setHoveredNodeId(node.id);
   }, []);
@@ -52,11 +80,8 @@ export default function App() {
     setHoveredNodeId(null);
   }, []);
 
-  // NUEVA: Filtrar edges para mostrar (con highlight)
   const getFilteredEdges = useCallback(() => {
     if (!hoveredNodeId) return edges;
-    
-    // Filtrar edges que están conectados al nodo hover
     return edges.filter(edge => 
       edge.source === hoveredNodeId || edge.target === hoveredNodeId
     );
@@ -64,7 +89,6 @@ export default function App() {
 
   const onNodeClick = useCallback((event, node) => {
     if (!node.data?.clickable) return;
-    
     const matId = node.id;
     setAprobadas((prev) => {
       if (prev.includes(matId)) {
@@ -75,9 +99,17 @@ export default function App() {
     });
   }, []);
 
+  // ============================================================
+  // SECCIÓN 4: LO QUE SE MUESTRA EN PANTALLA (HTML/JSX)
+  // ============================================================
+  
+  // AQUÍ EMPIEZA EL JSX - desde aquí NO se pueden usar comentarios //
+  // Solo se pueden usar comentarios JSX: {/* comentario */}
+  
   return (
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
-      {/* HEADER */}
+      
+      {/* HEADER: Parte superior de la aplicación */}
       <div style={{
         padding: '10px 20px',
         background: isDarkMode ? '#1f2937' : '#3b82f6',
@@ -121,7 +153,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* CONTROLES DE VISTA */}
+      {/* CONTROLES DE VISTA: Botones para filtrar conexiones */}
       <div style={{
         padding: '8px 15px',
         background: isDarkMode ? '#111827' : '#f1f5f9',
@@ -138,6 +170,7 @@ export default function App() {
           Mostrar:
         </span>
         
+        {/* Crea 4 botones automáticamente usando .map() */}
         {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
           <button
             key={mode}
@@ -162,7 +195,7 @@ export default function App() {
           </button>
         ))}
         
-        {/* Indicador de modo hover */}
+        {/* Botón "Mostrar todas" - solo aparece cuando hay una materia seleccionada */}
         {hoveredNodeId && (
           <button
             onClick={() => setHoveredNodeId(null)}
@@ -186,7 +219,7 @@ export default function App() {
         )}
       </div>
 
-      {/* GRÁFO */}
+      {/* GRÁFO: Área donde se dibujan las materias y conexiones */}
       <div style={{ flex: 1, position: 'relative' }}>
         {nodes.length > 0 ? (
           <ReactFlow
@@ -220,8 +253,8 @@ export default function App() {
           </div>
         )}
       </div>
-
-      {/* LEYENDA */}
+      
+      {/* LEYENDA: Explicación de colores */}
       <div style={{
         position: 'absolute',
         bottom: '15px',
@@ -269,7 +302,7 @@ export default function App() {
           <span>Bloqueada</span>
         </div>
         
-        {/* NUEVO: Indicador de modo hover */}
+        {/* Materia seleccionada - solo aparece cuando hay hover */}
         {hoveredNodeId && (
           <div style={{ 
             marginLeft: '10px',
