@@ -354,7 +354,7 @@ const onNodeClick = useCallback((event, node) => {
           <div className="footer-brand">
             <h3>🎓 UTN Pathfinder</h3>
             <p>De los Dinamics Pointers para la UTN.</p>
-            <p>Herramienta interactiva diseñada para planificar y visualizar el flujo de correlativas de manera inteligente</p>
+            <p>Herramienta interactiva diseñada para planificar y visualizar el flujo de correlatividad de manera inteligente</p>
             <span className="copyright">© 2025 - Todos los derechos reservados - Hecho con ❤️ para la comunidad</span>
           </div>
 
