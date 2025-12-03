@@ -32,16 +32,21 @@ export default function App() {
     return localStorage.getItem('appTheme') === 'dark';
   });
 
-  // --- NUEVO: ESTADO PARA DISLEXIA ---
+  // ESTADO DISLEXIA
   const [isDyslexic, setIsDyslexic] = useState(() => {
     return localStorage.getItem('dyslexicMode') === 'true';
   });
+
+  //ESTADO DALTONISMO
+  const [isColorblind, setIsColorblind] = useState(() => {
+    return localStorage.getItem('colorblindMode') === 'true';
+  });
   
-  // Guardar preferencia
-  useEffect(() => {
-    localStorage.setItem('dyslexicMode', isDyslexic);
-  }, [isDyslexic]);
-  // ------------------------------------
+  // Guardar preferencias
+  useEffect(() => { localStorage.setItem('dyslexicMode', isDyslexic); }, [isDyslexic]);
+  useEffect(() => { localStorage.setItem('colorblindMode', isColorblind); }, [isColorblind]);
+  useEffect(() => { localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'); }, [isDarkMode]);
+  useEffect(() => { localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)); }, [aprobadas]);
 
   const [viewMode, setViewMode] = useState('todas');
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
@@ -64,12 +69,13 @@ export default function App() {
     setViewMode('todas');
   }, [selectedCarrera, setNodes, setEdges]);
 
-  useEffect(() => { localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'); }, [isDarkMode]);
-  useEffect(() => { localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)); }, [aprobadas]);
-
+  // Actualización de Estilos (Ahora incluye isColorblind)
   useEffect(() => {
     if (nodes.length === 0) return;
-    const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode);
+    
+    // Le pasamos isColorblind a la función de estilos
+    const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind);
+    
     const { nodes: finalNodes } = applyHighlightStyles(
         styledNodes, 
         hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode), 
@@ -77,7 +83,7 @@ export default function App() {
         isDarkMode
     );
     setNodes(finalNodes);
-  }, [aprobadas, isDarkMode, hoveredNodeId, nodes.length]);
+  }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length]); // Agregamos isColorblind a dependencias
 
   useEffect(() => {
       if (!hoveredNodeId) {
@@ -86,116 +92,31 @@ export default function App() {
       }
   }, [viewMode, allEdgesCache, hoveredNodeId, setEdges]);
 
-  // --- HANDLERS ---
-
-  const handleCarreraChange = (nuevaCarrera) => {
-    setSelectedCarrera(nuevaCarrera);
-  };
+  const handleCarreraChange = (nuevaCarrera) => setSelectedCarrera(nuevaCarrera);
 
   const onNodeClick = useCallback((event, node) => {
-    // 1. Si está bloqueada, no hacemos nada
     if (!node.data?.clickable) return;
-    
     const matId = node.id;
-    // Obtenemos el nivel (1, 2, 3...) para saber qué estamos completando
-    const matNivel = node.data?.originalData?.nivel; 
-
-    const yaEstabaAprobada = aprobadas.includes(matId);
     let nuevasAprobadas;
-
-    // --- LÓGICA DE ACTUALIZACIÓN ---
-    if (yaEstabaAprobada) {
-        // Desmarcar (borrar)
+    if (aprobadas.includes(matId)) {
         nuevasAprobadas = aprobadas.filter(id => id !== matId);
     } else {
-        // Marcar (Aprobar)
         nuevasAprobadas = [...aprobadas, matId];
-
-        // =======================================================
-        // ZONA DE EFECTOS DE SONIDO Y FIESTA
-        // =======================================================
-        
-        // A. Cálculos para saber si completamos algo
-        const materiasDelNivel = nodes.filter(n => n.data?.originalData?.nivel === matNivel);
-        const totalNivel = materiasDelNivel.length;
-        const aprobadasNivel = materiasDelNivel.filter(n => nuevasAprobadas.includes(n.id)).length;
-        
-        const totalCarrera = nodes.filter(n => n.type !== 'input').length;
-        const carreraCompletada = nuevasAprobadas.length === totalCarrera;
-
-        // B. Decidir qué celebrar
-        if (carreraCompletada) {
-              // ----------------------------------------------------
-              // CASO 1: CARRERA COMPLETADA (Juego Terminado)
-              // ----------------------------------------------------
-              console.log("¡CARRERA COMPLETADA!");
-              
-              // Sonido: Victory (Final)
-              const audioVictory = new Audio('/sounds/victory.mp3');
-              audioVictory.volume = 0.6;
-              audioVictory.play().catch(e => console.error(e));
-
-              // Visual: Confeti Épico (Lluvia infinita por 3 seg)
-              if (window.confetti) {
-                const duration = 3000;
-                const end = Date.now() + duration;
-                (function frame() {
-                  window.confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#3b82f6', '#10b981', '#f59e0b'] });
-                  window.confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3b82f6', '#10b981', '#f59e0b'] });
-                  if (Date.now() < end) requestAnimationFrame(frame);
-                }());
-              }
-
-        } else if (aprobadasNivel === totalNivel && totalNivel > 0) {
-              // ----------------------------------------------------
-              // CASO 2: NIVEL COMPLETADO (Año/Cuatrimestre listo)
-              // ----------------------------------------------------
-              console.log(`¡Nivel ${matNivel} Completado!`);
-              
-              // Sonido: Celebracion de Nivel (Archivo nuevo)
-              const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
-              audioLevel.volume = 0.2;
-              audioLevel.playbackRate = 0.9 + Math.random() * 0.4;
-              audioLevel.preservesPitch = false;
-              audioLevel.loop = false;
-              
-              // Lo reproducimos normal (sin cambiar el pitch)
-              audioLevel.play().catch(e => console.error(e));
-
-              // Visual: Confeti Dorado (Explosión central)
-              if (window.confetti) {
-                window.confetti({
-                    particleCount: 80,
-                    spread: 60,
-                    origin: { y: 0.7 },
-                    colors: ['#ffd700', '#ffffff'], // Dorado y Blanco
-                    disableForReducedMotion: true
-                });
-              }
-
-        } else {
-              // ----------------------------------------------------
-              // CASO 3: MATERIA INDIVIDUAL (Avance normal)
-              // ----------------------------------------------------
-              
-              // Sonido: Pop (con pequeña variación aleatoria de tono)
-              const audioPop = new Audio('/sounds/pop.mp3'); 
-              audioPop.volume = 0.4;
-              // Variación sutil (0.9 a 1.1) para que se sienta orgánico
-              audioPop.playbackRate = 0.9 + Math.random() * 0.2;
-              audioPop.preservesPitch = false;
-              audioPop.play().catch(e => console.error(e));
+        new Audio('/sounds/pop.mp3').play().catch(() => {});
+        const totalMaterias = nodes.filter(n => n.type !== 'input').length;
+        if (nuevasAprobadas.length === totalMaterias) {
+             new Audio('/sounds/victory.mp3').play().catch(() => {});
+             if (window.confetti) window.confetti();
         }
     }
-
     setAprobadas(nuevasAprobadas);
   }, [aprobadas, nodes]);
 
   return (
-    // AGREGAMOS LA CLASE CONDICIONAL dyslexic-mode AQUÍ
-    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''}`}>
+    // Agregamos la clase colorblind-mode si está activo
+    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
       
-      {/* HEADER ORIGINAL */}
+      {/* HEADER */}
       <div style={{
         padding: '10px 20px',
         background: isDarkMode ? '#1f2937' : '#3b82f6',
@@ -222,13 +143,13 @@ export default function App() {
                 style={{
                   background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white',
                   width: '35px', height: '35px', borderRadius: '50%',
-                  cursor: 'pointer', fontSize: '1rem'
+                  cursor: 'pointer', fontSize: '1.1rem'
                 }}
+                title="Modo Oscuro"
               >
                 {isDarkMode ? '☀️' : '🌙'}
               </button>
               
-              {/* Columna para Aprobadas + Botón Dislexia */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
                   <div style={{
                     background: 'rgba(255,255,255,0.2)',
@@ -237,22 +158,37 @@ export default function App() {
                     <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
                   </div>
 
-                  {/* EL BOTÓN QUE PEDISTE */}
-                  <button
-                    onClick={() => setIsDyslexic(!isDyslexic)}
-                    style={{
-                        background: isDyslexic ? '#f59e0b' : 'transparent',
-                        border: '1px solid rgba(255,255,255,0.4)',
-                        color: 'white',
-                        borderRadius: '4px',
-                        padding: '2px 6px',
-                        fontSize: '0.7rem',
-                        cursor: 'pointer',
-                        fontWeight: 'bold'
-                    }}
-                  >
-                    {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia'}
-                  </button>
+                  {/* CONTENEDOR DE BOTONES ACCESIBILIDAD */}
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                      {/* Botón Dislexia */}
+                      <button
+                        onClick={() => setIsDyslexic(!isDyslexic)}
+                        style={{
+                           background: isDyslexic ? '#f59e0b' : 'transparent',
+                           border: '1px solid rgba(255,255,255,0.4)', color: 'white',
+                           borderRadius: '4px', padding: '2px 6px', fontSize: '0.7rem',
+                           cursor: 'pointer', fontWeight: 'bold'
+                        }}
+                        title="Fuente para dislexia"
+                      >
+                        {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia'}
+                      </button>
+
+                      {/* NUEVO: Botón Daltonismo */}
+                      <button
+                        onClick={() => setIsColorblind(!isColorblind)}
+                        style={{
+                           background: isColorblind ? '#f59e0b' : 'transparent',
+                           border: '1px solid rgba(255,255,255,0.4)', color: 'white',
+                           borderRadius: '4px', padding: '2px 6px', fontSize: '0.7rem',
+                           cursor: 'pointer', fontWeight: 'bold'
+                        }}
+                        title="Modo alto contraste para daltonismo"
+                      >
+                        {isColorblind ? '🎨 Daltónico ON' : '🎨 Daltónico'}
+                      </button>
+                  </div>
+
               </div>
             </div>
         </div>
@@ -307,6 +243,7 @@ export default function App() {
         )}
       </div>
       
+      {/* LEYENDA (se adapta con CSS al modo daltónico) */}
       <div className="legend-container">
         <div className="legend-item"><div className="legend-dot aprobada"></div><span>Aprobada</span></div>
         <div className="legend-item"><div className="legend-dot disponible"></div><span>Disponible</span></div>

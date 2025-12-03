@@ -206,6 +206,7 @@ body, html, #root {
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
   cursor: grab;
 }
+
 @keyframes rainbow-party {
   0% { fill: #ff0000; } 20% { fill: #ff9a00; } 40% { fill: #d0de21; }
   60% { fill: #4fdc4a; } 80% { fill: #3fdad8; } 100% { fill: #ce42ff; }
@@ -221,4 +222,20 @@ body, html, #root {
   font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
   line-height: 1.6 !important;
   letter-spacing: 0.05em !important;
+}
+
+/*==========MODO DALTONICO=========*/
+.app-container.colorblind-mode .legend-dot.aprobada {
+  background: #ffedd5;
+  border: 2px solid #d55e00; /* Naranja fuerte */
+}
+
+.app-container.colorblind-mode .legend-dot.disponible {
+  background: #f0f9ff;
+  border: 2px solid #56b4e9; /* Celeste fuerte */
+}
+
+.app-container.colorblind-mode .legend-dot.bloqueada {
+  background: #e5e5e5;
+  border: 2px solid #000000; /* Negro */
 }
