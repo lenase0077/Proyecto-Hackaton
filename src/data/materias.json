@@ -1,27 +1,25 @@
 {
 "tup": [
-    { "id": "p1", "nombre": "Programación I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
+   { "id": "p1", "nombre": "Programación I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
     { "id": "p2", "nombre": "Arquitectura y Sist. Operativos", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
     { "id": "p3", "nombre": "Matemática", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
     { "id": "p4", "nombre": "Organización Empresarial", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
-    { "id": "p5", "nombre": "Inglés I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
-    
-    { "id": "p6", "nombre": "Inglés II", "nivel": 2, "requiere_para_cursar": ["p8"], "requiere_para_final": [] },
-    { "id": "p7", "nombre": "Programación II", "nivel": 2, "requiere_para_cursar": ["p1", "p2"], "requiere_para_final": [] },
-    { "id": "p8", "nombre": "Probabilidad y Estadística", "nivel": 2, "requiere_para_cursar": ["3"], "requiere_para_final": [] },
-    { "id": "p9", "nombre": "Base de Datos I", "nivel": 2, "requiere_para_cursar": ["p1", "p3"], "requiere_para_final": [] },
+    { "id": "p5", "nombre": "Programación II", "nivel": 2, "requiere_para_cursar": ["p1", "p2"], "requiere_para_final": [] },
+    { "id": "p6", "nombre": "Probabilidad y Estadística", "nivel": 2, "requiere_para_cursar": ["p3"], "requiere_para_final": [] },
+    { "id": "p7", "nombre": "Base de Datos I", "nivel": 2, "requiere_para_cursar": ["p1", "p3"], "requiere_para_final": [] },
+    { "id": "p8", "nombre": "Inglés I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
 
-    { "id": "p10", "nombre": "Programación III", "nivel": 3, "requiere_para_cursar": ["p5", "p7"], "requiere_para_final": ["p1"] },
-    { "id": "p11", "nombre": "Base de Datos II", "nivel": 3, "requiere_para_cursar": ["p7"], "requiere_para_final": ["p1"] },
-    { "id": "p12", "nombre": "Metodología de Sistemas I", "nivel": 3, "requiere_para_cursar": ["p5", "p7"], "requiere_para_final": ["p1", "p4"] },
-    { "id": "p13", "nombre": "Legislación", "nivel": 3, "requiere_para_cursar": ["p7"], "requiere_para_final": ["p4"] },
-
-    { "id": "p14", "nombre": "Programación IV", "nivel": 4, "requiere_para_cursar": ["p9", "p10", "p11"], "requiere_para_final": ["p5", "p7"] },
-    { "id": "p15", "nombre": "Metodología de Sistemas II", "nivel": 4, "requiere_para_cursar": ["p11"], "requiere_para_final": ["p4"] },
-    { "id": "p16", "nombre": "Intro. al Análisis de Datos", "nivel": 4, "requiere_para_cursar": ["p10"], "requiere_para_final": ["p6", "p7"] },
-    { "id": "p18", "nombre": "Gestión de Des. de Software", "nivel": 4, "requiere_para_cursar": ["p9", "p10"], "requiere_para_final": ["p5", "p7"] },
+    { "id": "p9", "nombre": "Programación III", "nivel": 3, "requiere_para_cursar": ["p5", "p7"], "requiere_para_final": ["p1"] },
+    { "id": "p10", "nombre": "Base de Datos II", "nivel": 3, "requiere_para_cursar": ["p7"], "requiere_para_final": ["p1"] },
+    { "id": "p11", "nombre": "Metodología de Sistemas I", "nivel": 3, "requiere_para_cursar": ["p5", "p7"], "requiere_para_final": ["p1", "p4"] },
+    { "id": "p12", "nombre": "Inglés II", "nivel": 2, "requiere_para_cursar": ["p8"], "requiere_para_final": [] },
+    { "id": "p13", "nombre": "Programación IV", "nivel": 4, "requiere_para_cursar": ["p9", "p10", "p11"], "requiere_para_final": ["p5", "p7"] },
+    { "id": "p14", "nombre": "Metodología de Sistemas II", "nivel": 4, "requiere_para_cursar": ["p11"], "requiere_para_final": ["p4"] },
+    { "id": "p15", "nombre": "Intro. al Análisis de Datos", "nivel": 4, "requiere_para_cursar": ["p10"], "requiere_para_final": ["p6", "p7"] },
+    { "id": "p16", "nombre": "Legislación", "nivel": 3, "requiere_para_cursar": ["p7"], "requiere_para_final": ["p4"] },
+    { "id": "p17", "nombre": "Gestión de Des. de Software", "nivel": 4, "requiere_para_cursar": ["p9", "p10"], "requiere_para_final": ["p5", "p7"] },
     
-    { "id": "pTFI", "nombre": "Trabajo Final Integrador", "nivel": 5, "requiere_para_cursar": ["p8", "p9", "p10", "p11", "p12"], "requiere_para_final": ["13", "14", "15", "16", "17"] }
+    { "id": "TFI", "nombre": "Trabajo Final Integrador", "nivel": 5, "requiere_para_cursar": ["p8", "p9", "p10", "p11", "p12"], "requiere_para_final": ["p13", "p14", "p15", "p16", "p17"] }
 ],
   "admi": [
     {"id": "a1", "nombre": "Administración General I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
@@ -88,8 +86,28 @@
     { "id": "auto24", "nombre": "Ensayos", "nivel": 5, "requiere_para_cursar": ["auto9", "auto3", "auto10"], "requiere_para_final": ["auto9", "auto17"] },
     { "id": "auto25", "nombre": "Proyecto Final", "nivel": 6, "requiere_para_cursar": ["auto11", "auto18", "auto19", "auto12", "auto14"], "requiere_para_final": ["auto1", "auto2", "auto3", "auto4", "auto5", "auto7", "auto8", "auto9", "auto10", "auto11", "auto12", "auto13", "auto14", "auto15", "auto16", "auto17", "auto18", "auto19", "auto20", "auto21", "auto22", "auto23", "auto24", "autoT1", "autoT2", "autoT3", "autoT4", "autoT5"] }
   ],
-  "electrica": [
-     { "id": "1", "nombre": "Álgebra", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
-    { "id": "2", "nombre": "Dibujo Tecnológico", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] }
+  "moldes": [
+     {"id": "m1", "nombre": "Tecnología en Medios de Producción I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m2", "nombre": "Dispositivos y Utilajes", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m3", "nombre": "Matemática", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m4", "nombre": "Física", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m5", "nombre": "Relaciones Industriales", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m6", "nombre": "Informática I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m7", "nombre": "Mecánica I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m8", "nombre": "Sistemas de Representación", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m9", "nombre": "Conocimiento de Materiales", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m10", "nombre": "Inglés", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m15", "nombre": "Gestión de la Calidad y Metrología", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+    {"id": "m20", "nombre": "Seguridad, Higiene y Protección Ambiental", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": []},
+
+    {"id": "m11", "nombre": "Tecnología en Medios de Producción II", "nivel": 2, "requiere_para_cursar": ["m1", "m2", "m3"], "requiere_para_final": []},
+    {"id": "m12", "nombre": "Informática II", "nivel": 2, "requiere_para_cursar": ["m6"], "requiere_para_final": []},
+    {"id": "m13", "nombre": "Mantenimiento", "nivel": 2, "requiere_para_cursar": ["m1", "m3", "m4"], "requiere_para_final": []},
+    {"id": "m14", "nombre": "Mecánica II", "nivel": 2, "requiere_para_cursar": ["m7", "m1"], "requiere_para_final": []},
+    {"id": "m16", "nombre": "Inyección y Fundición", "nivel": 2, "requiere_para_cursar": ["m1", "m4"], "requiere_para_final": []},
+    {"id": "m17", "nombre": "Mecanizado", "nivel": 2, "requiere_para_cursar": ["m1", "m4", "m7"], "requiere_para_final": []},
+    {"id": "m18", "nombre": "Tecnología del Estampado", "nivel": 2, "requiere_para_cursar": ["m1", "m2", "m3", "m4"], "requiere_para_final": []},
+    {"id": "m19", "nombre": "Automación Industrial", "nivel": 2, "requiere_para_cursar": ["m1", "m7"], "requiere_para_final": []},
+    {"id": "m21", "nombre": "Práctica Supervisada", "nivel": 2, "requiere_para_cursar": ["m1", "m2", "m9"], "requiere_para_final": []}
   ]
 }
