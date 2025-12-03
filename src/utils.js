@@ -325,7 +325,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
                 
                 // En modo simplificada, ocultar nodos no conectados
                 if (viewMode === 'simplificada' && !connectedNodeIds.has(n.id)) {
-                    nodeStyle.opacity = 0.15;
+                    nodeStyle.opacity = 0.1;
                     hidden = true;
                 }
                 
@@ -399,7 +399,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             newStyle.zIndex = 1;
             // En modo simplificada, ocultar completamente los nodos no conectados en hover
             if (viewMode === 'simplificada') {
-                newStyle.opacity = 0.15;
+                newStyle.opacity = 0.1;
                 hidden = false;
             }
         }
