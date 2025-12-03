@@ -119,7 +119,6 @@ export default function App() {
   setSelectedCarrera(nuevaCarrera);
   localStorage.setItem('selectedCarrera', nuevaCarrera);
   };
-// App.jsx - Reemplaza la función onNodeClick completa
 
   const onNodeClick = useCallback((event, node) => {
     if (!node.data?.clickable) return;
@@ -128,9 +127,35 @@ export default function App() {
     // Chequeamos si la estamos desmarcando
     const isUnchecking = aprobadas.includes(matId);
     let nuevasAprobadas;
-
+    const listaMaterias = dbMaterias[selectedCarrera] || [];
     if (isUnchecking) {
-        nuevasAprobadas = aprobadas.filter(id => id !== matId);
+// 1. Iniciamos un Set con la materia que acabamos de clickear
+        const idsAElminar = new Set([matId]);
+        
+        // 2. Usamos una pila para buscar recursivamente hacia adelante
+        const pilaDeBusqueda = [matId];
+
+        while (pilaDeBusqueda.length > 0) {
+            const idActual = pilaDeBusqueda.pop();
+
+            // Buscamos todas las materias que requieren 'idActual' (para cursar o final)
+            const dependientes = listaMaterias.filter(m => {
+                const reqCursada = m.requiere_para_cursar || [];
+                const reqFinal = m.requiere_para_final || [];
+                return reqCursada.includes(idActual) || reqFinal.includes(idActual);
+            });
+
+            dependientes.forEach(dep => {
+                // Si la dependiente está aprobada y no la hemos marcado para borrar aún...
+                if (aprobadas.includes(dep.id) && !idsAElminar.has(dep.id)) {
+                    idsAElminar.add(dep.id);      // La marcamos para borrar
+                    pilaDeBusqueda.push(dep.id);  // La agregamos a la pila para buscar SUS hijas
+                }
+            });
+        }
+
+        // 3. Filtramos: Nos quedamos solo con las que NO están en el Set de eliminar
+        nuevasAprobadas = aprobadas.filter(id => !idsAElminar.has(id));
     } else {
         // --- AQUÍ EMPIEZA LA LÓGICA DE APROBACIÓN ---
         nuevasAprobadas = [...aprobadas, matId];
