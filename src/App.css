@@ -302,4 +302,172 @@ MEJORA DE CONEXIONES
 .react-flow__edge-path {
   /* Acepta eventos del mouse (clicks, hover) */
   pointer-events: all;
+
+/*==========FOOTER==========*/
+}
+
+.app-footer {
+  width: 100%;
+  padding: 30px 40px;
+  font-size: 14px;
+  z-index: 100;
+  
+  /*MODO CLARO*/
+  background-color: #f8fafc;
+  color: #64748b;
+  border-top: 1px solid #e2e8f0;
+  
+  /* Sombra suave arriba para separarlo del mapa */
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Contenedor interno para organizar Izquierda y Derecha */
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto; /* Centrar todo */
+  display: flex;
+  justify-content: space-between; /* Uno a cada punta */
+  align-items: center; /* Alinear verticalmente */
+  flex-wrap: wrap; /* Si la pantalla es chica, que baje */
+  gap: 20px;
+}
+
+/*=========FOOTER=========*/
+
+.app-footer {
+  width: 100%;
+  padding: 15px 40px; 
+  font-size: 13px;
+  z-index: 100;
+  
+  /* MODO CLARO */
+  background-color: #f8fafc;
+  color: #64748b;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Alineación vertical centrada */
+  flex-wrap: wrap;
+  gap: 15px; /* Menos espacio si se rompe en dos líneas */
+}
+
+/* --- SECCIÓN IZQUIERDA (Marca) --- */
+.footer-brand {
+  max-width: 700px;
+  text-align: left;
+}
+
+.footer-brand h3 {
+  /* REDUCIDO: Menos margen abajo del título */
+  margin: 0 0 2px 0; 
+  color: #3b82f6; 
+  font-size: 1rem; /* Título un poco más discreto */
+}
+
+.footer-brand p {
+  margin: 0 0 8px 0; /* Sin margen extra */
+  opacity: 0.8;
+  line-height: 1.3; /* Líneas de texto más pegaditas */
+}
+
+.copyright {
+  display: block;
+  /* REDUCIDO: Margen superior achicado */
+  margin-top: 5px; 
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* --- SECCIÓN DERECHA (Equipo) --- */
+.footer-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Mantenemos el centrado que te gustó */
+}
+
+.footer-team h4 {
+  /* REDUCIDO: Margen entre "DESARROLLADO POR" y los nombres */
+  margin: 0 0 5px 0; 
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* La Grilla de Nombres */
+.team-grid {
+  display: grid;
+  grid-template-columns: auto auto; 
+  /* REDUCIDO: Menos espacio vertical (4px) entre nombres */
+  gap: 4px 25px; 
+  text-align: center;
+  justify-content: center;
+}
+
+/* Estilo de cada Link */
+.team-link {
+  text-decoration: none;
+  color: #475569;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  font-size: 0.85rem; /* Nombres un poquito más chicos */
+}
+
+/* --- EFECTO HOVER --- */
+.team-link:hover {
+  color: #3b82f6;
+  transform: translateY(-1px);
+  text-shadow: 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+.team-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -1px; /* Ajustado para la nueva altura */
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  background-color: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+.team-link:hover::after {
+  width: 100%;
+}
+
+/* ===========================================
+   MODO OSCURO
+=========================================== */
+.app-container.dark-mode .app-footer {
+  background-color: #111827;
+  color: #9ca3af;
+  border-top: 1px solid #374151;
+}
+
+.app-container.dark-mode .footer-brand h3 { color: #60a5fa; }
+.app-container.dark-mode .team-link { color: #cbd5e1; }
+.app-container.dark-mode .team-link:hover { color: #60a5fa; }
+.app-container.dark-mode .team-link::after { background-color: #60a5fa; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  .footer-brand { text-align: center; }
+  .team-grid { grid-template-columns: 1fr; }
 }
