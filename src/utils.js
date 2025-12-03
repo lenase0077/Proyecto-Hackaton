@@ -91,7 +91,7 @@ export const getLayoutElements = (materias) => {
         const listaMaterias = materiasPorNivel[nivel];
         
         // 1. Usaremos un máximo de 4 columnas para el diseño actual.
-        const COLUMNAS_MAX = 5; // Máximo de materias por fila visual
+        const COLUMNAS_MAX = 20; // Máximo de materias por fila visual
 
         // --- CÁLCULO DE CENTRADO HORIZONTAL (Añadido) ---
         // Calcula cuántas columnas realmente usará la primera fila del nivel
