@@ -239,3 +239,98 @@ body, html, #root {
   background: #e5e5e5;
   border: 2px solid #000000; /* Negro */
 }
+
+@media (max-width: 768px) {
+  
+  /* 1. Header más compacto */
+  .app-container > div:first-child { /* El header */
+    padding: 10px 15px !important;
+  }
+
+  /* Logo y Título apilados o más chicos */
+  .app-container h1 {
+    font-size: 1.1rem !important;
+  }
+  
+  .app-container p {
+    font-size: 0.75rem !important;
+    display: none; /* Ocultamos la frase "Hackea tu carrera" para ahorrar espacio */
+  }
+
+  /* Botones de Tema/Dislexia/Aprobadas */
+  .app-container > div:first-child > div:first-child {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  
+  /* Contenedor derecho (Theme toggle + stats) */
+  .app-container > div:first-child > div:first-child > div:last-child {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 5px;
+  }
+
+  /* 2. Barra de Filtros (Píldoras) */
+  .app-container > div:nth-child(2) {
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 5px !important;
+  }
+  
+  .app-container > div:nth-child(2) span {
+    display: none; /* Ocultar texto "Filtros:" */
+  }
+  
+  .app-container > div:nth-child(2) button {
+    font-size: 0.75rem !important;
+    padding: 4px 10px !important;
+  }
+
+  /* 3. Leyenda Flotante */
+  .legend-container {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 60px; /* Un poco más arriba de los controles de reactflow */
+    padding: 5px 10px;
+    width: 90%;
+    justify-content: center;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+  
+  .app-container.footer-open .legend-container {
+    bottom: 200px; /* Subirla más si el footer abre */
+  }
+
+  /* 4. Footer */
+  .app-footer {
+    padding: 15px 20px;
+  }
+  
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .team-grid {
+    grid-template-columns: 1fr 1fr; /* 2 columnas en móvil */
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Selector de carrera */
+  .carrera-selector-container { 
+    /* Si tienes una clase wrapper, si no, ajusta el div del selector */
+  }
+  
+  /* Botones de accesibilidad: solo íconos */
+  button[title="Fuente para dislexia"], 
+  button[title="Modo alto contraste para daltonismo"] {
+    font-size: 0.6rem !important;
+    padding: 2px 4px !important;
+  }
+}
+
