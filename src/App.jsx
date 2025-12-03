@@ -124,14 +124,79 @@ export default function App() {
     setSelectedCarrera(nuevaCarrera);
   };
 
-  const onNodeClick = useCallback((event, node) => {
+const onNodeClick = useCallback((event, node) => {
+    // Si la materia está bloqueada o no es clickeable, salimos
     if (!node.data?.clickable) return;
+    
     const matId = node.id;
-    setAprobadas((prev) => {
-      if (prev.includes(matId)) return prev.filter(id => id !== matId);
-      return [...prev, matId];
-    });
-  }, []);
+    const yaEstabaAprobada = aprobadas.includes(matId);
+
+    // --- LÓGICA DE ESTADO (Primero actualizamos la lista) ---
+    // Usamos una variable temporal 'nuevasAprobadas' para poder verificar la victoria al instante
+    let nuevasAprobadas;
+    
+    if (yaEstabaAprobada) {
+        // Si ya estaba, la quitamos
+        nuevasAprobadas = aprobadas.filter(id => id !== matId);
+    } else {
+        // Si no estaba, la agregamos
+        nuevasAprobadas = [...aprobadas, matId];
+        
+        // --- EFECTO 1: POP (Siempre que aprobamos una materia individual) ---
+        const audioPop = new Audio('/sounds/pop.mp3'); 
+        audioPop.volume = 0.5; 
+        audioPop.play().catch(e => console.error("Error audio pop:", e));
+        
+        // --- EFECTO 2: VICTORIA (Solo si completamos TODA la carrera) ---
+        // 1. Obtenemos el total de materias de la carrera actual
+        const totalMaterias = nodes.filter(n => n.type !== 'input').length; // Filtramos por si acaso
+        // O más directo si tu JSON solo tiene materias:
+        // const totalMaterias = nodes.length;
+
+        // 2. Comparamos si ya tenemos todas
+        if (nuevasAprobadas.length === totalMaterias) {
+             console.log("¡CARRERA COMPLETADA!");
+             
+             // A. Música de Victoria
+             const audioVictory = new Audio('/sounds/victory.mp3'); // Asegúrate que el nombre coincida
+             audioVictory.volume = 0.6;
+             audioVictory.play().catch(e => console.error("Error audio victory:", e));
+
+             // B. Súper Confeti Espectacular (Explosión lateral)
+             if (window.confetti) {
+                // Disparamos confeti por 3 segundos
+                const duration = 3000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                  // Lanza confeti desde la izquierda y derecha
+                  window.confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#3b82f6', '#10b981', '#f59e0b']
+                  });
+                  window.confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#3b82f6', '#10b981', '#f59e0b']
+                  });
+
+                  if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                  }
+                }());
+             }
+        }
+    }
+
+    // Finalmente actualizamos el estado de React
+    setAprobadas(nuevasAprobadas);
+
+  }, [aprobadas, nodes]);
 
   const handleNodeMouseEnter = useCallback((event, node) => {
     setHoveredNodeId(node.id);
