@@ -5,8 +5,8 @@
     { "id": "p3", "nombre": "Matemática", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
     { "id": "p4", "nombre": "Organización Empresarial", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
     { "id": "p5", "nombre": "Programación II", "nivel": 2, "requiere_para_cursar": ["p1", "p2"], "requiere_para_final": [] },
-    { "id": "p6", "nombre": "Probabilidad y Estadística", "nivel": 2, "requiere_para_cursar": ["p3"], "requiere_para_final": [] },
     { "id": "p7", "nombre": "Base de Datos I", "nivel": 2, "requiere_para_cursar": ["p1", "p3"], "requiere_para_final": [] },
+    { "id": "p6", "nombre": "Probabilidad y Estadística", "nivel": 2, "requiere_para_cursar": ["p3"], "requiere_para_final": [] },
     { "id": "p8", "nombre": "Inglés I", "nivel": 1, "requiere_para_cursar": [], "requiere_para_final": [] },
 
     { "id": "p9", "nombre": "Programación III", "nivel": 3, "requiere_para_cursar": ["p5", "p7"], "requiere_para_final": ["p1"] },

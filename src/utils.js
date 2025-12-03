@@ -5,7 +5,6 @@
 // ============================================================
 
 const NODE_WIDTH = 180;
-const X_SPACING = 250;
 const Y_SPACING = 150;
 
 // ============================================================
@@ -23,34 +22,29 @@ const THEME = {
         disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' },
         bloqueada: { bg: '#1f2937', border: '#374151', text: '#4b5563' },
     },
-    // Tema Daltónico (Agregado por tu colega) - Paleta de Wong
     colorblind: {
-        // Aprobada: Naranja Intenso (Vermilion)
         aprobada: { bg: '#ffedd5', border: '#d55e00', text: '#9a3412' },
-        // Disponible: Celeste Cielo (Sky Blue)
         disponible: { bg: '#f0f9ff', border: '#56b4e9', text: '#0c4a6e' },
-        // Bloqueada: Gris Oscuro/Negro (Alto contraste)
         bloqueada: { bg: '#e5e5e5', border: '#000000', text: '#000000' },
     }
 };
 
-// Colores para las líneas según distancia
 const EDGE_COLORS = {
-    standard: '#94a3b8',   // Gris (Nivel 1 -> Nivel 2)
-    longJump: '#a855f7',   // Violeta (Nivel 1 -> Nivel 3+)
-    final: '#ef4444',      // Rojo (Finales)
-    hoverNear: '#3b82f6',  // Azul (Hover cercano)
-    hoverFar: '#f97316'    // Naranja/Rojo (Hover lejano)
+    standard: '#94a3b8',
+    longJump: '#a855f7',
+    final: '#ef4444',
+    hoverNear: '#3b82f6',
+    hoverFar: '#f97316'
 };
 
 export const getLayoutElements = (materias, isMobile = false) => {
     const nodes = [];
     const edges = [];
     
-    // CONFIGURACIÓN DINÁMICA SEGÚN DISPOSITIVO
-    const COLUMN_LIMIT = isMobile ? 20 : 20; // 4 columnas en móvil, 20 en desktop
-    const CURRENT_X_SPACING = isMobile ? 200 : 250; // Un poco más apretado en móvil
-    const CURRENT_NODE_WIDTH = isMobile ? 160 : 180; // Nodos un pelín más chicos
+    // CONFIGURACIÓN DINÁMICA
+    const COLUMN_LIMIT = isMobile ? 4 : 20; 
+    const CURRENT_X_SPACING = isMobile ? 200 : 250; 
+    const CURRENT_NODE_WIDTH = isMobile ? 160 : 180;
 
     try {
         if (typeof materias === 'string') materias = JSON.parse(materias);
@@ -80,17 +74,9 @@ export const getLayoutElements = (materias, isMobile = false) => {
         const nivel = parseInt(nivelStr);
         const listaMaterias = materiasPorNivel[nivel];
         
-        // Usamos el límite dinámico
         const numColumnasNivel = Math.min(listaMaterias.length, COLUMN_LIMIT);
-        
-        // Calculamos el ancho total del grupo para centrarlo
         const ANCHO_GRUPO = (numColumnasNivel - 1) * CURRENT_X_SPACING;
-        // Ajustamos el centro: en móvil (aprox 400px ancho) vs desktop (aprox 800px area central)
-        const centerBase = isMobile ? 0 : 400; 
-        const offsetX = (isMobile ? 0 : (800 - ANCHO_GRUPO) / 2); // En móvil alineamos a la izquierda o centro simple
-        
-        // En móvil, para que no quede todo pegado a la izquierda si sobra espacio, centramos en base a ventana
-        // Pero por simplicidad, usaremos un offset fijo o dinámico simple.
+        const offsetX = (isMobile ? 0 : (800 - ANCHO_GRUPO) / 2);
         const START_X = Math.max(0, offsetX);
             
         listaMaterias.forEach((materia, index) => {
@@ -112,15 +98,20 @@ export const getLayoutElements = (materias, isMobile = false) => {
                 type: 'default',
             });
 
-            // ... (AQUÍ VA TODA TU LÓGICA DE EDGES EXACTAMENTE IGUAL QUE ANTES) ...
+            // --- CORRECCIÓN DE EDGES ---
+            // Usamos type: 'smoothstep' (visual) y data: { tipo: '...' } (lógico)
+
             // A. Edges de FINAL
             if (materia.requiere_para_final) {
                 materia.requiere_para_final.forEach(reqId => {
                     edges.push({
                         id: `e-${reqId}-${materia.id}-final`,
-                        source: reqId, target: materia.id, animated: false, type: 'final',
-                        // Usamos las constantes que ya tenías definidas arriba en utils.js
-                        style: { stroke: '#ef4444', strokeWidth: 2 } 
+                        source: reqId, 
+                        target: materia.id, 
+                        animated: false, 
+                        type: 'smoothstep', // <--- CAMBIO AQUÍ (Visual)
+                        data: { tipo: 'final' }, // <--- CAMBIO AQUÍ (Lógico)
+                        style: { stroke: EDGE_COLORS.final, strokeWidth: 2 }
                     });
                 });
             }
@@ -133,13 +124,16 @@ export const getLayoutElements = (materias, isMobile = false) => {
                         const nivelSource = nivelMap[reqId] || 0;
                         const nivelTarget = nivel;
                         const distancia = Math.abs(nivelTarget - nivelSource);
-
-                        const edgeColor = distancia > 1 ? '#a855f7' : '#94a3b8'; // Hardcodeo colores estándar por simplicidad o usa tus constantes EDGE_COLORS
+                        const edgeColor = distancia > 1 ? EDGE_COLORS.longJump : EDGE_COLORS.standard;
                         const edgeWidth = distancia > 1 ? 2 : 1; 
 
                         edges.push({
                             id: `e-${reqId}-${materia.id}-cursada`,
-                            source: reqId, target: materia.id, animated: true, type: 'cursar',
+                            source: reqId, 
+                            target: materia.id, 
+                            animated: true, 
+                            type: 'smoothstep', // <--- CAMBIO AQUÍ (Visual)
+                            data: { tipo: 'cursar' }, // <--- CAMBIO AQUÍ (Lógico)
                             style: { 
                                 stroke: edgeColor, 
                                 strokeDasharray: '5,5',
@@ -156,11 +150,9 @@ export const getLayoutElements = (materias, isMobile = false) => {
 };
 
 // ---------------------------------------------------------
-// FUNCIÓN DE ESTILOS (NODOS) - ACTUALIZADA CON DALTÓNISMO
+// FUNCIÓN DE ESTILOS (NODOS)
 // ---------------------------------------------------------
 export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false, isColorblind = false) => {
-    
-    // 1. SELECCIÓN DE PALETA: Si es daltónico, ignora el modo oscuro para priorizar contraste
     let palette;
     if (isColorblind) {
         palette = THEME.colorblind;
@@ -214,7 +206,6 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             }
         }
         
-        // Lógica visual extra para modo Daltónico (Bordes gruesos/punteados)
         if (isColorblind) {
             newStyle.borderWidth = '3px';
             newStyle.borderStyle = estaAprobada ? 'solid' : (cssClass === "node-blocked" ? 'dashed' : 'solid');
@@ -229,24 +220,27 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
     });
 };
 
+// ---------------------------------------------------------
+// FILTRO ACTUALIZADO (Ahora mira data.tipo)
+// ---------------------------------------------------------
 export const filterEdgesByMode = (edges, viewMode = 'todas') => {
     if (!Array.isArray(edges)) return [];
     if (viewMode === 'todas') return edges;
-    if (viewMode === 'cursar') return edges.filter(e => e.type === 'cursar');
-    if (viewMode === 'final') return edges.filter(e => e.type === 'final');
-    if (Array.isArray(viewMode)) return edges.filter(e => viewMode.includes(e.type));
+    // CORRECCIÓN: Miramos e.data.tipo en lugar de e.type
+    if (viewMode === 'cursar') return edges.filter(e => e.data?.tipo === 'cursar');
+    if (viewMode === 'final') return edges.filter(e => e.data?.tipo === 'final');
+    if (Array.isArray(viewMode)) return edges.filter(e => viewMode.includes(e.data?.tipo));
     return edges;
 };
 
 // ---------------------------------------------------------
-// HIGHLIGHT CON LOGICA DE DISTANCIA (AZUL vs ROJO)
+// HIGHLIGHT ACTUALIZADO (Ahora mira data.tipo)
 // ---------------------------------------------------------
 export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas') => {
     const allNodes = Array.isArray(nodes) ? nodes : [];
     const allEdges = Array.isArray(edges) ? edges : [];
     const edgeIdOf = (edge) => edge.id || `${edge.source}->${edge.target}`;
 
-    // Mapa auxiliar de Nodos para buscar niveles rápido
     const nodeMap = new Map();
     allNodes.forEach(n => nodeMap.set(n.id, n));
 
@@ -257,16 +251,17 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             nodes: allNodes.map(n => ({ ...n, className: '', style: { ...n.style, opacity: 1 } })),
             edges: allEdges.map(edge => {
                 const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
-                // Restauramos estilos basándonos en si es final o cursada normal/larga
+                // Restauramos lógica visual
+                const isFinal = edge.data?.tipo === 'final'; // CORRECCIÓN
                 return {
                     ...edge,
                     className: '',
                     hidden: !isVisible,
-                    animated: isVisible && edge.type === 'cursar',
+                    animated: isVisible && !isFinal,
                     style: { 
                         ...edge.style, 
                         opacity: 1, 
-                        strokeWidth: edge.type === 'final' ? 2 : (edge.style.stroke === EDGE_COLORS.longJump ? 2 : 1) 
+                        strokeWidth: isFinal ? 2 : (edge.style.stroke === EDGE_COLORS.longJump ? 2 : 1) 
                     }
                 };
             })
@@ -295,7 +290,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
 
         if (isHovered) {
             newStyle.opacity = 1;
-            newStyle.borderColor = '#f59e0b'; // Naranja brillante selección
+            newStyle.borderColor = '#f59e0b';
             newStyle.borderWidth = '3px';
             newStyle.zIndex = 2000;
             className = 'selected-hover';
@@ -312,7 +307,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         return { ...node, className, style: newStyle };
     });
 
-    // B. Estilar EDGES (Aquí aplicamos tu lógica Cerca/Lejos)
+    // B. Estilar EDGES
     const highlightedEdges = allEdges.map(edge => {
         const eid = edgeIdOf(edge);
         const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === eid);
@@ -320,22 +315,21 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
 
         const isConnected = connectedEdgeIds.has(eid);
         if (isConnected) {
-            // Calcular niveles para el color
             const sourceNode = nodeMap.get(edge.source);
             const targetNode = nodeMap.get(edge.target);
             const sourceLevel = sourceNode?.data?.originalData?.nivel || 0;
             const targetLevel = targetNode?.data?.originalData?.nivel || 0;
             const dist = Math.abs(targetLevel - sourceLevel);
 
-            // LOGICA DE COLOR EN HOVER:
             let highlightColor;
             
-            if (edge.type === 'final') {
-                highlightColor = EDGE_COLORS.final; // Siempre rojo para finales
+            // CORRECCIÓN: Usamos data.tipo
+            if (edge.data?.tipo === 'final') {
+                highlightColor = EDGE_COLORS.final; 
             } else if (dist > 1) {
-                highlightColor = EDGE_COLORS.hoverFar; // Naranja/Rojo si está lejos
+                highlightColor = EDGE_COLORS.hoverFar;
             } else {
-                highlightColor = EDGE_COLORS.hoverNear; // Azul si está cerca
+                highlightColor = EDGE_COLORS.hoverNear;
             }
 
             return {
@@ -344,7 +338,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
                 className: 'active',
                 animated: true,
                 style: {
-                    ...edge.style, // Mantiene dasharray si existe
+                    ...edge.style,
                     stroke: highlightColor,
                     strokeWidth: 3,
                     opacity: 1,
