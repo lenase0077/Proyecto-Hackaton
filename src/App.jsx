@@ -53,6 +53,14 @@ export default function App() {
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [allEdgesCache, setAllEdgesCache] = useState([]); // Guardamos todas las conexiones originales de la carrera actual
 
+  // Datos de los integrantes
+  const teamMembers = [
+    { name: "Durazzini Sebastian", linkedin: "https://www.linkedin.com/" },
+    { name: "Martinez Alejo", linkedin: "https://www.linkedin.com/" },
+    { name: "Raho Daniel", linkedin: "https://www.linkedin.com/" },
+    { name: "Serrano Leandro", linkedin: "https://www.linkedin.com/" },
+  ];
+
   // --- EFECTOS ---
 
   // 1. CARGA DE CARRERA (Similar a cargar un nivel en un juego)
@@ -206,7 +214,6 @@ const onNodeClick = useCallback((event, node) => {
     setHoveredNodeId(null);
   }, []);
 
-
   // --- RENDER ---
   return (
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
@@ -319,7 +326,7 @@ const onNodeClick = useCallback((event, node) => {
       
       {/* LEYENDA (Misma de antes) */}
       <div style={{
-        position: 'absolute', bottom: '15px', left: '15px',
+        position: 'absolute', bottom: '80px', left: '15px',
         background: isDarkMode ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)',
         padding: '10px 15px', borderRadius: '8px', display: 'flex', gap: '15px',
         fontSize: '0.8rem', color: isDarkMode ? '#f3f4f6' : '#1f2937',
@@ -338,6 +345,40 @@ const onNodeClick = useCallback((event, node) => {
           <span>Bloqueada</span>
         </div>
       </div>
+      
+      {/*========== INICIO DE FOOTER ==========*/}
+      <footer className="app-footer">
+        <div className="footer-container">
+          
+          {/* SECCIÓN IZQUIERDA: Marca y Copyright */}
+          <div className="footer-brand">
+            <h3>🎓 UTN Pathfinder</h3>
+            <p>De los Dinamics Pointers para la UTN.</p>
+            <p>Herramienta interactiva diseñada para planificar y visualizar el flujo de correlativas de manera inteligente</p>
+            <span className="copyright">© 2025 - Todos los derechos reservados - Hecho con ❤️ para la comunidad</span>
+          </div>
+
+          {/* SECCIÓN DERECHA: Los Integrantes */}
+          <div className="footer-team">
+            <h4>Desarrollado por:</h4>
+            <div className="team-grid">
+              {/* Aquí usamos la lista que creamos arriba para generar los nombres */}
+              {teamMembers.map((member, index) => (
+                <a 
+                  key={index} 
+                  href={member.linkedin} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="team-link"
+                >
+                  {member.name}
+                </a>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </footer>
     </div>
   );
 }
