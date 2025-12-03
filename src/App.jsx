@@ -1,10 +1,19 @@
+// ============================================================
+// SECCIÓN 1: IMPORTACIONES (como #include en C++)
+// ============================================================
+
+// Importamos las herramientas básicas de React
 import React, { useState, useEffect, useCallback } from 'react';
+
+// Importamos ReactFlow que es una biblioteca para hacer gráficos
 import ReactFlow, {
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
+  Controls,        // Botones de zoom y mover
+  Background,      // Fondo con puntitos
+  useNodesState,   // Maneja los nodos
+  useEdgesState,   // Maneja las conexiones
 } from 'reactflow';
+
+// Importamos los estilos CSS de ReactFlow
 import 'reactflow/dist/style.css';
 import './App.css';
 

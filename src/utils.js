@@ -1,16 +1,44 @@
 // utils.js
 
+// ============================================================
+// CONSTANTES DE CONFIGURACIÓN (como #define en C++)
+// ============================================================
+
+// Ancho de cada caja de materia (en píxeles)
 const NODE_WIDTH = 180;
+
+// Espacio horizontal entre materias (en píxeles)
+// Similar a definir grid spacing en un programa gráfico
 const X_SPACING = 250;
+
+// Espacio vertical entre materias (en píxeles)
 const Y_SPACING = 150;
 
+// ============================================================
+// PALETA DE COLORES PARA LOS TEMAS CLARO/OSCURO
+// Similar a definir structs con colores en C++
+// ============================================================
+
 const THEME = {
+    // Tema claro (modo día)
     light: {
-        aprobada: { bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
-        disponible: { bg: '#fff', border: '#3b82f6', text: '#1e293b' },
-        bloqueada: { bg: '#f3f4f6', border: '#e5e7eb', text: '#9ca3af' },
-        defaultText: '#333'
+        aprobada: { 
+            bg: '#dcfce7',     // Fondo verde claro
+            border: '#16a34a', // Borde verde
+            text: '#14532d'    // Texto verde oscuro
+        },
+        disponible: { 
+            bg: '#fff',        // Fondo blanco
+            border: '#3b82f6', // Borde azul
+            text: '#1e293b'    // Texto gris oscuro
+        },
+        bloqueada: { 
+            bg: '#f3f4f6',     // Fondo gris claro
+            border: '#e5e7eb', // Borde gris
+            text: '#9ca3af'    // Texto gris
+        },
     },
+    // Tema oscuro (modo noche)
     dark: {
         aprobada: { bg: '#064e3b', border: '#34d399', text: '#ecfdf5' },
         disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' },
@@ -123,9 +151,12 @@ export const getLayoutElements = (materias) => {
 // FUNCIÓN DE ESTILOS
 // ---------------------------------------------------------
 export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false) => {
-    
+    // Seleccionar la paleta de colores según el modo
+    // Similar a: ColorPalette palette = isDarkMode ? darkTheme : lightTheme;
     const palette = isDarkMode ? THEME.dark : THEME.light;
 
+    // Recorrer todos los nodos y actualizar sus estilos
+    // Similar a: for (auto& node : nodes) { actualizarEstilo(node); }
     return nodes.map(node => {
         const mat = node.data.originalData;
         if (!mat) return node;
@@ -137,6 +168,7 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
         let isClickable = false;
         let cssClass = "";
 
+        // CASO 1: MATERIA APROBADA (color verde)
         if (estaAprobada) {
             // CASO 1: APROBADA
             newStyle.background = palette.aprobada.bg;
@@ -153,8 +185,9 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             const requeridas = mat.requiere_para_cursar || [];
             const correlativasCumplidas = requeridas.length === 0 || requeridas.every(reqId =>
                 materiasAprobadasIds.includes(reqId)
-            );
+            ) ?? true;  // Si no requiere nada, se considera cumplido
 
+            // CASO 2: MATERIA DISPONIBLE (color azul/blanco)
             if (correlativasCumplidas) {
                 // CASO 2: DISPONIBLE
                 newStyle.background = palette.disponible.bg;
@@ -178,6 +211,7 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             }
         }
 
+        // Devolver el nodo actualizado
         return {
             ...node,
             className: cssClass,
@@ -186,7 +220,7 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
                 label: `${iconPrefix}${mat.nombre}`,
                 clickable: isClickable
             },
-            style: newStyle
+            style: newStyle  // Aplicar nuevos estilos
         };
     });
 };
