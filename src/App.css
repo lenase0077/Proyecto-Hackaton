@@ -209,6 +209,8 @@ CONEXIONES (LÍNEAS ENTRE MATERIAS)
   
   /* Suaviza el cambio de opacidad */
   transition: opacity 0.3s ease;
+  pointer-events: none;
+  
 }
 
 /* Conexiones activas (conectadas a la materia con hover) */

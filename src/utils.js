@@ -389,8 +389,9 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
                 style: {
                     ...edge.style,
                     // Forzamos un color muy sutil para que desaparezca visualmente
-                    stroke: isDarkMode ? '#374151' : '#e5e7eb', 
-                    strokeWidth: 1,
+                    stroke: 'transparent',
+                    strokeWidth: 0,
+                    opacity: 0,
                     zIndex: 0
                     // NOTA: La opacidad ya la maneja la clase .inactive en App.css
                 }
