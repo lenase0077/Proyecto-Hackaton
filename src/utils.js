@@ -4,7 +4,7 @@
 // CONSTANTES DE CONFIGURACIÓN
 // ============================================================
 
-const NODE_WIDTH = 180;
+const NODE_WIDTH = 250;
 const Y_SPACING = 65;
 
 // ============================================================
@@ -56,8 +56,8 @@ export const getLayoutElements = (materias, isMobile = false) => {
     
     // CONFIGURACIÓN DINÁMICA
     const COLUMN_LIMIT = isMobile ? 4 : 20; 
-    const CURRENT_X_SPACING = isMobile ? 200 : 250; 
-    const CURRENT_NODE_WIDTH = isMobile ? 160 : 180;
+    const CURRENT_X_SPACING = isMobile ? 200 : 265; 
+    const CURRENT_NODE_WIDTH = isMobile ? 160 : 200;
 
     try {
         if (typeof materias === 'string') materias = JSON.parse(materias);
