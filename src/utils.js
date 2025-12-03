@@ -325,7 +325,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
                 
                 // En modo simplificada, ocultar nodos no conectados
                 if (viewMode === 'simplificada' && !connectedNodeIds.has(n.id)) {
-                    nodeStyle.opacity = 0;
+                    nodeStyle.opacity = 0.15;
                     hidden = true;
                 }
                 
@@ -399,8 +399,8 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             newStyle.zIndex = 1;
             // En modo simplificada, ocultar completamente los nodos no conectados en hover
             if (viewMode === 'simplificada') {
-                newStyle.opacity = 0;
-                hidden = true;
+                newStyle.opacity = 0.15;
+                hidden = false;
             }
         }
         return { ...node, className, style: newStyle, hidden };
@@ -464,4 +464,52 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
     });
 
     return { nodes: highlightedNodes, edges: highlightedEdges };
+};
+
+// ============================================================
+// FUNCIONES DE CELEBRACIÓN (CONFETTI)
+// ============================================================
+
+// Efecto 1: Explosión pequeña (para completar Nivel/Año)
+export const triggerLevelConfetti = () => {
+    if (!window.confetti) return;
+    
+    window.confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.7 }, // Desde abajo
+        colors: ['#ffd700', '#ffffff'], // Dorado y Blanco
+        disableForReducedMotion: true
+    });
+};
+  
+// Efecto 2: Lluvia masiva (para Final de Carrera)
+// Colores: AZUL, VERDE, NARANJA (Tema UTN Pathfinder)
+export const triggerVictoryConfetti = () => {
+    if (!window.confetti) return;
+    
+    const duration = 3000;
+    const end = Date.now() + duration;
+    const colors = ['#3b82f6', '#10b981', '#f59e0b']; // Los colores de tu app
+  
+    (function frame() {
+      window.confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors
+      });
+      window.confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors
+      });
+  
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
 };

@@ -17,7 +17,9 @@ import {
   getLayoutElements, 
   updateNodeStyles, 
   filterEdgesByMode,
-  applyHighlightStyles 
+  applyHighlightStyles,
+  triggerLevelConfetti,
+  triggerVictoryConfetti
 } from './utils';
 
 export default function App() {
@@ -112,24 +114,76 @@ export default function App() {
   }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length, viewMode]);
 
   const handleCarreraChange = (nuevaCarrera) => setSelectedCarrera(nuevaCarrera);
+// App.jsx - Reemplaza la función onNodeClick completa
 
   const onNodeClick = useCallback((event, node) => {
     if (!node.data?.clickable) return;
+    
     const matId = node.id;
+    // Chequeamos si la estamos desmarcando
+    const isUnchecking = aprobadas.includes(matId);
     let nuevasAprobadas;
-    if (aprobadas.includes(matId)) {
+
+    if (isUnchecking) {
         nuevasAprobadas = aprobadas.filter(id => id !== matId);
     } else {
+        // --- AQUÍ EMPIEZA LA LÓGICA DE APROBACIÓN ---
         nuevasAprobadas = [...aprobadas, matId];
-        new Audio('/sounds/pop.mp3').play().catch(() => {});
-        const totalMaterias = nodes.filter(n => n.type !== 'input').length;
-        if (nuevasAprobadas.length === totalMaterias) {
-             new Audio('/sounds/victory.mp3').play().catch(() => {});
-             if (window.confetti) window.confetti();
+        
+        // DATOS PARA CALCULAR NIVELES
+        const listaMaterias = dbMaterias[selectedCarrera] || [];
+        const materiaActual = node.data.originalData;
+        
+        // Calculamos nivel actual
+        const nivelActual = materiaActual.nivel || (materiaActual.posY ? materiaActual.posY + 1 : 1);
+
+        // Filtramos materias de ese nivel
+        const materiasDelNivel = listaMaterias.filter(m => {
+            const mNivel = m.nivel || (m.posY ? m.posY + 1 : 1);
+            return mNivel === nivelActual;
+        });
+
+        // Verificaciones
+        const nivelCompleto = materiasDelNivel.every(m => nuevasAprobadas.includes(m.id));
+        const carreraCompleta = listaMaterias.every(m => nuevasAprobadas.includes(m.id));
+
+        // --- LÓGICA DE FIESTA Y SONIDO ---
+        if (carreraCompleta) {
+             // 🏆 GANASTE LA CARRERA
+             setTimeout(() => {
+                const audioVictory = new Audio('/sounds/victory.mp3');
+                audioVictory.volume = 0.6; // Volumen controlado
+                audioVictory.play().catch(e => console.error(e));
+                
+                triggerVictoryConfetti(); // Lluvia con colores del tema
+             }, 100);
+
+        } else if (nivelCompleto) {
+             // ⭐️ COMPLETASTE EL NIVEL
+             setTimeout(() => {
+                const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
+
+                audioLevel.playbackRate = 0.9 + Math.random() * 0.3; // Pequeña variación
+                audioLevel.preservesPitch = false;
+                audioLevel.volume = 0.6; // Volumen controlado
+                audioLevel.play().catch(e => console.error(e));
+                
+                triggerLevelConfetti();   // Explosión Dorada
+             }, 100);
+
+        } else {
+             // 🔹 MATERIA INDIVIDUAL (Pop con Pitch Variable)
+             const audioPop = new Audio('/sounds/pop.mp3');
+             audioPop.volume = 0.4; // Más suave
+             // Variación aleatoria de tono (0.9 a 1.1) para que suene orgánico
+             audioPop.playbackRate = 0.9 + Math.random() * 0.3;
+             audioPop.preservesPitch = false;
+             audioPop.play().catch(() => {});
         }
     }
+    
     setAprobadas(nuevasAprobadas);
-  }, [aprobadas, nodes]);
+  }, [aprobadas, selectedCarrera]);
 
   return (
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
