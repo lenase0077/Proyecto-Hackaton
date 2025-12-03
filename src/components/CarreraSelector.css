@@ -1,0 +1,28 @@
+.carrera-selector {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.carrera-btn {
+  padding: 1rem 2rem;
+  border: none;
+  background: #eee;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.carrera-btn:hover {
+  background: #d0e6ff;
+  transform: scale(1.05);
+}
+
+.carrera-btn.selected {
+  background: #0078d4;
+  color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 20px rgba(0,120,212,0.2);
+}
