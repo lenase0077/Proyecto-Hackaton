@@ -23,6 +23,7 @@ export default function App() {
   const [selectedCarrera, setSelectedCarrera] = useState('tup');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   const [aprobadas, setAprobadas] = useState(() => {
     const saved = localStorage.getItem('materiasAprobadas');
@@ -65,13 +66,30 @@ export default function App() {
 
   // 1. Cargar Carrera
   useEffect(() => {
-    const listaMaterias = dbMaterias[selectedCarrera] || [];
-    const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias);
-    setNodes(layoutNodes);
-    setEdges(layoutEdges);
-    setAllEdgesCache(layoutEdges);
-    setViewMode('todas');
-  }, [selectedCarrera, setNodes, setEdges]);
+      const listaMaterias = dbMaterias[selectedCarrera] || [];
+      
+      // AHORA PASAMOS isMobile A LA FUNCIÓN
+      const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
+      
+      setNodes(layoutNodes);
+      setEdges(layoutEdges);
+      setAllEdgesCache(layoutEdges);
+      setViewMode('todas');
+    }, [selectedCarrera, isMobile, setNodes, setEdges]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      // Solo actualizamos si cambia la categoría (para no renderizar a cada pixel)
+      setIsMobile(prev => {
+        if (prev !== mobile) return mobile;
+        return prev;
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // 2. Actualización de Estilos (Incluye Colorblind)
   useEffect(() => {
