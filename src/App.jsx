@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -67,6 +67,9 @@ export default function App() {
   // 2. Estado para la notificación visual (Toast)
   const [currentNotification, setCurrentNotification] = useState(null);
   
+  const currentaudioLevel = useRef(null);
+  const currentaudioVictory = useRef(null);
+
   // Estado para detectar si es móvil
   // C++: bool isMobile = (window.innerWidth < 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -371,22 +374,39 @@ useEffect(() => {
         // --- LÓGICA DE FIESTA Y SONIDO ---
         if (carreraCompleta) {
              // 🏆 GANASTE LA CARRERA
+
+            if (currentaudioLevel.current){
+            currentaudioLevel.current.pause();
+            currentaudioLevel.current.currentTime = 0;}
+
+            if (currentaudioVictory.current){
+            currentaudioVictory.current.pause();
+            currentaudioVictory.current.currentTime = 0;}  
+
              setTimeout(() => {
                 const audioVictory = new Audio('/sounds/victory.mp3');
-                audioVictory.volume = 0.6; // Volumen controlado
+                currentaudioVictory.current = audioVictory;
+                audioVictory.volume = 0.1; // Volumen controlado
                 audioVictory.play().catch(e => console.error(e));
                 
                 triggerVictoryConfetti(); // Lluvia con colores del tema
              }, 100);
+            
 
         } else if (nivelCompleto) {
              // ⭐️ COMPLETASTE EL NIVEL
+
+            if (currentaudioLevel.current){
+            currentaudioLevel.current.pause();
+            currentaudioLevel.current.currentTime = 0;}
+
              setTimeout(() => {
                 const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
+                currentaudioLevel.current = audioLevel;
 
                 audioLevel.playbackRate = 0.9 + Math.random() * 0.3; // Pequeña variación
                 audioLevel.preservesPitch = false;
-                audioLevel.volume = 0.6; // Volumen controlado
+                audioLevel.volume = 0.1; // Volumen controlado
                 audioLevel.play().catch(e => console.error(e));
                 
                 triggerLevelConfetti();   // Explosión Dorada
