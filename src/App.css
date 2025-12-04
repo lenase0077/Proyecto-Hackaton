@@ -627,3 +627,114 @@ body, html, #root {
     width: 60%; /* Ocupa más espacio en móvil */
   }
 }
+
+/* ===========================================
+   SMART TOOLTIP (Tarjeta de Requisitos)
+=========================================== */
+.smart-tooltip {
+  position: absolute;
+  top: 90px; /* Debajo del header */
+  right: 20px;
+  width: 280px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 15px;
+  border-radius: 12px;
+  border-left: 5px solid #ef4444; /* Borde rojo indicando bloqueo */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  z-index: 9000; /* Encima de todo */
+  font-size: 0.9rem;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none; /* Para que el mouse no choque con ella */
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e293b;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.lock-icon {
+  font-size: 1.2rem;
+}
+
+.tooltip-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.tooltip-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.tooltip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tooltip-list li {
+  color: #ef4444; /* Texto rojo */
+  padding: 3px 0;
+  font-weight: 500;
+  border-bottom: 1px dashed rgba(239, 68, 68, 0.2);
+}
+.tooltip-list li:last-child {
+  border-bottom: none;
+}
+
+/* MODO OSCURO */
+.app-container.dark-mode .smart-tooltip {
+  background: rgba(31, 41, 55, 0.95);
+  border-left-color: #f87171;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.app-container.dark-mode .tooltip-header {
+  color: #f1f5f9;
+}
+
+.app-container.dark-mode .tooltip-divider {
+  background: #475569;
+}
+
+.app-container.dark-mode .tooltip-label {
+  color: #94a3b8;
+}
+
+.app-container.dark-mode .tooltip-list li {
+  color: #fca5a5; /* Rojo más claro para leer mejor en oscuro */
+  border-bottom-color: rgba(252, 165, 165, 0.2);
+}
+
+/* RESPONSIVE: En móvil lo ponemos abajo para que no tape */
+@media (max-width: 768px) {
+  .smart-tooltip {
+    top: auto;
+    bottom: 80px; /* Encima del footer/leyenda */
+    right: 50%;
+    transform: translateX(50%); /* Centrado */
+    width: 90%;
+    animation: slideUp 0.3s ease;
+  }
+  
+  @keyframes slideUp {
+    from { opacity: 0; transform: translate(50%, 20px); }
+    to { opacity: 1; transform: translate(50%, 0); }
+  }
+}
