@@ -134,13 +134,6 @@ export default function App() {
     }, 4000);
   };
 
-
-
-
-
-
-
-
   // ============================================
   // EFECTOS (useEffect) - Similar a listeners o código que se ejecuta cuando cambian variables
   // ============================================
@@ -171,6 +164,75 @@ export default function App() {
   const [hoveredNodeId, setHoveredNodeId] = useState(null); // C++: string* hoveredNodeId = nullptr;
   const [isFooterOpen, setIsFooterOpen] = useState(false); // C++: bool isFooterOpen = false;
   const [allEdgesCache, setAllEdgesCache] = useState([]); // C++: vector<Edge> allEdgesCache;
+
+  // TUTORIAL DE BIENVENIDA (ONBOARDING)
+  useEffect(() => {
+    // Revisa si ya vio el tutorial antes
+    const tutorialVisto = localStorage.getItem('tutorial_visto_v1');
+    
+    // Solo inicia si NO lo vio, si hay nodos cargados y si la librería cargó bien
+    if (!tutorialVisto && nodes.length > 0 && window.driver) {
+      
+      const driver = window.driver.js.driver;
+      
+      const driverObj = driver({
+        showProgress: true,
+        animate: true,
+        nextBtnText: 'Siguiente ▶️',
+        prevBtnText: 'Anterior',
+        doneBtnText: '¡Comenzar! 🚀',
+        steps: [
+          { 
+            element: '.utn-logo-svg', 
+            popover: { 
+              title: '¡Bienvenido a UTN Pathfinder!', 
+              // 2. Boton de "Saltar"
+              description: `
+              Tu mapa interactivo para hackear la carrera y planificar tu futuro.
+              <br/><br/>
+              <div style="text-align: right;">
+                  <button 
+                    onclick="window.tourDriver.destroy()" 
+                    style="background: transparent; border: none; color: #9ca3af; text-decoration: none; cursor: pointer; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px;"
+                    onmouseover="this.style.color='#fff'" 
+                    onmouseout="this.style.color='#9ca3af'"
+                  >
+                    SALTAR TUTORIAL ✕
+                  </button>
+              </div>
+            `
+            } 
+          },
+          { 
+            element: '#carrera-selector-tour', // <--- ID QUE PONDREMOS ABAJO
+            popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí para cargar el plan.' } 
+          },
+          { 
+            element: '.react-flow', 
+            popover: { title: 'Mapa de Correlativas', description: 'Haz clic en las materias para aprobarlas y ver qué se desbloquea.' } 
+          },
+          { 
+            element: '#btn-calculator-tour', // <--- ID QUE PONDREMOS ABAJO
+            popover: { title: 'Oráculo Académico', description: 'Predice tu fecha exacta de graduación.' } 
+          },
+          { 
+            element: '#btn-critical-tour', // <--- ID QUE PONDREMOS ABAJO
+            popover: { title: '🔥 Ruta Crítica', description: 'Muestra la cadena de materias más larga. ¡Tu cuello de botella principal!' } 
+          }
+        ],
+        onDestroyStarted: () => {
+           // Cuando termina o lo cierra, guardamos que ya lo vio
+           localStorage.setItem('tutorial_visto_v1', 'true');
+           driverObj.destroy();
+        }
+      });
+
+      window.tourDriver = driverObj;
+
+      // Pequeña pausa para asegurar que la interfaz cargó
+      setTimeout(() => { driverObj.drive(); }, 1500);
+    }
+  }, [nodes.length]);
 
   // ============================================
   // Guardar logros desbloqueados en localStorage cuando cambien
@@ -757,13 +819,14 @@ const disponiblesCount = nodes.filter(n => {
               </button>
               
                 <button 
-                  onClick={() => setShowCalculator(true)}
-                  className="btn-download"
-                  style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} // Violeta Místico
-                  title="Calculadora de Graduación"
-                >
-                  🔮
-                </button>
+                id="btn-calculator-tour"  // <--- AGREGAR ESTE ID
+                onClick={() => setShowCalculator(true)}
+                className="btn-download"
+                style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }}
+                title="Calculadora de Graduación"
+              >
+                🔮
+              </button>
 
                 <button 
                   onClick={() => setIsDarkMode(!isDarkMode)}
@@ -814,12 +877,13 @@ const disponiblesCount = nodes.filter(n => {
         </div>
 
         {/* Selector de Carrera */}
-        <div style={{ width: '100%', overflowX: 'auto', paddingBottom: '5px' }}>
-             {/* CarreraSelector es como un widget/componente personalizado */}
+        <div id="carrera-selector-tour" style={{ width: '100%', overflowX: 'auto', paddingBottom: '5px' }}>
+              {/* CarreraSelector es como un widget/componente personalizado */}
              {/* currentCarrera y onSelect son "props" (parámetros del componente) */}
              {/* C++: Sería como CarreraSelector selector(currentCarrera, onSelectFunction); */}
              <CarreraSelector currentCarrera={selectedCarrera} onSelect={handleCarreraChange} />
         </div>
+
       </div>
 
       {/* BARRA DE FILTROS */}
@@ -850,6 +914,24 @@ const disponiblesCount = nodes.filter(n => {
             {mode.charAt(0).toUpperCase() + mode.slice(1)}
           </button>
         ))}
+
+        <button
+          id="btn-critical-tour"
+          title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera."
+          onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')}
+          style={{
+            padding: '5px 12px', borderRadius: '15px', border: 'none',
+            /* Si está activo: Rojo Neón. Si no: Gris */
+            background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'),
+            color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
+            cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s',
+            fontWeight: 'bold', marginLeft: '5px',
+            boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none',
+            display: 'flex', alignItems: 'center', gap: '5px'
+          }}
+        >
+          🔥 Ruta Crítica
+        </button>
 
         <div className="progress-section">
             <span className="progress-text">

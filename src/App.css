@@ -817,7 +817,6 @@ body, html, #root {
 /* ===========================================
   Mensaje flotante
 =========================================== */
-
 .toast-notification {
   position: fixed;            /* Flota sobre todo */
   bottom: 80px;               /* Un poco arriba del footer */
@@ -971,150 +970,7 @@ body, html, #root {
 .app-container.dark-mode .ach-info p { color: #9ca3af; }
 .app-container.dark-mode .achievements-progress { background: #111827; color: #cbd5e1; }
 
-
-/* ===========================================
-   NOTIFICACIÓN DE LOGROS (ACHIEVEMENT POPUP)
-   Basado en el estilo de Smart Tooltip
-=========================================== */
-
-.achievement-popup {
-  position: fixed;
-  top: 80px; /* Justo debajo del header */
-  left: 50%;
-  transform: translateX(-50%); /* Centrado horizontal */
-  width: 320px;
-  
-  /* Estilo Glassmorphism idéntico al tooltip */
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 15px 20px;
-  border-radius: 12px;
-  
-  /* BORDE DORADO/AMBAR PARA LOGROS */
-  border-left: 6px solid #f59e0b; 
-  
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  z-index: 10000; /* Por encima de todo */
-  
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  
-  /* Animación de entrada estilo rebote */
-  animation: achievementSlideDown 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
-}
-
-/* Animación: Baja desde arriba y rebota */
-@keyframes achievementSlideDown {
-  0% { top: -100px; opacity: 0; }
-  100% { top: 80px; opacity: 1; }
-}
-
-/* Ícono del logro */
-.ach-popup-icon {
-  font-size: 2.5rem;
-  background: #fffbeb; /* Fondo muy suave */
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  animation: spinTrophy 1s ease-out;
-}
-
-@keyframes spinTrophy {
-  from { transform: rotate(-180deg) scale(0); }
-  to { transform: rotate(0) scale(1); }
-}
-
-/* Texto del logro */
-.ach-popup-content {
-  flex: 1;
-}
-
-.ach-popup-header {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #f59e0b; /* Color dorado */
-  font-weight: 800;
-  margin-bottom: 2px;
-}
-
-.ach-popup-title {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #1e293b;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.ach-popup-desc {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin-top: 4px;
-}
-
-/* MODO OSCURO */
-.app-container.dark-mode .achievement-popup {
-  background: rgba(31, 41, 55, 0.95); /* Fondo oscuro */
-  border-left-color: #fbbf24; /* Dorado más brillante */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.app-container.dark-mode .ach-popup-icon {
-  background: #374151;
-}
-
-.app-container.dark-mode .ach-popup-title {
-  color: #f3f4f6;
-}
-
-.app-container.dark-mode .ach-popup-desc {
-  color: #9ca3af;
-}
-
-/* RESPONSIVE MÓVIL */
-@media (max-width: 768px) {
-  .achievement-popup {
-    width: 90%;
-    top: 20px; /* Más arriba en móvil para no tapar el grafo */
-  }
-  
-  @keyframes achievementSlideDown {
-    0% { top: -100px; opacity: 0; }
-    100% { top: 20px; opacity: 1; }
-  }
-}
-
-.achievement-popup.closing {
-  /* Usamos la misma duración y la misma curva bezier para que se sienta idéntico */
-  animation: achievementSlideUp 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
-}
-
-@keyframes achievementSlideUp {
-  0% { 
-    top: 80px; 
-    opacity: 1; 
-  }
-  100% { 
-    top: -100px; /* Vuelve arriba */
-    opacity: 0; 
-  }
-}
-
-/* Ajuste para móvil en reversa */
-@media (max-width: 768px) {
-  @keyframes achievementSlideUp {
-    0% { top: 20px; opacity: 1; }
-    100% { top: -100px; opacity: 0; }
-  }
-}
-
-
-/* Tarjeta principal de la calculadora */
+/*==========CALCULADORA PREDICTIVA===========*/
 .calculator-card {
   /* Fondo blanco semi-transparente para efecto vidrio */
   background: rgba(255, 255, 255, 0.95);
@@ -1219,3 +1075,112 @@ body, html, #root {
 .app-container.dark-mode .slider-container label { color: #e2e8f0; }
 .app-container.dark-mode .ritmo-slider { background: #334155; }
 .app-container.dark-mode .prediction-result { background: #0f172a; border-color: #334155; }
+
+/* =========================================================
+   REDISEÑO DEL TUTORIAL (Driver.js Custom Theme)
+   Estilo: Glassmorphism Dark Tech
+   ========================================================= */
+
+/* 1. EL CONTENEDOR PRINCIPAL (La tarjeta) */
+.driver-popover {
+  background-color: rgba(30, 41, 59, 0.95) !important; /* Azul oscuro casi negro */
+  color: #f1f5f9 !important; /* Texto blanco suave */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Borde sutil */
+  border-radius: 16px !important; /* Bordes redondeados modernos */
+  padding: 20px !important;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.5), 
+    0 10px 10px -5px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255,255,255,0.05) inset !important; /* Sombra profunda y brillo interno */
+  backdrop-filter: blur(12px) !important; /* Efecto vidrio */
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  max-width: 350px !important;
+}
+
+/* 2. EL TÍTULO */
+.driver-popover-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+  background: linear-gradient(90deg, #60a5fa, #c084fc); /* Gradiente Azul a Violeta */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; /* Texto con gradiente */
+  line-height: 1.4 !important;
+}
+
+/* 3. EL TEXTO DEL CUERPO */
+.driver-popover-description {
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+  color: #cbd5e1 !important; /* Gris claro */
+  font-weight: 400 !important;
+  margin-bottom: 20px !important;
+}
+
+/* 4. BOTÓN "SIGUIENTE" (El protagonista) */
+.driver-popover-next-btn {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important; /* Azul a Violeta */
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.driver-popover-next-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important; /* Resplandor al pasar mouse */
+}
+
+/* 5. BOTÓN "ANTERIOR" (Secundario) */
+.driver-popover-prev-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  color: #94a3b8 !important;
+  border-radius: 8px !important;
+  padding: 8px 14px !important;
+  font-size: 0.85rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.driver-popover-prev-btn:hover {
+  background: rgba(255,255,255,0.05) !important;
+  color: white !important;
+  border-color: rgba(255,255,255,0.4) !important;
+}
+
+/* 6. LA FLECHITA (El triangulo que apunta) */
+/* Hay que pintarla del mismo color que el fondo oscuro */
+.driver-popover-arrow-side-left.driver-popover-arrow {
+  border-right-color: #1e293b !important; 
+}
+.driver-popover-arrow-side-right.driver-popover-arrow {
+  border-left-color: #1e293b !important; 
+}
+.driver-popover-arrow-side-top.driver-popover-arrow {
+  border-bottom-color: #1e293b !important; 
+}
+.driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-top-color: #1e293b !important; 
+}
+
+/* 7. TEXTO DE PROGRESO (1 de 5) */
+.driver-popover-progress-text {
+  color: #64748b !important;
+  font-size: 0.75rem !important;
+  font-family: monospace !important;
+}
+
+/* 8. BOTÓN DE CERRAR (La X) */
+.driver-popover-close-btn {
+  color: #94a3b8 !important;
+  transition: color 0.2s !important;
+}
+.driver-popover-close-btn:hover {
+  color: #f87171 !important; /* Rojo al pasar mouse */
+}

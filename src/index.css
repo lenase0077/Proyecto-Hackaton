@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -20,3 +22,115 @@ body {
 }
 
 /* Eliminamos todo el resto que está en App.css */
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* =========================================================
+   REDISEÑO DEL TUTORIAL (Driver.js Custom Theme)
+   Estilo: Glassmorphism Dark Tech
+   ========================================================= */
+
+/* 1. LA CAJA FLOTANTE (TARJETA OSCURA) */
+.driver-popover {
+  background: rgba(15, 23, 42, 0.95) !important; /* Fondo muy oscuro casi negro */
+  backdrop-filter: blur(10px) !important;       /* Efecto vidrio borroso */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Borde sutil */
+  color: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 0 30px rgba(0,0,0,0.6), 
+              0 0 0 1px rgba(255,255,255,0.05) inset !important; /* Resplandor interno */
+  padding: 20px !important;
+  max-width: 320px !important;
+  font-family: 'Poppins', sans-serif !important;
+}
+
+/* 2. EL TÍTULO */
+.driver-popover-title {
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 10px !important;
+  /* Texto degradado (Azul a Violeta) */
+  background: linear-gradient(90deg, #60a5fa, #a78bfa) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  display: inline-block !important;
+}
+
+/* 3. EL TEXTO NORMAL */
+.driver-popover-description {
+  color: #cbd5e1 !important; /* Gris claro muy legible */
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 20px !important;
+}
+
+/* 4. BOTÓN "SIGUIENTE" (El principal) */
+.driver-popover-next-btn {
+  background: linear-gradient(90deg, #3b82f6, #7c3aed) !important;
+  font-family: Arial, sans-serif !important;
+  border: none !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 10px 20px !important; /* Un poco más grande */
+  
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.driver-popover-next-btn:hover {
+  transform: scale(1.05) !important; /* Efecto pop al pasar mouse */
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5) !important; /* Resplandor azul */
+}
+
+/* 5. BOTÓN "ANTERIOR" */
+.driver-popover-prev-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  color: #94a3b8 !important;
+  border-radius: 8px !important;
+  
+  /* 👇 TIPOGRAFÍA COHERENTE */
+  font-family: Arial, sans-serif !important;
+  
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+.driver-popover-prev-btn:hover {
+  background: rgba(255,255,255,0.1) !important;
+  color: white !important;
+}
+
+/* 6. LA FLECHITA QUE SEÑALA (Oscura para coincidir con la caja) */
+.driver-popover-arrow-side-left.driver-popover-arrow  { border-right-color: rgba(15, 23, 42, 0.95) !important; }
+.driver-popover-arrow-side-right.driver-popover-arrow { border-left-color: rgba(15, 23, 42, 0.95) !important; }
+.driver-popover-arrow-side-top.driver-popover-arrow   { border-bottom-color: rgba(15, 23, 42, 0.95) !important; }
+.driver-popover-arrow-side-bottom.driver-popover-arrow{ border-top-color: rgba(15, 23, 42, 0.95) !important; }
+
+/* 7. BOTÓN DE CERRAR (X) */
+.driver-popover-close-btn {
+  color: #64748b !important;
+}
+.driver-popover-close-btn:hover {
+  color: #f87171 !important; /* Rojo al pasar el mouse */
+}
