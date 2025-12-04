@@ -1,3 +1,7 @@
+// ============================================================================
+// 1. IMPORTS
+// ============================================================================
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactFlow, {
   Controls,
@@ -6,810 +10,480 @@ import ReactFlow, {
   useEdgesState,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+
+// Estilos y Componentes
 import './App.css';
 import MatrixRain from './components/MatrixRain';
-
-import dbMaterias from './data/materias.json'; // C++: #include "materias.json" (pero en JS se importa como módulo)
 import CarreraSelector from './components/CarreraSelector';
 
-// SIN IMPORT DE THEME TOGGLE (Porque lo haremos directo aquí)
-// C++: Esto sería como un comentario normal //
-
+// Datos y Utilidades
+import dbMaterias from './data/materias.json';
 import { 
   getLayoutElements, 
   updateNodeStyles, 
   filterEdgesByMode,
   applyHighlightStyles,
   triggerLevelConfetti,
-  ACHIEVEMENTS,
-  triggerVictoryConfetti
-} from './utils'; // C++: #include "utils.h" con varias funciones
+  triggerVictoryConfetti,
+  ACHIEVEMENTS
+} from './utils';
 
+// ============================================================================
+// 2. COMPONENTE PRINCIPAL
+// ============================================================================
 
-
-// C++: Esta función App() es como tu main(), pero en React los componentes son funciones que devuelven HTML (JSX)
 export default function App() {
-  // ============================================
-  // ESTADOS (STATE) - Similar a variables miembro en una clase C++
-  // ============================================
-  const [isMatrixMode, setIsMatrixMode] = useState(false);
-  // useState es como declarar una variable + su setter
-  // El callback inicial es como un constructor que lee de localStorage
-  const [selectedCarrera, setSelectedCarrera] = useState(() => {
-    // C++: string selectedCarrera = localStorage.getItem(...) || "tup";
-    return localStorage.getItem('selectedCarrera') || 'tup';
+
+  // ============================================================================
+  // 3. GESTIÓN DE ESTADO (STATE)
+  // ============================================================================
+
+  // --- Datos Persistentes ---
+  const [selectedCarrera, setSelectedCarrera] = useState(() => localStorage.getItem('selectedCarrera') || 'tup');
+  
+  const [aprobadas, setAprobadas] = useState(() => {
+    const saved = localStorage.getItem('materiasAprobadas');
+    return saved ? JSON.parse(saved) : [];
   });
-  
-  {/*Mesaje flotante*/}
-  const [mostrarNotificacion, setMostrarNotificacion] = useState(false);
-  {/*Conteo para mensaje flotante*/}
-  const [conteoRegresivo, setConteoRegresivo] = useState(0);
-  {/*Calculadora predictoria de egreso*/}
-  const [showCalculator, setShowCalculator] = useState(false);
-  {/*Materias por cuatrimestre*/}
-  const [ritmoEstudio, setRitmoEstudio] = useState(3);
-  
-  // useNodesState/useEdgesState son hooks personalizados de reactflow
-  // C++: Sería como tener vector<Node> nodes con sus funciones de modificación
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  // Estado para mostrar logros (achievements)
-  const [showAchievements, setShowAchievements] = useState(false);
-  // Controla si la animación de salida se está reproduciendo
-
-  const [isClosing, setIsClosing] = useState(false);
-
-  // Estado para tutorial activo
-  const [isTutorialActive, setIsTutorialActive] = useState(false);
-
-
- // Estado para menú móvil
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-// Estado para logros desbloqueados con inicialización desde localStorage
-// C++: vector<string> unlockedAchievements; // con datos cargados desde archivo
   const [unlockedAchievements, setUnlockedAchievements] = useState(() => {
     const saved = localStorage.getItem('unlockedAchievements');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 2. Estado para la notificación visual (Toast)
-  const [currentNotification, setCurrentNotification] = useState(null);
+  // --- Configuración Visual ---
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('appTheme');
+    return saved !== 'light'; 
+  });
+  const [isDyslexic, setIsDyslexic] = useState(() => localStorage.getItem('dyslexicMode') === 'true');
+  const [isColorblind, setIsColorblind] = useState(() => localStorage.getItem('colorblindMode') === 'true');
+
+  // --- Grafo ---
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [allEdgesCache, setAllEdgesCache] = useState([]);
+  const [viewMode, setViewMode] = useState('todas');
+  const [hoveredNodeId, setHoveredNodeId] = useState(null);
+
+  // --- UI & Herramientas ---
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isFooterOpen, setIsFooterOpen] = useState(false);
+  const [isMatrixMode, setIsMatrixMode] = useState(false);
   
+  // --- Modals y Popups ---
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [showStats, setShowStats] = useState(false); // <--- ESTE FALTABA Y CAUSABA EL ERROR
+  const [showAchievements, setShowAchievements] = useState(false);
+  
+  const [ritmoEstudio, setRitmoEstudio] = useState(3);
+  
+  // --- Notificaciones ---
+  const [currentNotification, setCurrentNotification] = useState(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const [mostrarNotificacion, setMostrarNotificacion] = useState(false); // LinkedIn toast
+  const [conteoRegresivo, setConteoRegresivo] = useState(0);
+
+  // --- Tutorial ---
+  const [isTutorialActive, setIsTutorialActive] = useState(false);
+
+  // --- Referencias de Audio ---
   const currentaudioLevel = useRef(null);
   const currentaudioVictory = useRef(null);
 
-  // Estado para detectar si es móvil
-  // C++: bool isMobile = (window.innerWidth < 768);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
-  // Estado para materias aprobadas con inicialización desde localStorage
-  // C++: vector<string> aprobadas; // con datos cargados desde archivo
-  const [aprobadas, setAprobadas] = useState(() => {
-    const saved = localStorage.getItem('materiasAprobadas');
-    return saved ? JSON.parse(saved) : []; // C++: Parsear un JSON sería como deserializar
-  });
 
-  // Estado para modo oscuro
-  // C++: bool isDarkMode = (localStorage.getItem("appTheme") == "dark");
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-      const savedTheme = localStorage.getItem('appTheme');
-      // Si dice 'light', es light. Si dice 'dark' O si no existe (null), es dark.
-      return savedTheme !== 'light'; 
-    });
+  // ============================================================================
+  // 4. LÓGICA DE NEGOCIO (HELPERS)
+  // ============================================================================
 
-  // Estado para modo disléxico
-  const [isDyslexic, setIsDyslexic] = useState(() => {
-    return localStorage.getItem('dyslexicMode') === 'true';
-  });
+  // Cálculos Estadísticos
+  const totalMaterias = nodes.length;
+  const aprobadasCount = nodes.filter(n => aprobadas.includes(n.id)).length;
+  const porcentaje = totalMaterias > 0 ? Math.round((aprobadasCount / totalMaterias) * 100) : 0;
 
-  // ESTADO DALTONISMO
-  const [isColorblind, setIsColorblind] = useState(() => {
-    return localStorage.getItem('colorblindMode') === 'true';
-  });
-  
- // ============================================
-  // FUNCIÓN CENTRAL DE DESBLOQUEO
-  // ============================================
+  const disponiblesCount = nodes.filter(n => {
+    if (aprobadas.includes(n.id)) return false;
+    const mat = n.data?.originalData;
+    if (!mat) return false;
+    const reqCursadas = mat.requiere_para_cursar || [];
+    const reqFinales = mat.requiere_para_final || [];
+    const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
+    const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
+    return tieneCursadas && tieneFinales;
+  }).length;
+
+  // Frase Motivacional
+  const getMotivationalQuote = (porc) => {
+    if (porc === 0) return "¡Todo camino de mil millas comienza con un primer paso! 🚀";
+    if (porc < 25) return "¡Buen comienzo! La constancia es la clave del éxito. 🌱";
+    if (porc < 50) return "¡Vas genial! Estás construyendo tu futuro materia a materia. 🔥";
+    if (porc < 75) return "¡Ya pasaste la mitad! Sos imparable, la meta está cerca. 🏃‍♂️";
+    if (porc < 100) return "¡Recta final! Nada te detiene, ¡a por ese título! 🎓";
+    return "¡FELICITACIONES! Has completado la carrera. ¡Sos leyenda! 🏆";
+  };
+
+  // Sistema de Logros
   const triggerAchievement = (achId) => {
-    // 1. GUARDA: Si ya lo tengo, no hago nada
     if (unlockedAchievements.includes(achId) || isTutorialActive) return;
 
-    // 2. Busco la info
     const ach = ACHIEVEMENTS.find(a => a.id === achId);
     if (!ach) return;
 
-    // 3. ¡PREMIO!
     setUnlockedAchievements(prev => [...prev, achId]);
-    
-    // Mostramos la notificación
-    setIsClosing(false); // Aseguramos que no esté cerrándose
+    setIsClosing(false); 
     setCurrentNotification(ach);
 
-    // Audio
-    const audio = new Audio('/sounds/Archivement.mp3'); 
-    audio.volume = 0.8;
-    audio.play().catch(e => console.log("Audio error:", e));
+    const audio = new Audio('/sounds/victory.mp3');
+    audio.volume = 0.5;
+    audio.playbackRate = 1.5;
+    audio.preservesPitch = false;
+    audio.play().catch(() => {});
 
-    // 4. LÓGICA DE SALIDA (TIMERS)
-    // Esperamos 4 segundos de lectura
     setTimeout(() => {
-      // a) Activamos la animación de salida (clase .closing)
       setIsClosing(true);
-
-      // b) Esperamos 0.6s (lo que dura la animación CSS) y luego borramos el componente
       setTimeout(() => {
         setCurrentNotification(null);
-        setIsClosing(false); // Reset para la próxima
+        setIsClosing(false);
       }, 600); 
-
     }, 4000);
   };
 
-  // ============================================
-  // EFECTOS (useEffect) - Similar a listeners o código que se ejecuta cuando cambian variables
-  // ============================================
-  
-  // useEffect es como un observador: "Cuando isDyslexic cambie, haz esto"
-  // C++: Sería como tener un observer pattern o código en un setter
-  useEffect(() => { 
-    localStorage.setItem('dyslexicMode', isDyslexic); 
-  }, [isDyslexic]); // El array [isDyslexic] dice: "ejecuta esto solo cuando isDyslexic cambie"
 
-  useEffect(() => { 
-    localStorage.setItem('colorblindMode', isColorblind); 
-  }, [isColorblind]);
+  // ============================================================================
+  // 5. EFECTOS (SIDE EFFECTS)
+  // ============================================================================
 
-  useEffect(() => { 
-    localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'); 
-  }, [isDarkMode]);
+  // Persistencia
+  useEffect(() => localStorage.setItem('dyslexicMode', isDyslexic), [isDyslexic]);
+  useEffect(() => localStorage.setItem('colorblindMode', isColorblind), [isColorblind]);
+  useEffect(() => localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'), [isDarkMode]);
+  useEffect(() => localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)), [aprobadas]);
+  useEffect(() => localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements)), [unlockedAchievements]);
 
-  useEffect(() => { 
-    localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)); 
-  }, [aprobadas]); // C++: Serializar el vector a JSON cuando cambie
-
+  // Responsive & Konami
   useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+
     const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     let keyIndex = 0;
-
     const handleKeyDown = (e) => {
       if (e.key === konamiCode[keyIndex]) {
         keyIndex++;
         if (keyIndex === konamiCode.length) {
-          // Activar Modo
-          setIsMatrixMode(prev => !prev);
-          // Reproducir sonido si se activa
+          setIsMatrixMode(p => !p);
           if (!isMatrixMode) { 
               const audio = new Audio('/sounds/matrix.mp3');
               audio.volume = 1.0;
-              audio.play().catch(err => console.error("Error audio:", err));
+              audio.play().catch(() => {});
           }
           keyIndex = 0;
         }
-      } else {
-        keyIndex = 0;
-      }
+      } else { keyIndex = 0; }
     };
-
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    return () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isMatrixMode]);
 
-  // ============================================
-  // MÁS ESTADOS
-  // ============================================
-  
-  const [viewMode, setViewMode] = useState('todas'); // C++: string viewMode = "todas";
-  const [hoveredNodeId, setHoveredNodeId] = useState(null); // C++: string* hoveredNodeId = nullptr;
-  const [isFooterOpen, setIsFooterOpen] = useState(false); // C++: bool isFooterOpen = false;
-  const [allEdgesCache, setAllEdgesCache] = useState([]); // C++: vector<Edge> allEdgesCache;
+  // Carga de Carrera y Grafo
+  useEffect(() => {
+    const listaMaterias = dbMaterias[selectedCarrera] || [];
+    const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
+    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind);
+    
+    const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
+        styledNodes, layoutEdges, null, isDarkMode, 'todas', isColorblind, aprobadas
+    );
+    
+    setNodes(finalNodes);
+    setEdges(finalEdges);
+    setAllEdgesCache(layoutEdges);
+    setViewMode('todas');
+  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas]);
 
-  // TUTORIAL DE BIENVENIDA (ONBOARDING)
+  // Actualización Visual Rápida
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind);
+    const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
+        styledNodes, 
+        hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode, styledNodes, aprobadas), 
+        hoveredNodeId, isDarkMode, viewMode, isColorblind, aprobadas
+    );
+    setNodes(finalNodes);
+    setEdges(finalEdges);
+  }, [hoveredNodeId, viewMode]);
+
+  // Monitor Logros Automáticos
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    ACHIEVEMENTS.forEach(ach => {
+      if (ach.condition(aprobadas, nodes)) triggerAchievement(ach.id);
+    });
+  }, [aprobadas, nodes, unlockedAchievements]);
+
+  // Tutorial
   useEffect(() => {
     const tutorialVisto = localStorage.getItem('tutorial_visto_v1');
-    
-    // Solo inicia si NO lo vio, hay nodos y la librería existe
     if (!tutorialVisto && nodes.length > 0 && window.driver) {
-      
-      setIsTutorialActive(true); 
-
+      setIsTutorialActive(true);
       const driver = window.driver.js.driver;
 
-      // 1. CREAMOS UNA FUNCIÓN GLOBAL PARA CERRAR Y GUARDAR
-      // Esto asegura que el botón "Saltar" funcione sí o sí
       window.cerrarTutorial = () => {
-          localStorage.setItem('tutorial_visto_v1', 'true'); // Guardamos
-          setIsTutorialActive(false);                        // Reactivamos sonidos
-          if (window.tourDriver) {
-              window.tourDriver.destroy();                   // Cerramos
-          }
+          localStorage.setItem('tutorial_visto_v1', 'true');
+          setIsTutorialActive(false);
+          if (window.tourDriver) window.tourDriver.destroy();
       };
       
       const driverObj = driver({
-        showProgress: true,
-        animate: true,
-        nextBtnText: 'Siguiente ▶️',
-        prevBtnText: 'Anterior',
-        doneBtnText: '¡Comenzar! 🚀',
+        showProgress: true, animate: true,
+        nextBtnText: 'Siguiente ▶️', prevBtnText: 'Anterior', doneBtnText: '¡Comenzar! 🚀',
         steps: [
-          { 
-            element: '.utn-logo-svg', 
-            popover: { 
-              title: '¡Bienvenido a UTN Pathfinder!', 
-              description: `
-              Tu mapa interactivo para hackear la carrera y planificar tu futuro.
-              <br/><br/>
-              <div style="text-align: right;">
-                  <button 
-                    onclick="window.cerrarTutorial()" 
-                    style="background: transparent; border: none; color: #9ca3af; text-decoration: none; cursor: pointer; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px;"
-                    onmouseover="this.style.color='#fff'" 
-                    onmouseout="this.style.color='#9ca3af'"
-                  >
-                    SALTAR TUTORIAL ✕
-                  </button>
-              </div>
-            `
-            } 
-          },
-          { 
-            element: '#carrera-selector-tour', 
-            popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí para cargar el plan de estudios.' } 
-          },
-          { 
-            element: '.react-flow', 
-            popover: { title: 'Mapa de Correlativas', description: 'Haz clic en las materias para aprobarlas y ver qué se desbloquea.' } 
-          },
-          { 
-            element: '#btn-calculator-tour',
-            popover: { title: 'Oráculo Académico', description: 'Predice tu fecha exacta de graduación según tu ritmo.' } 
-          },
-          { 
-            element: '#btn-critical-tour',
-            popover: { title: '🔥 Ruta Crítica', description: 'Muestra el camino más largo. Si te atrasas acá, se alarga tu carrera.' } 
-          }
+          { element: '.utn-logo-svg', popover: { title: '¡Bienvenido a UTN Pathfinder!', description: `Tu mapa interactivo para hackear la carrera.<br/><br/><div style="text-align: right;"><button onclick="window.cerrarTutorial()" style="background:transparent;border:none;color:#9ca3af;cursor:pointer;">SALTAR ✕</button></div>` } },
+          { element: '#carrera-selector-tour', popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí.' } },
+          { element: '.react-flow', popover: { title: 'Mapa Interactivo', description: 'Haz clic para aprobar materias.' } },
+          { element: '#btn-calculator-tour', popover: { title: 'Oráculo', description: 'Predice tu fecha de graduación.' } },
+          { element: '#btn-critical-tour', popover: { title: '🔥 Ruta Crítica', description: 'El camino más largo de correlativas.' } }
         ],
-        // Esto captura cuando cierras con ESC, clic afuera o el botón "Comenzar"
         onDestroyStarted: () => {
-           // Chequeamos por seguridad para no guardar doble
            if (!localStorage.getItem('tutorial_visto_v1')) {
                localStorage.setItem('tutorial_visto_v1', 'true');
                setIsTutorialActive(false);
            }
-           // NOTA: Ya no llamamos a destroy() aquí para evitar bucles
         }
       });
-
       window.tourDriver = driverObj;
       setTimeout(() => { driverObj.drive(); }, 1500);
     }
   }, [nodes.length]);
 
-  // ============================================
-  // Guardar logros desbloqueados en localStorage cuando cambien
-  // ============================================
-  useEffect(() => {
-    localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements));
-  }, [unlockedAchievements]);
 
-  // ============================================
-  // MONITOR DE LOGROS (Checkeo en tiempo real)
-  // ============================================
-  useEffect(() => {
-    // Si no hay nodos cargados, no calculamos nada para evitar errores
-    if (nodes.length === 0) return;
+  // ============================================================================
+  // 6. HANDLERS
+  // ============================================================================
 
-    ACHIEVEMENTS.forEach(ach => {
-      // Solo verificamos si la condición se cumple
-      // La función triggerAchievement se encarga de ver si ya lo tenías o no
-      if (ach.condition(aprobadas, nodes)) {
-          triggerAchievement(ach.id);
-      }
-    });
-  }, [aprobadas, nodes, unlockedAchievements]);
-
-
-  // ============================================
-  // DATOS ESTÁTICOS (como un array constante en C++)
-  // ============================================
-  
-  const teamMembers = [
-    { name: "Durazzini Sebastian", linkedin: "https://www.linkedin.com/in/sebastian-durazzini/"},
-    { name: "Martinez Alejo", linkedin: "https://www.linkedin.com/in/alejo-martinez-olmedo-877004283/" },
-    { name: "Raho Daniel", linkedin: "https://www.linkedin.com/in/pablo-daniel-raho-17a611354/" },
-    { name: "Serrano Leandro", linkedin: "https://www.linkedin.com/in/leandro-serrano/" },
-  ];
-
-  // ============================================
-  // EFECTO PARA CARGAR MATERIAS AL CAMBIAR CARRERA O TAMAÑO PANTALLA
-  // ============================================
-  
-useEffect(() => {
-    // 1. Obtener datos crudos
-    const listaMaterias = dbMaterias[selectedCarrera] || [];
-    
-    // 2. Calcular posiciones (Layout) -> Esto devuelve nodos BLANCOS
-    const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
-    
-    // 3. ¡PINTAR INMEDIATAMENTE! (Aplicar estilos antes de guardar en el estado)
-    //    Le pasamos los nodos blancos y nos devuelve los nodos coloridos
-    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind);
-    
-    // 4. Aplicar también la lógica de líneas/highlight inicial
-    const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
-        styledNodes, 
-        layoutEdges, 
-        null, // No hay hover inicial
-        isDarkMode,
-        'todas', // Forzamos vista 'todas' al recalcular layout
-        isColorblind,
-        aprobadas
-    );
-    
-    // 5. Guardar todo junto en el estado (1 solo render, 0 parpadeos)
-    setNodes(finalNodes);
-    setEdges(finalEdges);
-    setAllEdgesCache(layoutEdges); // Guardamos la estructura base en caché
-    
-    // Solo reseteamos la vista si cambiamos de carrera (opcional)
-    setViewMode('todas');
-
-  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas]); // Dependencias: si cambian, se re-ejecuta
-
-  // ============================================
-  // EFECTO PARA DETECTAR CAMBIOS DE TAMAÑO DE VENTANA
-  // ============================================
-  
-  useEffect(() => {
-    // C++: Esto sería como un event listener en una GUI
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      // Solo actualizamos si cambia la categoría (para no renderizar a cada pixel)
-      setIsMobile(prev => {
-        if (prev !== mobile) return mobile;
-        return prev;
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    // C++: IMPORTANTE: El return es como un destructor - limpia el event listener
-    return () => window.removeEventListener('resize', handleResize);
-  }, []); // Array vacío [] = "ejecuta solo una vez al montar el componente"
-
-  // ============================================
-  // EFECTO PARA ACTUALIZAR ESTILOS DE NODOS Y LÍNEAS
-  // ============================================
-  
-  useEffect(() => {
-    if (nodes.length === 0) return; // C++: if (nodes.empty()) return;
-    
-    // 1. Estilos de Nodos (como aplicar estilos CSS dinámicamente)
-    const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind);
-    
-    // 2. Estilos de Líneas
-    const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
-        styledNodes, 
-        hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode, styledNodes, aprobadas), 
-        hoveredNodeId,
-        isDarkMode,
-        viewMode,
-        isColorblind,
-        aprobadas
-    );
-    
-    setNodes(finalNodes);
-    setEdges(finalEdges);
-
-  }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length, viewMode]);
-  // C++: Observa estas variables y cuando cambian, re-ejecuta
-
-  // ============================================
-  // MANEJADORES DE EVENTOS (Event handlers)
-  // ============================================
-  
   const handleCarreraChange = (nuevaCarrera) => {
-    // C++: void handleCarreraChange(string nuevaCarrera) { ... }
     setSelectedCarrera(nuevaCarrera);
     localStorage.setItem('selectedCarrera', nuevaCarrera);
   };
 
-  // useCallback es como memoizar una función para no recrearla en cada render
-  // C++: Sería como tener una función miembro constante
+  const handleShareLinkedIn = () => {
+    const nombres = { 'tup': 'TUP', 'admi': 'TUA', 'moldes': 'Moldes', 'automotriz': 'Automotriz' };
+    const carrera = nombres[selectedCarrera] || 'UTN';
+    const texto = `🚀 Progreso Académico: ${carrera}\nCompletado: ${porcentaje}%\n✅ Materias: ${aprobadasCount}/${totalMaterias}\n\n#UTN #Pathfinder`;
+    
+    navigator.clipboard.writeText(texto).then(async () => {
+      setMostrarNotificacion(true);
+      for (let i = 3; i > 0; i--) { setConteoRegresivo(i); await new Promise(r => setTimeout(r, 1000)); }
+      setConteoRegresivo(0);
+      window.open('https://www.linkedin.com/feed/', '_blank');
+      setTimeout(() => setMostrarNotificacion(false), 1000);
+    });
+  };
+
+  const downloadImage = useCallback(() => {
+    const elem = document.querySelector('.react-flow');
+    if (!elem || !window.htmlToImage) return;
+    window.htmlToImage.toPng(elem, {
+      backgroundColor: isDarkMode ? '#111827' : '#f8fafc',
+      style: { width: '100%', height: '100%' }
+    }).then((dataUrl) => {
+      const link = document.createElement('a');
+      link.download = `Plan-${selectedCarrera}.png`;
+      link.href = dataUrl;
+      link.click();
+    });
+  }, [isDarkMode, selectedCarrera]);
+
   const onNodeClick = useCallback((event, node) => {
-    // C++: void onNodeClick(Event event, Node node) { ... }
-    if (!node.data?.clickable) return; // C++: if (!node.data || !node.data->clickable) return;
-    
-    const matId = node.id; // C++: string matId = node.id;
-    
-    // Chequeamos si la estamos desmarcando
-    const isUnchecking = aprobadas.includes(matId); // C++: find(aprobadas.begin(), aprobadas.end(), matId)
+    if (!node.data?.clickable) return;
+    const matId = node.id;
+    const isUnchecking = aprobadas.includes(matId);
     let nuevasAprobadas;
     const listaMaterias = dbMaterias[selectedCarrera] || [];
     
     if (isUnchecking) {
-        // ========== LÓGICA PARA DESMARCAR (y desmarcar dependientes) ==========
-        // C++: Esto es como un algoritmo de búsqueda en grafos
-        // 1. Iniciamos un Set con la materia que acabamos de clickear
-        const idsAElminar = new Set([matId]); // C++: unordered_set<string> idsAEliminar = {matId};
-        
-        // 2. Usamos una pila para buscar recursivamente hacia adelante
-        const pilaDeBusqueda = [matId]; // C++: stack<string> pilaDeBusqueda; pilaDeBusqueda.push(matId);
-
-        while (pilaDeBusqueda.length > 0) {
-            const idActual = pilaDeBusqueda.pop(); // C++: string idActual = pilaDeBusqueda.top(); pilaDeBusqueda.pop();
-
-            // Buscamos todas las materias que requieren 'idActual' (para cursar o final)
-            const dependientes = listaMaterias.filter(m => {
-                // C++: filter sería como copy_if con una condición lambda
-                const reqCursada = m.requiere_para_cursar || [];
-                const reqFinal = m.requiere_para_final || [];
-                return reqCursada.includes(idActual) || reqFinal.includes(idActual);
-            });
-
+        // Desmarcar en cascada
+        const idsAElminar = new Set([matId]);
+        const pila = [matId];
+        while (pila.length > 0) {
+            const idActual = pila.pop();
+            const dependientes = listaMaterias.filter(m => 
+                (m.requiere_para_cursar || []).includes(idActual) || 
+                (m.requiere_para_final || []).includes(idActual)
+            );
             dependientes.forEach(dep => {
-                // Si la dependiente está aprobada y no la hemos marcado para borrar aún...
                 if (aprobadas.includes(dep.id) && !idsAElminar.has(dep.id)) {
-                    idsAElminar.add(dep.id);      // La marcamos para borrar
-                    pilaDeBusqueda.push(dep.id);  // La agregamos a la pila para buscar SUS hijas
+                    idsAElminar.add(dep.id);
+                    pila.push(dep.id);
                 }
             });
         }
-
-        // 3. Filtramos: Nos quedamos solo con las que NO están en el Set de eliminar
         nuevasAprobadas = aprobadas.filter(id => !idsAElminar.has(id));
-        // C++: copy_if(aprobadas.begin(), aprobadas.end(), back_inserter(nuevasAprobadas), 
-        //        [&](const string& id){ return idsAEliminar.find(id) == idsAEliminar.end(); });
-        
     } else {
-        // ========== LÓGICA PARA MARCAR COMO APROBADA ==========
-        nuevasAprobadas = [...aprobadas, matId]; // C++: vector<string> nuevasAprobadas = aprobadas; nuevasAprobadas.push_back(matId);
-        
-        // DATOS PARA CALCULAR NIVELES
-        const listaMaterias = dbMaterias[selectedCarrera] || [];
-        const materiaActual = node.data.originalData;
-        
-        // Calculamos nivel actual
-        const nivelActual = materiaActual.nivel || (materiaActual.posY ? materiaActual.posY + 1 : 1);
-
-        // Filtramos materias de ese nivel
-        const materiasDelNivel = listaMaterias.filter(m => {
-            const mNivel = m.nivel || (m.posY ? m.posY + 1 : 1);
-            return mNivel === nivelActual;
-        });
-
-        // Verificaciones
-        const nivelCompleto = materiasDelNivel.every(m => nuevasAprobadas.includes(m.id));
+        // Marcar
+        nuevasAprobadas = [...aprobadas, matId];
+        // Efectos
+        const mat = node.data.originalData;
+        const nivel = mat.nivel || (mat.posY ? mat.posY + 1 : 1);
+        const matsNivel = listaMaterias.filter(m => (m.nivel || (m.posY ? m.posY + 1 : 1)) === nivel);
+        const nivelCompleto = matsNivel.every(m => nuevasAprobadas.includes(m.id));
         const carreraCompleta = listaMaterias.every(m => nuevasAprobadas.includes(m.id));
 
-        // --- LÓGICA DE FIESTA Y SONIDO ---
         if (carreraCompleta) {
-             // 🏆 GANASTE LA CARRERA
-
-            if (currentaudioLevel.current){
-            currentaudioLevel.current.pause();
-            currentaudioLevel.current.currentTime = 0;}
-
-            if (currentaudioVictory.current){
-            currentaudioVictory.current.pause();
-            currentaudioVictory.current.currentTime = 0;}  
-
+             if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
              setTimeout(() => {
-                const audioVictory = new Audio('/sounds/victory.mp3');
-                currentaudioVictory.current = audioVictory;
-                audioVictory.volume = 0.9; // Dani Gil
-                audioVictory.play().catch(e => console.error(e));
-                
-                triggerVictoryConfetti(); // Lluvia con colores del tema
+                const audio = new Audio('/sounds/victory.mp3');
+                currentaudioVictory.current = audio;
+                audio.volume = 0.9;
+                audio.play().catch(() => {});
+                triggerVictoryConfetti();
              }, 100);
-            
-
         } else if (nivelCompleto) {
-             // ⭐️ COMPLETASTE EL NIVEL
-
-            if (currentaudioLevel.current){
-            currentaudioLevel.current.pause();
-            currentaudioLevel.current.currentTime = 0;}
-
+             if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
              setTimeout(() => {
-                const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
-                currentaudioLevel.current = audioLevel;
-
-                audioLevel.playbackRate = 0.9 + Math.random() * 0.3; // Pequeña variación
-                audioLevel.preservesPitch = false;
-                audioLevel.volume = 0.1; // Volumen controlado
-                audioLevel.play().catch(e => console.error(e));
-                
-                triggerLevelConfetti();   // Explosión Dorada
+                const audio = new Audio('/sounds/Celebracion-Nivel.mp3');
+                currentaudioLevel.current = audio;
+                audio.volume = 0.6;
+                audio.play().catch(() => {});
+                triggerLevelConfetti();
              }, 100);
-
         } else {
-             // 🔹 MATERIA INDIVIDUAL (Pop con Pitch Variable)
-             const audioPop = new Audio('/sounds/pop.mp3');
-             audioPop.volume = 0.4; // Más suave
-             // Variación aleatoria de tono (0.9 a 1.1) para que suene orgánico
-             audioPop.playbackRate = 0.9 + Math.random() * 0.3;
-             audioPop.preservesPitch = false;
-             audioPop.play().catch(() => {});
+             const audio = new Audio('/sounds/pop.mp3');
+             audio.volume = 0.4;
+             audio.playbackRate = 0.9 + Math.random() * 0.3;
+             audio.preservesPitch = false;
+             audio.play().catch(() => {});
         }
     }
-    
-    setAprobadas(nuevasAprobadas); // C++: this->aprobadas = nuevasAprobadas;
-  }, [aprobadas, selectedCarrera]); // Dependencias: esta función se recrea si aprobadas o selectedCarrera cambian
-
-  
-  // ============================================
-  // CÁLCULO DE PROGRESO
-  // ============================================
-
-  const totalMaterias = nodes.length;
-  const aprobadasCount = nodes.filter(n => aprobadas.includes(n.id)).length;
-  const porcentaje = totalMaterias > 0 
-      ? Math.round((aprobadasCount / totalMaterias) * 100) 
-      : 0;
+    setAprobadas(nuevasAprobadas);
+  }, [aprobadas, selectedCarrera]);
 
 
-  // ============================================
-  // LÓGICA DEL TOOLTIP INTELIGENTE
-  // ============================================
+  // ============================================================================
+  // 7. RENDER HELPERS
+  // ============================================================================
+
   const renderTooltip = () => {
-    // 1. Si no hay hover o el nodo no existe, no mostramos nada
     if (!hoveredNodeId) return null;
     const node = nodes.find(n => n.id === hoveredNodeId);
-    if (!node) return null;
+    if (!node || !node.data?.originalData || aprobadas.includes(node.id)) return null;
 
-    const mat = node.data?.originalData;
-    if (!mat) return null;
-
-    // 2. Si la materia YA está aprobada o disponible, no mostramos el tooltip de bloqueo
-    // (Opcional: podrías mostrar info extra aquí si quisieras)
-    const estaAprobada = aprobadas.includes(mat.id);
-    if (estaAprobada) return null;
-
-    // 3. Calculamos qué falta
+    const mat = node.data.originalData;
     const faltantes = [];
     
-    // Revisamos cursadas requeridas
-    if (mat.requiere_para_cursar) {
-        mat.requiere_para_cursar.forEach(reqId => {
-            if (!aprobadas.includes(reqId)) {
-                // Buscamos el nombre de la materia faltante
-                const reqNode = nodes.find(n => n.id === reqId);
-                if (reqNode) faltantes.push({ nombre: reqNode.data.label, tipo: 'Cursada' });
+    (mat.requiere_para_cursar || []).forEach(reqId => {
+        if (!aprobadas.includes(reqId)) {
+            const req = nodes.find(n => n.id === reqId);
+            if (req) faltantes.push({ nombre: req.data.label, tipo: 'Cursada' });
+        }
+    });
+    (mat.requiere_para_final || []).forEach(reqId => {
+        if (!aprobadas.includes(reqId)) {
+            const req = nodes.find(n => n.id === reqId);
+            if (req && !faltantes.some(f => f.nombre === req.data.label)) {
+                faltantes.push({ nombre: req.data.label, tipo: 'Final' });
             }
-        });
-    }
+        }
+    });
 
-    // Revisamos finales requeridos
-    if (mat.requiere_para_final) {
-        mat.requiere_para_final.forEach(reqId => {
-            if (!aprobadas.includes(reqId)) {
-                const reqNode = nodes.find(n => n.id === reqId);
-                // Evitamos duplicados si falta cursada y final de la misma
-                if (reqNode && !faltantes.some(f => f.nombre === reqNode.data.label)) {
-                    faltantes.push({ nombre: reqNode.data.label, tipo: 'Final' });
-                }
-            }
-        });
-    }
-
-    // 4. Si no falta nada (está disponible), no mostramos tooltip
     if (faltantes.length === 0) return null;
 
-    // 5. Renderizamos la tarjeta
     return (
       <div className="smart-tooltip">
-        <div className="tooltip-header">
-            <span className="lock-icon">🔒</span> 
-            <strong>{mat.nombre}</strong>
-        </div>
+        <div className="tooltip-header"><span className="lock-icon">🔒</span><strong>{mat.nombre}</strong></div>
         <div className="tooltip-divider"></div>
         <p className="tooltip-label">Para desbloquear necesitas:</p>
-        <ul className="tooltip-list">
-            {faltantes.map((f, i) => (
-                <li key={i}>
-                    • {f.nombre}
-                </li>
-            ))}
-        </ul>
+        <ul className="tooltip-list">{faltantes.map((f, i) => (<li key={i}>• {f.nombre}</li>))}</ul>
       </div>
     );
   };
 
-  // ============================================
-  //  FUNCIÓN COMPARTIR EN LINKEDIN
-  // ============================================
-  const handleShareLinkedIn = () => {
-    // 1. Buscamos el nombre de la carrera actual
-    const nombresCarreras = {
-      'tup': 'Tecnicatura Universitaria en Programación',
-      'admi': 'Tecnicatura Universitaria en Administración',
-      'moldes': 'Tecnicatura en Moldes y Matrices',
-      'automotriz': 'Tecnicatura en Industria Automotriz'
-    };
-    // Si no encuentra la carrera, usa un nombre genérico
-    const nombreCarrera = nombresCarreras[selectedCarrera] || 'Mi Carrera UTN';
+  const renderStatsModal = () => {
+    if (!showStats) return null;
+    const aprobadasReales = nodes.filter(n => aprobadas.includes(n.id)).length;
+    const bloqueadasNum = totalMaterias - aprobadasReales - disponiblesCount;
+    const porcAprobado = totalMaterias > 0 ? Math.round((aprobadasReales / totalMaterias) * 100) : 0;
+    const porcDisponible = totalMaterias > 0 ? Math.round((disponiblesCount / totalMaterias) * 100) : 0;
+    const porcBloqueado = totalMaterias > 0 ? Math.round((bloqueadasNum / totalMaterias) * 100) : 0;
 
-    // 2. Calculamos las estadísticas matemáticas
-    const total = nodes.length; // Cantidad total de nodos (materias)
-    const aprobadasCount = aprobadas.length; // Cantidad que ya aprobaste
-    // Calculamos porcentaje (evitando dividir por cero)
-    const porcentaje = total > 0 ? Math.round((aprobadasCount / total) * 100) : 0;
-
-    // 3. Buscamos tus "Mejores Logros" (Materias de nivel más alto aprobadas)
-    const logros = nodes
-      .filter(n => aprobadas.includes(n.id)) // Solo miramos las aprobadas
-      .map(n => n.data.originalData)         // Sacamos la info útil (nombre, nivel)
-      .sort((a, b) => (b.nivel || 0) - (a.nivel || 0)) // Ordenamos de Mayor a Menor Nivel
-      .slice(0, 3) // Nos quedamos solo con las 3 primeras (las más difíciles)
-      .map(m => m.nombre); // Nos quedamos solo con el nombre
-
-    // 4. Buscamos tu "Próximo Desafío" (Materia disponible pero NO aprobada)
-    const siguienteObjetivo = nodes.find(n => {
-      if (aprobadas.includes(n.id)) return false; // Si ya la aprobé, no cuenta
-      
-      const mat = n.data.originalData;
-      // Verificamos si tengo las correlativas para cursarla
-      const reqCursadas = mat.requiere_para_cursar || [];
-      const reqFinales = mat.requiere_para_final || [];
-      const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
-      const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
-      
-      return tieneCursadas && tieneFinales; // Devuelve true si está "Disponible"
-    });
-
-    // 5. Armamos el texto profesional con emojis
-    // \n significa "salto de línea" (enter)
-    const texto = `🚀 Progreso Académico: ${nombreCarrera}
-    He completado el ${porcentaje}% de mi plan de estudios en la UTN.
-    ✅ Materias Aprobadas: ${aprobadasCount} de ${total}
-
-    🏆 Últimos logros desbloqueados:
-    ${logros.length > 0 ? logros.map(l => `• ${l}`).join('\n') : '• Iniciando el camino'}
-
-    ${siguienteObjetivo ? `🎯 Próximo objetivo: ${siguienteObjetivo.data.originalData.nombre}` : '🎓 ¡Recta final!'}
-
-    #UTN #Pathfinder #DesarrolloProfesional #Educación #Hackathon`.trim(); // .trim() borra espacios vacíos al inicio y final
-
-    // 2. TEMPORIZADOR
-    navigator.clipboard.writeText(texto).then(async () => {
-      
-      setMostrarNotificacion(true); // Mostramos el cartel
-
-      // Iniciamos un bucle de 3 pasos (3, 2, 1)
-      for (let i = 3; i > 0; i--) {
-        setConteoRegresivo(i); // Actualizamos el número en pantalla
-        // Esperamos 1 segundo (1000 milisegundos) antes de seguir
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-      
-      // Cuando termina el bucle (llega a 0):
-      setConteoRegresivo(0); // Reseteamos numero
-      
-      // ABRIMOS LINKEDIN
-      window.open('https://www.linkedin.com/feed/', '_blank');
-
-      // Ocultamos el cartelito un segundo después de abrir, para limpiar
-      setTimeout(() => setMostrarNotificacion(false), 1000);
-
-    });
+    return (
+      <div className="modal-overlay" onClick={() => setShowStats(false)}>
+        <div className="stats-modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-header"><h2>📊 Tablero de Control</h2><button className="close-btn" onClick={() => setShowStats(false)}>×</button></div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <span className="stat-title">Avance</span>
+              <div className="chart-container">
+                <svg viewBox="0 0 36 36" className="circular-chart">
+                  <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="circle stroke-blue" strokeDasharray={`${porcAprobado}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div className="chart-center-text"><span className="chart-percentage">{porcAprobado}%</span></div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <span className="stat-title">Estado</span>
+              <div className="chart-container">
+                <svg viewBox="0 0 36 36" className="circular-chart">
+                  <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="circle stroke-green" strokeDasharray={`${porcAprobado}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="circle stroke-blue" strokeDasharray={`${porcDisponible}, 100`} strokeDashoffset={-porcAprobado} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="circle stroke-gray" strokeDasharray={`${porcBloqueado}, 100`} strokeDashoffset={-(porcAprobado + porcDisponible)} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div className="chart-center-text"><span className="chart-percentage">{disponiblesCount}</span><span className="chart-label" style={{fontSize:'0.6rem'}}>Disp.</span></div>
+              </div>
+            </div>
+          </div>
+          <div className="motivational-quote">{getMotivationalQuote(porcAprobado)}</div>
+        </div>
+      </div>
+    );
   };
 
-  // ============================================
-  // FUNCIÓN EXPORTAR IMAGEN (Versión CDN)
-  // ============================================
-  const downloadImage = useCallback(() => {
-    // Buscamos el div que contiene el grafo
-    const elem = document.querySelector('.react-flow');
-    
-    if (!elem || !window.htmlToImage) return;
-
-    // Usamos la variable global window.htmlToImage
-    window.htmlToImage.toPng(elem, {
-      backgroundColor: isDarkMode ? '#111827' : '#f8fafc', // Forzamos el color de fondo
-      style: {
-        width: '100%',
-        height: '100%',
-      } 
-    }).then((dataUrl) => {
-      // Creamos un link fantasma para descargar
-      const link = document.createElement('a');
-      link.download = `Plan-${selectedCarrera}-${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = dataUrl;
-      link.click();
-    }).catch((err) => {
-      console.error('Error al exportar imagen:', err);
-    });
-  }, [isDarkMode, selectedCarrera]);
-
-  // ============================================
-  // CÁLCULO DE MATERIAS DISPONIBLES
-  // ============================================
-
-const disponiblesCount = nodes.filter(n => {
-    // 1. Si ya está aprobada, no cuenta como "disponible" (ya la hiciste)
-    if (aprobadas.includes(n.id)) return false;
-    
-    const mat = n.data?.originalData;
-    if (!mat) return false;
-    
-    // 2. Revisamos si cumples todos los requisitos
-    const reqCursadas = mat.requiere_para_cursar || [];
-    const reqFinales = mat.requiere_para_final || [];
-    
-    const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
-    const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
-    
-    // 3. Si tienes todo, está disponible
-    return tieneCursadas && tieneFinales;
-  }).length;
-
-
-
-// ============================================
-  // RENDERIZADO DE LOGROS (MODAL)
-  // ============================================
   const renderAchievementsModal = () => {
     if (!showAchievements) return null;
-
-    const totalLogros = ACHIEVEMENTS.length;
-    
-    // CORRECCIÓN 1: Contamos los que están en la lista guardada, no los que cumplen la condición
-    const logrosDesbloqueados = unlockedAchievements.length; 
-
+    const unlockedCount = unlockedAchievements.length; 
     return (
       <div className="modal-overlay" onClick={() => setShowAchievements(false)}>
         <div className="modal-content achievements-modal" onClick={e => e.stopPropagation()}>
-          
-          <div className="modal-header">
-            <h2>🏆 Sala de Trofeos</h2>
-            <button className="close-btn" onClick={() => setShowAchievements(false)}>×</button>
-          </div>
-
-          <div className="achievements-progress">
-             <span>{logrosDesbloqueados} / {totalLogros} Desbloqueados</span>
-             <div className="progress-track" style={{width: '100%', marginTop: '5px'}}>
-                <div className="progress-fill" style={{width: `${(logrosDesbloqueados/totalLogros)*100}%`}}></div>
-             </div>
-          </div>
-
+          <div className="modal-header"><h2>🏆 Sala de Trofeos</h2><button className="close-btn" onClick={() => setShowAchievements(false)}>×</button></div>
+          <div className="achievements-progress"><span>{unlockedCount} / {ACHIEVEMENTS.length} Desbloqueados</span><div className="progress-track" style={{width: '100%', marginTop:'5px'}}><div className="progress-fill" style={{width: `${(unlockedCount/ACHIEVEMENTS.length)*100}%`}}></div></div></div>
           <div className="achievements-list">
             {ACHIEVEMENTS.map(ach => {
-              // CORRECCIÓN 2: Verificamos si el ID está en el array de desbloqueados
-              // ANTES: const isUnlocked = ach.condition(aprobadas, nodes);
               const isUnlocked = unlockedAchievements.includes(ach.id);
-
               return (
                 <div key={ach.id} className={`achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`}>
                   <div className="ach-icon">{isUnlocked ? ach.icon : '🔒'}</div>
-                  <div className="ach-info">
-                    <h4>{ach.title}</h4>
-                    <p>{ach.description}</p>
-                  </div>
+                  <div className="ach-info"><h4>{ach.title}</h4><p>{ach.description}</p></div>
                   {isUnlocked && <div className="ach-check">✓</div>}
                 </div>
               );
             })}
           </div>
-
         </div>
       </div>
     );
   };
 
-  // ============================================
-  // RENDER (RETURN) - Esto es lo que se dibuja en pantalla
-  // ============================================
-  // C++: En una GUI de C++ sería como el método paint() o render()
-  
+
+  // ============================================================================
+  // 8. RENDER PRINCIPAL
+  // ============================================================================
+
   return (
-    // El className dinámico es como tener clases CSS condicionales
-    // C++: Sería como string className = "app-container " + (isDarkMode ? "dark-mode " : "") + ...
-    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isMatrixMode ? 'matrix-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ...`}>
-    {isMatrixMode && <MatrixRain />}
-{/* HEADER FINAL (Responsive & Clean) */}
+    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isMatrixMode ? 'matrix-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
+      {isMatrixMode && <MatrixRain />}
+      
+      {/* HEADER */}
       <div className="app-header">
         
-        {/* 1. FILA SUPERIOR: Logo y Botón Menú */}
+        {/* Top: Logo & Menu Burger */}
         <div className="header-top-row">
             <div className="logo-section">
                 <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="40" fill="currentColor" style={{ minWidth: '30px' }}>
@@ -817,235 +491,76 @@ const disponiblesCount = nodes.filter(n => {
                 </svg>
                 <div className="title-container">
                     <h1>UTN Pathfinder</h1>
-                    <p>Hackea tu carrera. Visualiza tu camino
-                    </p>
+                    <p>Hackea tu carrera. Visualiza tu camino</p>
                 </div>
             </div>
-
-            <button 
-                className="mobile-menu-toggle"
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-            >
+            <button className="mobile-menu-toggle" onClick={() => setShowMobileMenu(!showMobileMenu)}>
                 {showMobileMenu ? '✕' : '⚙️'}
             </button>
         </div>
 
-        {/* LADO DERECHO: Botones y Controles */}
-        {/* IMPORTANTE: Quitamos el style inline para que el CSS pueda ocultarlo en móvil */}
+        {/* Right Side: Contadores + Herramientas */}
         <div className={`header-right-side ${showMobileMenu ? 'show' : ''}`}>
               
-              {/* FILA 1 (ARRIBA): Solo Información (Contadores) */}
-              <div className="header-row-top"> {/* Le puse clase para ordenarlo en CSS */}
-                
-                {/* 1. Contador Aprobadas */}
-                <div style={{
-                  background: 'rgba(34, 197, 94, 0.25)', 
-                  border: '1px solid rgba(34, 197, 94, 0.5)',
-                  color: '#86efac', 
-                  padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
-                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
-                }} title="Total de finales aprobados">
-                  <span>✅ <strong>{aprobadas.length}</strong></span>
-                </div>
-
-                {/* 2. Contador Disponibles */}
-                <div style={{
-                  background: 'rgba(59, 130, 246, 0.25)', 
-                  border: '1px solid rgba(59, 130, 246, 0.5)',
-                  color: '#93c5fd', 
-                  padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
-                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
-                }} title="Materias que ya puedes cursar">
-                  <span>🚀 <strong>{disponiblesCount}</strong></span>
-                </div>
-
+              <div className="header-row-top"> 
+                <div className="counter-pill aprobadas" title="Finales aprobados"><span>✅ <strong>{aprobadas.length}</strong></span></div>
+                <div className="counter-pill disponibles" title="Materias disponibles"><span>🚀 <strong>{disponiblesCount}</strong></span></div>
               </div>
 
-              {/* FILA 2 (ABAJO): Herramientas */}
-              <div className="header-row-bottom"> {/* Le puse clase para ordenarlo en CSS */}
-
-                {/* 1. Botón Logros */}
-                <button 
-                  onClick={() => setShowAchievements(true)}
-                  className="btn-download"
-                  style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} 
-                  title="Ver Logros"
-                >
-                  🏆
-                </button>
-              
-                {/* 2. Botón Oráculo */}
-                <button 
-                id="btn-calculator-tour"  // <--- AGREGAR ESTE ID
-                onClick={() => setShowCalculator(true)}
-                className="btn-download"
-                style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }}
-                title="Calculadora de Graduación"
-              >
-                🔮
-              </button>
-
-                {/* Separador */}
+              <div className="header-row-bottom">
+                <button onClick={() => setShowAchievements(true)} className="btn-download" style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Ver Logros">🏆</button>
+                <button id="btn-calculator-tour" onClick={() => setShowCalculator(true)} className="btn-download" style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Oráculo">🔮</button>
                 <div style={{ width: '1px', height: '15px', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }}></div>
-
-                {/* 3. Botón Tema */}
-                <button 
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  style={{
-                    background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white',
-                    width: '28px', height: '28px', borderRadius: '50%',
-                    cursor: 'pointer', fontSize: '0.9rem', padding: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}
-                  title="Cambiar Tema"
-                >
-                  {isDarkMode ? '☀️' : '🌙'}
-                </button>
-                
-                {/* 4. Botón Dislexia */}
-                <button 
-                    onClick={() => setIsDyslexic(!isDyslexic)} 
-                    className={`btn-tool ${isDyslexic ? 'active' : ''}`}
-                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
-                >
-                    👁️ Dislexia
-                </button>
-                
-                {/* 5. Botón Daltonismo */}
-                <button 
-                    onClick={() => setIsColorblind(!isColorblind)} 
-                    className={`btn-tool ${isColorblind ? 'active' : ''}`}
-                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
-                >
-                    🎨 Daltónico
-                </button>
+                <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Tema">{isDarkMode ? '☀️' : '🌙'}</button>
+                <button onClick={() => setIsDyslexic(!isDyslexic)} className={`btn-tool ${isDyslexic ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>👁️ Dislexia</button>
+                <button onClick={() => setIsColorblind(!isColorblind)} className={`btn-tool ${isColorblind ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>🎨 Daltónico</button>
               </div>
-            </div>
+        </div>
 
-
-        {/* Selector de Carrera (Siempre abajo) */}
+        {/* Bottom: Selector de Carrera */}
         <div id="carrera-selector-tour" className="carrera-selector-container">
              <CarreraSelector currentCarrera={selectedCarrera} onSelect={handleCarreraChange} />
         </div>
-
       </div>
       
-
-      {/* BARRA DE FILTROS */}
-      <div style={{
-        padding: '8px 15px',
-        background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff',
-        display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'
-      }}>
+      {/* BARRA DE FILTROS & ACCIONES */}
+      <div style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         
-        {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
-        
-        {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
-        {/* 1. Definimos los textos (puedes poner esto fuera del return para que quede limpio) */}
-        {(() => {
-          const filterDescriptions = {
-            todas: "Visualiza el mapa completo con todas las conexiones de cursada y finales.",
-            cursar: "Muestra solo las correlativas necesarias para cursar. Ideal para inscripciones.",
-            final: "Muestra solo los requisitos para rendir finales. Útil para planificar mesas.",
-            simplificada: "Vista limpia. Oculta el ruido y destaca solo tus materias disponibles inmediatas."
-          };
+        {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
+          <button key={mode} onClick={() => setViewMode(mode)} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === mode ? (mode === 'final' ? '#ef4444' : mode === 'simplificada' ? '#10b981' : '#3b82f6') : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === mode ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s' }}>
+            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+          </button>
+        ))}
 
-          return ['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              
-              /* 👇 AQUÍ AGREGAMOS EL TITLE DINÁMICO 👇 */
-              title={filterDescriptions[mode]} 
-              
-              style={{
-                padding: '5px 12px', borderRadius: '15px', border: 'none',
-                background: viewMode === mode 
-                  ? (mode === 'final' ? '#ef4444' : mode === 'simplificada' ? '#10b981' : '#3b82f6')
-                  : (isDarkMode ? '#374151' : '#e2e8f0'),
-                color: viewMode === mode ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
-                cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s'
-              }}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </button>
-          ));
-        })()}
-
-        <button
-          id="btn-critical-tour"
-          title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera."
-          onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')}
-          style={{
-            padding: '5px 12px', borderRadius: '15px', border: 'none',
-            /* Si está activo: Rojo Neón. Si no: Gris */
-            background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'),
-            color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
-            cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s',
-            fontWeight: 'bold', marginLeft: '5px',
-            boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none',
-            display: 'flex', alignItems: 'center', gap: '5px'
-          }}
-        >
+        <button id="btn-critical-tour" title="Ruta Crítica" onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s', fontWeight: 'bold', marginLeft: '5px', boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
           🔥 Ruta Crítica
         </button>
 
-        <div className="progress-section">
-            <span className="progress-text">
-                {aprobadasCount}/{totalMaterias} ({porcentaje}%)
-            </span>
-            <div className="progress-track" title={`${porcentaje}% Completado`}>
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${porcentaje}%` }}
-                ></div>
+        {/* Barra de Progreso */}
+        <div className="progress-section" onClick={() => setShowStats(true)} style={{ cursor: 'pointer' }} title="Ver estadísticas detalladas">
+            <span className="progress-text">{aprobadasCount}/{totalMaterias} ({porcentaje}%)</span>
+            <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${porcentaje}%` }}></div>
             </div>
         </div>
 
-        <button 
-          onClick={handleShareLinkedIn}
-          className="btn-download"
-          style={{ marginRight: '5px' }} // Separación con la cámara
-          title="Copiar resumen para LinkedIn"
-        >
-        <svg 
-            width="20px" 
-            height="20px" 
-            viewBox="0 0 382 382" 
-            fill="currentColor" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M347.445,0H34.555C15.471,0,0,15.471,0,34.555v312.889C0,366.529,15.471,382,34.555,382h312.889 C366.529,382,382,366.529,382,347.444V34.555C382,15.471,366.529,0,347.445,0z M118.207,329.844c0,5.554-4.502,10.056-10.056,10.056 H65.345c-5.554,0-10.056-4.502-10.056-10.056V150.403c0-5.554,4.502-10.056,10.056-10.056h42.806 c5.554,0,10.056,4.502,10.056,10.056V329.844z M86.748,123.432c-22.459,0-40.666-18.207-40.666-40.666S64.289,42.1,86.748,42.1 s40.666,18.207,40.666,40.666S109.208,123.432,86.748,123.432z M341.91,330.654c0,5.106-4.14,9.246-9.246,9.246H286.73 c-5.106,0-9.246-4.14-9.246-9.246v-84.168c0-12.556,3.683-55.021-32.813-55.021c-28.309,0-34.051,29.066-35.204,42.11v97.079 c0,5.106-4.139,9.246-9.246,9.246h-44.426c-5.106,0-9.246-4.14-9.246-9.246V149.593c0-5.106,4.14-9.246,9.246-9.246h44.426 c5.106,0,9.246,4.14,9.246,9.246v15.655c10.497-15.753,26.097-27.912,59.312-27.912c73.552,0,73.131,68.716,73.131,106.472 L341.91,330.654L341.91,330.654z"/>
-          </svg>
-
+        <button onClick={handleShareLinkedIn} className="btn-download" style={{ marginRight: '5px' }} title="LinkedIn">
+            <svg width="20px" height="20px" viewBox="0 0 382 382" fill="currentColor"><path d="M347.445,0H34.555C15.471,0,0,15.471,0,34.555v312.889C0,366.529,15.471,382,34.555,382h312.889 C366.529,382,382,366.529,382,347.444V34.555C382,15.471,366.529,0,347.445,0z M118.207,329.844c0,5.554-4.502,10.056-10.056,10.056 H65.345c-5.554,0-10.056-4.502-10.056-10.056V150.403c0-5.554,4.502-10.056,10.056-10.056h42.806 c5.554,0,10.056,4.502,10.056,10.056V329.844z M86.748,123.432c-22.459,0-40.666-18.207-40.666-40.666S64.289,42.1,86.748,42.1 s40.666,18.207,40.666,40.666S109.208,123.432,86.748,123.432z M341.91,330.654c0,5.106-4.14,9.246-9.246,9.246H286.73 c-5.106,0-9.246-4.14-9.246-9.246v-84.168c0-12.556,3.683-55.021-32.813-55.021c-28.309,0-34.051,29.066-35.204,42.11v97.079 c0,5.106-4.139,9.246-9.246,9.246h-44.426c-5.106,0-9.246-4.14-9.246-9.246V149.593c0-5.106,4.14-9.246,9.246-9.246h44.426 c5.106,0,9.246,4.14,9.246,9.246v15.655c10.497-15.753,26.097-27.912,59.312-27.912c73.552,0,73.131,68.716,73.131,106.472 L341.91,330.654L341.91,330.654z"/></svg>
         </button>
-
-        <button 
-              onClick={downloadImage}
-              className="btn-download"
-              title="Guardar imagen"
-            >
-              📷
-          </button>
+        <button onClick={downloadImage} className="btn-download" title="Guardar imagen">📷</button>
       </div>
 
-      {/* ÁREA PRINCIPAL DEL GRAFO */}
+      {/* ÁREA DEL GRAFO */}
       <div style={{ flex: 1, position: 'relative' }}>
         {nodes.length > 0 ? (
-          // Conditional rendering: si hay nodos, mostrar ReactFlow, sino mensaje
-          // C++: if (nodes.size() > 0) { dibujarGrafo(); } else { dibujarMensaje(); }
-          
-          // ReactFlow es como un widget de gráfico/como un QGraphicsView en Qt
           <ReactFlow
             nodes={nodes} edges={edges}
-            
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
             onNodeMouseEnter={(e, n) => setHoveredNodeId(n.id)}
             onNodeMouseLeave={() => setHoveredNodeId(null)}
             fitView minZoom={0.1}
-
             nodesDraggable={false} nodesConnectable={false}
           >
             <Background color={isDarkMode ? "#4b5563" : "#cbd5e1"} gap={20} variant="dots"/>
@@ -1060,134 +575,72 @@ const disponiblesCount = nodes.filter(n => {
       </div>
       
       {/* LEYENDA */}
-      {/* className es como class en HTML pero en JSX */}
       <div className="legend-container">
         <div className="legend-item"><div className="legend-dot aprobada"></div><span>Aprobada</span></div>
         <div className="legend-item"><div className="legend-dot disponible"></div><span>Disponible</span></div>
         <div className="legend-item"><div className="legend-dot bloqueada"></div><span>Bloqueada</span></div>
       </div>
       
-      {/* FOOTER (PIE DE PÁGINA) */}
+      {/* FOOTER */}
       <footer className={`app-footer ${isFooterOpen ? 'open' : ''}`}>
-        <button 
-            className="footer-toggle-btn" 
-            onClick={() => {
-                setIsFooterOpen(!isFooterOpen);
-                // Si estamos abriendo (no cerrando), damos el logro
-                if (!isFooterOpen) {
-                    triggerAchievement('credits_watcher');
-                }
-            }}
-        >
+        <button className="footer-toggle-btn" onClick={() => { setIsFooterOpen(!isFooterOpen); if (!isFooterOpen) triggerAchievement('credits_watcher'); }}>
           <span style={{ display: 'inline-block', transform: isFooterOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', marginRight: '5px' }}>▲</span>
           {isFooterOpen ? 'CERRAR' : 'CRÉDITOS'}
         </button>
-
         <div className="footer-container">
           <div className="footer-brand">
             <h3>🎓 UTN Pathfinder</h3>
             <p>De los Dynamics Pointers para la UTN.</p>
-            <p>Herramienta interactiva diseñada para planificar y visualizar el flujo de correlatividad de manera inteligente</p>
-            <span className="copyright">© 2025 - Todos los derechos reservados - Hecho con ❤️ para la comunidad</span>
+            <p>Herramienta interactiva diseñada para planificar.</p>
+            <span className="copyright">© 2025 - Derechos reservados - Hecho con ❤️</span>
           </div>
-
           <div className="footer-team">
             <h4>Desarrollado por:</h4>
             <div className="team-grid">
-              {/* Mapear el array teamMembers a enlaces */}
-              {teamMembers.map((member, index) => (
-                <a key={index} href={member.linkedin} target="_blank" rel="noopener noreferrer" className="team-link">
-                  {member.name}
-                </a>
+              {[{ name: "Durazzini Sebastian", linkedin: "https://www.linkedin.com/in/sebastian-durazzini/"},
+                { name: "Martinez Alejo", linkedin: "https://www.linkedin.com/in/alejo-martinez-olmedo-877004283/" },
+                { name: "Raho Daniel", linkedin: "https://www.linkedin.com/in/pablo-daniel-raho-17a611354/" },
+                { name: "Serrano Leandro", linkedin: "https://www.linkedin.com/in/leandro-serrano/" }].map((member, index) => (
+                <a key={index} href={member.linkedin} target="_blank" rel="noopener noreferrer" className="team-link">{member.name}</a>
               ))}
             </div>
           </div>
         </div>
       </footer>
 
-      {/*Calculadora Academica*/}
+      {/* MODALES */}
       
-      {/* ==============================================
-          MODAL CALCULADORA (Oráculo Académico)
-          Renderizado Condicional: Solo se muestra si showCalculator es TRUE
-          ============================================== */}
+      {/* 1. Calculadora */}
       {showCalculator && (
         <div className="modal-overlay" onClick={() => setShowCalculator(false)}>
           <div className="calculator-card" onClick={e => e.stopPropagation()}>
-            
-            <div className="calc-header">
-              <h3>🔮 Oráculo Académico</h3>
-              <button className="close-btn" onClick={() => setShowCalculator(false)}>×</button>
-            </div>
-
+            <div className="calc-header"><h3>🔮 Oráculo Académico</h3><button className="close-btn" onClick={() => setShowCalculator(false)}>×</button></div>
             <div className="calc-body">
-              
-              {/* --- LÓGICA DE CORRECCIÓN: FILTRADO POR CARRERA --- */}
               {(() => {
-                 // 1. Calculamos cuántas aprobadas pertenecen REALMENTE a esta carrera
-                 // Comparamos los IDs de 'aprobadas' con los IDs de los 'nodes' actuales
                  const aprobadasEstaCarrera = nodes.filter(n => aprobadas.includes(n.id)).length;
                  const totalEstaCarrera = nodes.length;
-
                  return (
                    <>
-                     {/* Texto de introducción actualizado */}
-                     <p className="calc-intro">
-                       Según tu progreso actual ({aprobadasEstaCarrera} aprobadas de {totalEstaCarrera}), 
-                       vamos a predecir tu futuro.
-                     </p>
-
-                     {/* SLIDER (Igual que antes) */}
+                     <p className="calc-intro">Progreso: {aprobadasEstaCarrera} de {totalEstaCarrera} aprobadas.</p>
                      <div className="slider-container">
-                       <label>
-                         ¿Cuántas materias aprobarás por cuatrimestre?
-                         <span className="ritmo-badge">{ritmoEstudio}</span>
-                       </label>
-                       
-                       <input 
-                         type="range" 
-                         min="1" 
-                         max="6" 
-                         step="1" 
-                         value={ritmoEstudio}
-                         onChange={(e) => setRitmoEstudio(parseInt(e.target.value))}
-                         className="ritmo-slider"
-                       />
-                       
-                       <div className="slider-labels">
-                         <span>Relax (1)</span>
-                         <span>Tryhard (6)</span>
-                       </div>
+                       <label>Materias por cuatrimestre<span className="ritmo-badge">{ritmoEstudio}</span></label>
+                       <input type="range" min="1" max="6" step="1" value={ritmoEstudio} onChange={(e) => setRitmoEstudio(parseInt(e.target.value))} className="ritmo-slider" />
+                       <div className="slider-labels"><span>Relax (1)</span><span>Tryhard (6)</span></div>
                      </div>
-
-                     {/* RESULTADO PREDICTIVO */}
                      <div className="prediction-result">
                         {(() => {
-                          // A. CÁLCULOS MATEMÁTICOS (Usando la variable filtrada)
                           const faltantes = totalEstaCarrera - aprobadasEstaCarrera;
-                          
-                          // Caso base: Si no falta nada
                           if (faltantes <= 0) return <div>¡Ya terminaste! 🎉</div>;
-
-                          // Cálculo de tiempo
                           const cuatrimestresRestantes = Math.ceil(faltantes / ritmoEstudio);
                           const mesesTotales = cuatrimestresRestantes * 6;
-                          
-                          // B. CÁLCULO DE FECHA
                           const fechaFutura = new Date();
                           fechaFutura.setMonth(fechaFutura.getMonth() + mesesTotales);
-                          
-                          const opcionesFecha = { month: 'long', year: 'numeric' };
-                          const fechaTexto = fechaFutura.toLocaleDateString('es-ES', opcionesFecha);
-                          const fechaFinal = fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1);
-
+                          const fechaFinal = fechaFutura.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
                           return (
                             <>
-                              <span className="pred-label">Te recibirías aproximadamente en:</span>
-                              <h2 className="pred-date">{fechaFinal}</h2>
-                              <span className="pred-details">
-                                (Faltan {faltantes} materias = {cuatrimestresRestantes} cuatrimestres)
-                              </span>
+                              <span className="pred-label">Te recibirías en:</span>
+                              <h2 className="pred-date">{fechaFinal.charAt(0).toUpperCase() + fechaFinal.slice(1)}</h2>
+                              <span className="pred-details">(Faltan {faltantes} materias)</span>
                             </>
                           );
                         })()} 
@@ -1195,32 +648,20 @@ const disponiblesCount = nodes.filter(n => {
                    </>
                  );
               })()}
-
             </div>
           </div>
         </div>
       )}
       
-      {/*Notificación Flotante*/}
-
+      {/* 2. Toast LinkedIn */}
       <div className={`toast-notification ${mostrarNotificacion ? 'show' : ''}`}>
-        {conteoRegresivo > 0 ? (
-           // MENSAJE DURANTE LA CUENTA REGRESIVA
-           <span>📋 ¡Texto copiado! Redirigiendo a LinkedIn en <strong>{conteoRegresivo}...</strong></span>
-        ) : (
-           // MENSAJE FINAL (O POR DEFECTO)
-           <span>🚀 ¡Listo! Ahora pégalo en tu post (Ctrl + V)</span>
-        )}
+        {conteoRegresivo > 0 ? <span>📋 Redirigiendo a LinkedIn en <strong>{conteoRegresivo}...</strong></span> : <span>🚀 ¡Texto copiado!</span>}
       </div>
 
-      {/* ============================================
-          NUEVA NOTIFICACIÓN DE LOGROS
-          ============================================ */}
+      {/* 3. Notificación Logro */}
       {currentNotification && (
         <div className={`achievement-popup ${isClosing ? 'closing' : ''}`}> 
-          <div className="ach-popup-icon">
-            {currentNotification.icon}
-          </div>
+          <div className="ach-popup-icon">{currentNotification.icon}</div>
           <div className="ach-popup-content">
             <div className="ach-popup-header">¡Logro Desbloqueado!</div>
             <h3 className="ach-popup-title">{currentNotification.title}</h3>
@@ -1229,9 +670,11 @@ const disponiblesCount = nodes.filter(n => {
         </div>
       )}
 
+      {/* 4. Render Helpers */}
+      {renderStatsModal()}
       {renderTooltip()}
       {renderAchievementsModal()}
+
     </div>
   );
-  // Fin del return y de la función App
 }
