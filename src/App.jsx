@@ -679,10 +679,10 @@ const disponiblesCount = nodes.filter(n => {
     // C++: Sería como string className = "app-container " + (isDarkMode ? "dark-mode " : "") + ...
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
       
-{/* HEADER OPTIMIZADO */}
+{/* HEADER FINAL (Responsive & Clean) */}
       <div className="app-header">
         
-        {/* FILA SUPERIOR: Logo y Botón Menú Móvil */}
+        {/* 1. FILA SUPERIOR: Logo y Botón Menú */}
         <div className="header-top-row">
             <div className="logo-section">
                 <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="40" fill="currentColor" style={{ minWidth: '30px' }}>
@@ -690,24 +690,25 @@ const disponiblesCount = nodes.filter(n => {
                 </svg>
                 <div className="title-container">
                     <h1>UTN Pathfinder</h1>
-                    <p>Hackea tu carrera. Visualiza tu camino</p>
+                    <p>Hackea tu carrera. Visualiza tu camino
+                    </p>
                 </div>
             </div>
 
-            {/* Botón Hamburguesa (Solo visible en móvil) */}
             <button 
                 className="mobile-menu-toggle"
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
             >
                 {showMobileMenu ? '✕' : '⚙️'}
             </button>
-        
+        </div>
 
-{/* LADO DERECHO: Botones y Controles */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+        {/* LADO DERECHO: Botones y Controles */}
+        {/* IMPORTANTE: Quitamos el style inline para que el CSS pueda ocultarlo en móvil */}
+        <div className={`header-right-side ${showMobileMenu ? 'show' : ''}`}>
               
-              {/* FILA 1 (ARRIBA): Información y Herramientas de Progreso */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* FILA 1 (ARRIBA): Solo Información (Contadores) */}
+              <div className="header-row-top"> {/* Le puse clase para ordenarlo en CSS */}
                 
                 {/* 1. Contador Aprobadas */}
                 <div style={{
@@ -715,7 +716,7 @@ const disponiblesCount = nodes.filter(n => {
                   border: '1px solid rgba(34, 197, 94, 0.5)',
                   color: '#86efac', 
                   padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
-                  display: 'flex', alignItems: 'center', height: '32px', whiteSpace: 'nowrap'
+                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
                 }} title="Total de finales aprobados">
                   <span>✅ <strong>{aprobadas.length}</strong></span>
                 </div>
@@ -726,72 +727,75 @@ const disponiblesCount = nodes.filter(n => {
                   border: '1px solid rgba(59, 130, 246, 0.5)',
                   color: '#93c5fd', 
                   padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
-                  display: 'flex', alignItems: 'center', height: '32px', whiteSpace: 'nowrap'
+                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
                 }} title="Materias que ya puedes cursar">
                   <span>🚀 <strong>{disponiblesCount}</strong></span>
                 </div>
 
-                {/* 3. Botón Logros */}
+              </div>
+
+              {/* FILA 2 (ABAJO): Herramientas */}
+              <div className="header-row-bottom"> {/* Le puse clase para ordenarlo en CSS */}
+
+                {/* 1. Botón Logros */}
                 <button 
                   onClick={() => setShowAchievements(true)}
                   className="btn-download"
-                  style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '32px', width: '32px', fontSize: '1rem' }} 
+                  style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} 
                   title="Ver Logros"
                 >
                   🏆
                 </button>
               
-                {/* 4. Botón Oráculo */}
+                {/* 2. Botón Oráculo */}
                 <button 
                   onClick={() => setShowCalculator(true)}
                   className="btn-download"
-                  style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)', height: '32px', width: '32px', fontSize: '1rem' }} 
+                  style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} 
                   title="Calculadora de Graduación"
                 >
                   🔮
                 </button>
 
-              </div>
+                {/* Separador */}
+                <div style={{ width: '1px', height: '15px', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }}></div>
 
-              {/* FILA 2 (ABAJO): Configuración Visual */}
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-
-                {/* 1. Botón Tema (Sol/Luna) */}
+                {/* 3. Botón Tema */}
                 <button 
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   style={{
                     background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white',
                     width: '28px', height: '28px', borderRadius: '50%',
-                    cursor: 'pointer', fontSize: '1rem', padding: 0,
+                    cursor: 'pointer', fontSize: '0.9rem', padding: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}
-                  title={isDarkMode ? "Activar modo claro" : "Activar modo oscuro"}
+                  title="Cambiar Tema"
                 >
                   {isDarkMode ? '☀️' : '🌙'}
                 </button>
                 
-                {/* 2. Botón Dislexia */}
+                {/* 4. Botón Dislexia */}
                 <button 
                     onClick={() => setIsDyslexic(!isDyslexic)} 
                     className={`btn-tool ${isDyslexic ? 'active' : ''}`}
-                    style={{ fontSize: '0.75rem', padding: '2px 8px', height: '28px' }}
+                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
                 >
                     👁️ Dislexia
                 </button>
                 
-                {/* 3. Botón Daltonismo */}
+                {/* 5. Botón Daltonismo */}
                 <button 
                     onClick={() => setIsColorblind(!isColorblind)} 
                     className={`btn-tool ${isColorblind ? 'active' : ''}`}
-                    style={{ fontSize: '0.75rem', padding: '2px 8px', height: '28px' }}
+                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
                 >
                     🎨 Daltónico
                 </button>
               </div>
-
             </div>
-</div>
-        {/* Selector de Carrera */}
+
+
+        {/* Selector de Carrera (Siempre abajo) */}
         <div className="carrera-selector-container">
              <CarreraSelector currentCarrera={selectedCarrera} onSelect={handleCarreraChange} />
         </div>

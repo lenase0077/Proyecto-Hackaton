@@ -1222,52 +1222,37 @@ body, html, #root {
 
 
 /* ===========================================
-   HEADER OPTIMIZADO (Responsive)
+   HEADER OPTIMIZADO (Final)
    =========================================== */
 
 .app-header {
   background: #3b82f6;
   color: white;
   padding: 10px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: space-between; /* PC: Logo izq, Resto der */
+  align-items: flex-start;
+  gap: 0px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
   transition: background 0.3s ease;
+  flex-wrap: wrap; /* Permite que cosas bajen si no hay espacio */
 }
 
-.app-container.dark-mode .app-header {
-  background: #1f2937;
-}
+.app-container.dark-mode .app-header { background: #1f2937; }
 
-/* Fila Superior: Logo y Título */
+/* 1. SECCIÓN LOGO (Izq) */
 .header-top-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
 }
+.logo-section { display: flex; align-items: center; gap: 12px; }
+.title-container h1 { margin: 0; font-size: 1.3rem; line-height: 1; }
+.title-container p { margin: 0; font-size: 0.8rem; opacity: 0.9; }
 
-.logo-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.title-container h1 {
-  margin: 0;
-  font-size: 1.3rem;
-  line-height: 1;
-}
-
-.title-container p {
-  margin: 0;
-  font-size: 0.8rem;
-  opacity: 0.9;
-}
-
-/* Botón Menú Móvil (Oculto en PC) */
+/* Botón Hamburguesa (Oculto en PC) */
 .mobile-menu-toggle {
-  display: none; /* Por defecto no se ve */
+  display: none;
   background: rgba(255,255,255,0.2);
   border: none;
   color: white;
@@ -1277,167 +1262,138 @@ body, html, #root {
   cursor: pointer;
 }
 
-/* Contadores */
-.counters-row {
+/* 2. SECCIÓN DERECHA (Contenedor de todo lo demás) */
+.header-right-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* PC: Todo alineado a la derecha */
+  gap: 8px;
+}
+
+.header-row-top, 
+.header-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* A. Contadores */
+.counters-container {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 .counter-pill {
-  padding: 5px 12px;
+  padding: 0 12px;
   border-radius: 20px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  height: 30px;
+  font-size: 0.85rem;
+  height: 32px;
+  display: flex; align-items: center;
   white-space: nowrap;
 }
-
 .counter-pill.aprobadas {
   background: rgba(34, 197, 94, 0.25);
   border: 1px solid rgba(34, 197, 94, 0.5);
   color: #86efac;
 }
-
 .counter-pill.disponibles {
   background: rgba(59, 130, 246, 0.25);
   border: 1px solid rgba(59, 130, 246, 0.5);
   color: #93c5fd;
 }
 
-/* Herramientas (Botones) */
-.header-tools {
+/* B. Herramientas (Botones) */
+.tools-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
-.tools-group {
+.tools-row {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-/* Botones de herramientas bonitos */
+/* Estilos de botones */
 .btn-tool {
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.2);
   color: white;
-  padding: 5px 12px;
+  padding: 0 12px;
+  height: 32px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 500;
-  display: flex; gap: 5px; align-items: center;
+  display: flex; align-items: center; gap: 6px;
   transition: all 0.2s;
 }
-
-.btn-tool.active {
-  background: #f59e0b; /* Fondo Naranja/Dorado */
-  border-color: #f59e0b;
-  color: #1e293b; /* Texto oscuro para buen contraste */
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); /* Resplandor */
-}
-
-
-.btn-tool:hover { transform: translateY(-2px); }
-
+.btn-tool:hover { transform: translateY(-2px); background: rgba(255,255,255,0.2); }
 .btn-tool.gold { color: #fcd34d; border-color: rgba(251, 191, 36, 0.4); }
 .btn-tool.purple { color: #d8b4fe; border-color: rgba(167, 139, 250, 0.4); }
+.btn-tool.active { background: #f59e0b; border-color: #f59e0b; color: #1e293b; font-weight: 700; }
 
 .btn-circle {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); border: none; color: white;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 
-.btn-tool-small {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.3);
-  color: white;
-  width: 32px; height: 32px;
-  border-radius: 6px;
-  cursor: pointer;
-  opacity: 0.7;
-}
-.btn-tool-small.active {
-  background: #f59e0b;
-  border-color: #f59e0b;
-  opacity: 1;
-}
-
-/* Selector de Carrera Contenedor */
 .carrera-selector-container {
   width: 100%;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-top: 5px;
 }
 
+/* Texto del botón (se oculta en PC para ahorrar espacio si quieres, o se deja) */
+.btn-text { display: none; } /* En PC solo íconos para Logros/Oráculo */
+@media (min-width: 1024px) { .btn-text { display: inline; } } /* En monitores grandes, mostrar texto */
+
+
 /* ===========================================
-   MEDIA QUERIES (Aquí ocurre la magia móvil)
+   MEDIA QUERIES (MÓVIL)
    =========================================== */
 @media (max-width: 768px) {
   
-  /* 1. Mostrar botón hamburguesa */
-  .mobile-menu-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* 2. Ocultar herramientas por defecto */
-  .header-tools {
-    display: none; /* Se oculta */
-    flex-direction: column; /* Se apila cuando se muestra */
-    background: rgba(0,0,0,0.2);
-    padding: 10px;
-    border-radius: 8px;
+  /* OCULTAR POR DEFECTO */
+  .header-right-side {
+    display: none; 
     width: 100%;
-  }
-
-  /* 3. Mostrar herramientas cuando está activo */
-  .header-tools.show {
-    display: flex;
+    background: rgba(0,0,0,0.2); /* Fondo oscurito para el menú desplegado */
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    align-items: center; /* En móvil centramos todo */
+    gap: 15px;
     animation: slideDown 0.3s ease;
   }
 
-  .tools-group {
-    width: 100%;
-    justify-content: space-between; /* Botones grandes */
-  }
-  
-  .btn-tool {
-    flex: 1; /* Botones ocupan espacio igual */
-    justify-content: center;
-    padding: 10px; /* Más grandes para dedos */
+  /* MOSTRAR CUANDO ESTÁ ACTIVO */
+  .header-right-side.show {
+    display: flex;
   }
 
-  /* 4. Contadores Compactos */
-  .counters-row {
+  /* Ajustar filas internas para móvil */
+  .header-row-top, 
+  .header-row-bottom {
     width: 100%;
-    justify-content: space-between;
+    justify-content: center; /* Centrar botones */
+    flex-wrap: wrap; /* Si no entran, que bajen */
   }
-  
-  .counter-pill {
-    flex: 1;
-    justify-content: center;
-    font-size: 0.85rem;
-  }
-  
-  /* OCULTAR TEXTO EN MÓVIL */
-  .counter-label {
-    display: none; /* Adiós texto "Aprobadas:" */
-  }
-  /* Resultado: Se ve "✅ 5" en vez de "✅ Aprobadas: 5" */
 
-  .logo-section .title-container p {
-    display: none; /* Ocultar subtítulo para ganar espacio */
+  .header-top-row {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .mobile-menu-toggle { 
+    display: flex !important; /* Forzamos que se vea */
+    align-items: center;
+    justify-content: center;
+    /* Asegúrate de que tenga color visible */
+    color: white; 
+    background: rgba(255,255,255,0.2);
   }
 }
 
