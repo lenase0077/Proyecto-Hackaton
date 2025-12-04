@@ -305,6 +305,11 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
     const nodeMap = new Map();
     allNodes.forEach(n => nodeMap.set(n.id, n));
 
+    let criticalPathIds = new Set();
+    if (viewMode === 'critical') {
+        criticalPathIds = calculateCriticalPath(nodes);
+    }
+
     // 1. SIN HOVER
     if (!hoveredNodeId) {
         const visibleEdges = filterEdgesByMode(allEdges, viewMode, allNodes, materiasAprobadasIds);
@@ -319,44 +324,113 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         }
         
         return {
-            nodes: allNodes.map(n => {
-                let nodeStyle = { ...n.style, opacity: 1 };
-                let hidden = false;
-                
-                // En modo simplificada, ocultar nodos no conectados
-                if (viewMode === 'simplificada' && !connectedNodeIds.has(n.id)) {
+        nodes: allNodes.map(n => {
+            // 1. Copiamos el estilo
+            let nodeStyle = { ...n.style };
+            
+            // 2. LIMPIEZA OBLIGATORIA (El Fix)
+            // Reseteamos valores que el modo crítico modifica, para que no se queden "pegados"
+            nodeStyle.opacity = 1; 
+            nodeStyle.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1)'; // Sombra normal por defecto
+            nodeStyle.borderWidth = isColorblind ? '3px' : '1px'; // Respetar grosor base
+            
+            // Nota: El color del borde (borderColor) se arregla solo porque 
+            // updateNodeStyles corre antes que esto y lo resetea a verde/azul.
+
+            let hidden = false;
+
+            // 3. APLICAR LÓGICA CRÍTICA (Si corresponde)
+            if (viewMode === 'critical') {
+                if (criticalPathIds.has(n.id)) {
+                    // NODO EN RUTA CRÍTICA: Efecto Neón Rojo
+                    nodeStyle.opacity = 1;
+                    nodeStyle.borderColor = '#ff0033'; 
+                    nodeStyle.boxShadow = '0 0 15px rgba(255, 0, 51, 0.6)'; // Sombra ROJA
+                    nodeStyle.borderWidth = '3px';
+                    nodeStyle.zIndex = 1000;
+                } else {
+                    // NODO NO IMPORTANTE: Oscurecer
                     nodeStyle.opacity = 0.1;
-                    hidden = true;
+                    nodeStyle.borderColor = '#555';
+                    nodeStyle.boxShadow = 'none';
                 }
-                
-                return { ...n, className: '', style: nodeStyle, hidden };
-            }),
+            } 
+            
+            // 4. LÓGICA MODO SIMPLIFICADA
+            if (viewMode === 'simplificada' && !connectedNodeIds.has(n.id)) {
+                nodeStyle.opacity = 0.1;
+                hidden = true;
+            }
+            
+            return { ...n, className: '', style: nodeStyle, hidden };
+        }),
             edges: allEdges.map(edge => {
-                const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
-                const isFinal = edge.data?.tipo === 'final';
+            // 1. Lógica común inicial: ver si la línea es visible según filtros normales
+            const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
+            const isFinal = edge.data?.tipo === 'final';
+            
+            // Preparamos variables base
+            let newStyle = { ...edge.style, opacity: 1 };
+            let animated = isVisible && !isFinal; // Animación por defecto
+            let hidden = !isVisible; // Oculto por defecto si no pasa el filtro
+            
+            // =========================================================
+            // 2. RAMIFICACIÓN: ¿Estamos en modo CRÍTICO o NORMAL?
+            // =========================================================
+            
+            if (viewMode === 'critical') {
+                // --- MODO RUTA CRÍTICA ---
+                // Aquí ignoramos el filtro de visibilidad normal, queremos ver todo pero "apagado"
+                hidden = false; 
+
+                // Verificamos si este edge es parte del camino crítico
+                // (Ambos extremos en la lista Y es una correlativa de cursada)
+                const isCriticalEdge = criticalPathIds.has(edge.source) && 
+                                    criticalPathIds.has(edge.target) && 
+                                    edge.data?.tipo === 'cursar';
+
+                if (isCriticalEdge) {
+                    // ES CRÍTICO: Rojo, grueso y animado
+                    newStyle.opacity = 1;
+                    newStyle.stroke = '#ff0033'; // Rojo Neón
+                    newStyle.strokeWidth = 3;
+                    newStyle.zIndex = 1000;
+                    animated = true; 
+                } else {
+                    // NO ES CRÍTICO: Casi invisible (ghost)
+                    newStyle.opacity = 0.05; 
+                    newStyle.stroke = '#555'; // Gris oscuro para que no moleste
+                    animated = false;
+                }
+            
+            } else {
+                // --- MODO NORMAL (Standard / Colorblind) ---
+                // Aquí respetamos la lógica de colores original
                 
-                // Determinamos color base según modo
                 let strokeColor;
                 if (isColorblind) {
                     strokeColor = isFinal ? LINE_COLORS_ACCESSIBLE.final : LINE_COLORS_ACCESSIBLE.cursada;
                 } else {
-                    // Mantenemos colores originales si no es colorblind
+                    // Mantenemos el color original que venía del layout
                     strokeColor = edge.style.stroke; 
                 }
 
-                return {
-                    ...edge,
-                    className: '',
-                    hidden: !isVisible,
-                    animated: isVisible && !isFinal,
-                    style: { 
-                        ...edge.style, 
-                        opacity: 1, 
-                        stroke: strokeColor,
-                        strokeWidth: isFinal ? 2 : (edge.style.stroke === EDGE_COLORS.longJump ? 2 : 1) 
-                    }
-                };
-            })
+                newStyle.stroke = strokeColor;
+                // Grosor: si es final o salto largo, es más grueso
+                newStyle.strokeWidth = isFinal ? 2 : (edge.style.stroke === EDGE_COLORS.longJump ? 2 : 1);
+            }
+
+            // =========================================================
+            // 3. RETORNO ÚNICO FINAL
+            // =========================================================
+            return {
+                ...edge,
+                className: '',
+                hidden: hidden,
+                animated: animated,
+                style: newStyle
+            };
+        })
         };
     }
 
@@ -579,3 +653,68 @@ export const ACHIEVEMENTS = [
         condition: () => false
     }
 ];
+
+//RUTA CRITICA=================================================
+
+export const calculateCriticalPath = (nodes) => {
+    // 1. Mapa de dependencias para acceso rápido
+    const nodeMap = new Map(nodes.map(n => [n.id, n.data.originalData]));
+    
+    // Cache para memoización (evitar recalcular caminos repetidos)
+    const memo = {};
+
+    // Función recursiva para buscar la profundidad de un nodo
+    const getDepth = (id) => {
+        if (id in memo) return memo[id];
+
+        const materia = nodeMap.get(id);
+        if (!materia) return 0;
+
+        // Miramos solo 'requiere_para_cursar' porque eso define la cadena de bloqueo real
+        const requisitos = materia.requiere_para_cursar || [];
+        
+        if (requisitos.length === 0) {
+            memo[id] = 1;
+            return 1;
+        }
+
+        // Buscamos el requisito que tenga el camino más largo detrás
+        let maxDepth = 0;
+        for (const reqId of requisitos) {
+            maxDepth = Math.max(maxDepth, getDepth(reqId));
+        }
+
+        memo[id] = maxDepth + 1;
+        return maxDepth + 1;
+    };
+
+    // 2. Encontrar el nodo final con el camino más largo (el cuello de botella final)
+    let maxPathLength = 0;
+    let endNodeId = null;
+
+    nodes.forEach(node => {
+        const depth = getDepth(node.id);
+        if (depth > maxPathLength) {
+            maxPathLength = depth;
+            endNodeId = node.id;
+        }
+    });
+
+    // 3. Reconstruir el camino hacia atrás desde el final
+    const criticalPath = new Set();
+    let currentId = endNodeId;
+
+    while (currentId) {
+        criticalPath.add(currentId);
+        const materia = nodeMap.get(currentId);
+        const requisitos = materia?.requiere_para_cursar || [];
+
+        if (requisitos.length === 0) break;
+
+        // Moverse al requisito que tiene el mayor depth (el camino crítico)
+        // Esto elige la "rama" más larga
+        currentId = requisitos.reduce((a, b) => getDepth(a) > getDepth(b) ? a : b);
+    }
+
+    return criticalPath; // Retorna un Set con los IDs de la ruta crítica
+};
