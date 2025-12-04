@@ -36,8 +36,10 @@ export default function App() {
   });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('appTheme') === 'dark';
-  });
+      const savedTheme = localStorage.getItem('appTheme');
+      // Si dice 'light', es light. Si dice 'dark' O si no existe (null), es dark.
+      return savedTheme !== 'light'; 
+    });
 
   const [isDyslexic, setIsDyslexic] = useState(() => {
     return localStorage.getItem('dyslexicMode') === 'true';
@@ -215,6 +217,23 @@ export default function App() {
     setAprobadas(nuevasAprobadas);
   }, [aprobadas, selectedCarrera]);
 
+<<<<<<< Updated upstream
+=======
+
+
+  const totalMaterias = nodes.length;
+  const aprobadasCount = nodes.filter(n => aprobadas.includes(n.id)).length;
+  const porcentaje = totalMaterias > 0 
+      ? Math.round((aprobadasCount / totalMaterias) * 100) 
+      : 0;
+
+
+  // ============================================
+  // RENDER (RETURN) - Esto es lo que se dibuja en pantalla
+  // ============================================
+  // C++: En una GUI de C++ sería como el método paint() o render()
+  
+>>>>>>> Stashed changes
   return (
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
       
@@ -318,10 +337,16 @@ export default function App() {
 
       <div style={{
         padding: '8px 15px',
-        background: isDarkMode ? '#111827' : '#f1f5f9',
+        background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff',
         display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'
       }}>
+<<<<<<< Updated upstream
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#4b5563' }}>Filtros:</span>
+=======
+        <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
+        
+        {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
+>>>>>>> Stashed changes
         {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
           <button
             key={mode}
@@ -338,6 +363,20 @@ export default function App() {
             {mode.charAt(0).toUpperCase() + mode.slice(1)}
           </button>
         ))}
+
+        <div className="progress-section">
+            <span className="progress-text">
+                {aprobadasCount}/{totalMaterias} ({porcentaje}%)
+            </span>
+            <div className="progress-track" title={`${porcentaje}% Completado`}>
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${porcentaje}%` }}
+                ></div>
+            </div>
+        </div>
+
+        
       </div>
 
       <div style={{ flex: 1, position: 'relative' }}>
@@ -380,7 +419,7 @@ export default function App() {
         <div className="footer-container">
           <div className="footer-brand">
             <h3>🎓 UTN Pathfinder</h3>
-            <p>De los Dinamics Pointers para la UTN.</p>
+            <p>De los Dynamics Pointers para la UTN.</p>
             <p>Herramienta interactiva diseñada para planificar y visualizar el flujo de correlatividad de manera inteligente</p>
             <span className="copyright">© 2025 - Todos los derechos reservados - Hecho con ❤️ para la comunidad</span>
           </div>

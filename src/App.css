@@ -316,6 +316,16 @@ body, html, #root {
     grid-template-columns: 1fr 1fr; /* 2 columnas en móvil */
     font-size: 0.8rem;
   }
+
+  .progress-section {
+    margin-left: 0; /* Ya no se empuja a la derecha */
+    width: 100%;
+    justify-content: space-between; /* Texto a un lado, barra al otro */
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  
 }
 
 @media (max-width: 480px) {
@@ -332,3 +342,63 @@ body, html, #root {
   }
 }
 
+<<<<<<< Updated upstream
+=======
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Esto empuja la barra hacia la derecha del todo */
+  margin-left: auto; 
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap; /* Que no se rompa el texto */
+}
+
+.progress-track {
+  width: 150px; /* Ancho fijo para la barra */
+  height: 10px;
+  background-color: #e2e8f0; /* Gris claro de fondo */
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981); /* Azul a Verde */
+  border-radius: 20px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* Animación suave */
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+/* MODO OSCURO */
+.app-container.dark-mode .progress-text {
+  color: #cbd5e1;
+}
+.app-container.dark-mode .progress-track {
+  background-color: #374151;
+}
+
+/* RESPONSIVE: En móvil, la barra se acomoda */
+@media (max-width: 768px) {
+  .progress-section {
+    margin-left: 0; /* Ya no se empuja a la derecha */
+    width: 100%;
+    justify-content: space-between; /* Texto a un lado, barra al otro */
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  
+  .progress-track {
+    width: 60%; /* Ocupa más espacio en móvil */
+  }
+}
+
+>>>>>>> Stashed changes
