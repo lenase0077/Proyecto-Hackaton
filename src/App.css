@@ -129,11 +129,6 @@ body, html, #root {
   backdrop-filter: blur(4px); /* Desenfoque del fondo */
 }
 
-/* Asegura que las líneas del grafo capturen eventos del mouse */
-.react-flow__edge-path { 
-  pointer-events: all;     /* C++: AcceptsMouseEvents = true; */
-}
-
 /* ===========================================
    FOOTER DESPLEGABLE
    C++: Sería un panel que se desliza desde abajo
@@ -797,4 +792,8 @@ body, html, #root {
 @media (max-width: 600px) {
   .progress-text { display: none; }
   .progress-track { width: 60px !important; }
+}
+
+.react-flow__edge {
+  pointer-events: none !important;
 }
