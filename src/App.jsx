@@ -53,6 +53,9 @@ export default function App() {
 
   // Estado para mostrar logros (achievements)
   const [showAchievements, setShowAchievements] = useState(false);
+  // Controla si la animación de salida se está reproduciendo
+
+  const [isClosing, setIsClosing] = useState(false);
 
 // Estado para logros desbloqueados con inicialización desde localStorage
 // C++: vector<string> unlockedAchievements; // con datos cargados desde archivo
@@ -97,35 +100,45 @@ export default function App() {
   // FUNCIÓN CENTRAL DE DESBLOQUEO
   // ============================================
   const triggerAchievement = (achId) => {
-    // 1. GUARDA: Si ya lo tengo en la lista, NO hago nada (evita bucles)
+    // 1. GUARDA: Si ya lo tengo, no hago nada
     if (unlockedAchievements.includes(achId)) return;
 
-    // 2. Busco la info del logro
+    // 2. Busco la info
     const ach = ACHIEVEMENTS.find(a => a.id === achId);
     if (!ach) return;
 
     // 3. ¡PREMIO!
-    // Actualizamos estado (esto guardará en localStorage automáticamente por el otro useEffect)
     setUnlockedAchievements(prev => [...prev, achId]);
     
-    // Mostramos la notificación visual
+    // Mostramos la notificación
+    setIsClosing(false); // Aseguramos que no esté cerrándose
     setCurrentNotification(ach);
 
-    // Reproducimos sonido
-    // NOTA: Asegúrate de que este archivo exista en public/sounds/
-    // He corregido el nombre a 'victory.mp3' que dijiste que funcionaba, 
-    // si tienes uno específico para logros, pon su nombre exacto aquí.
+    // Audio
     const audio = new Audio('/sounds/Archivement.mp3'); 
     audio.volume = 0.5;
-    audio.playbackRate = 1; // Un poco más agudo para diferenciarlo del final
-    audio.preservesPitch = false;
     audio.play().catch(e => console.log("Audio error:", e));
 
-    // Ocultar notificación a los 4 segundos
+    // 4. LÓGICA DE SALIDA (TIMERS)
+    // Esperamos 4 segundos de lectura
     setTimeout(() => {
-      setCurrentNotification(null);
+      // a) Activamos la animación de salida (clase .closing)
+      setIsClosing(true);
+
+      // b) Esperamos 0.6s (lo que dura la animación CSS) y luego borramos el componente
+      setTimeout(() => {
+        setCurrentNotification(null);
+        setIsClosing(false); // Reset para la próxima
+      }, 600); 
+
     }, 4000);
   };
+
+
+
+
+
+
 
 
   // ============================================
@@ -198,19 +211,37 @@ export default function App() {
   // EFECTO PARA CARGAR MATERIAS AL CAMBIAR CARRERA O TAMAÑO PANTALLA
   // ============================================
   
-  useEffect(() => {
-    // C++: Esto se ejecutaría en un constructor o método onCarreraChange()
-    const listaMaterias = dbMaterias[selectedCarrera] || []; // C++: Acceso a mapa/JSON
+useEffect(() => {
+    // 1. Obtener datos crudos
+    const listaMaterias = dbMaterias[selectedCarrera] || [];
     
-    // AHORA PASAMOS isMobile A LA FUNCIÓN
-    // C++: getLayoutElements sería una función que devuelve una struct {nodes, edges}
+    // 2. Calcular posiciones (Layout) -> Esto devuelve nodos BLANCOS
     const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
     
-    setNodes(layoutNodes); // C++: this->nodes = layoutNodes;
-    setEdges(layoutEdges);
-    setAllEdgesCache(layoutEdges);
+    // 3. ¡PINTAR INMEDIATAMENTE! (Aplicar estilos antes de guardar en el estado)
+    //    Le pasamos los nodos blancos y nos devuelve los nodos coloridos
+    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind);
+    
+    // 4. Aplicar también la lógica de líneas/highlight inicial
+    const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
+        styledNodes, 
+        layoutEdges, 
+        null, // No hay hover inicial
+        isDarkMode,
+        'todas', // Forzamos vista 'todas' al recalcular layout
+        isColorblind,
+        aprobadas
+    );
+    
+    // 5. Guardar todo junto en el estado (1 solo render, 0 parpadeos)
+    setNodes(finalNodes);
+    setEdges(finalEdges);
+    setAllEdgesCache(layoutEdges); // Guardamos la estructura base en caché
+    
+    // Solo reseteamos la vista si cambiamos de carrera (opcional)
     setViewMode('todas');
-  }, [selectedCarrera, isMobile, setNodes, setEdges]); // Dependencias: si cambian, se re-ejecuta
+
+  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas]); // Dependencias: si cambian, se re-ejecuta
 
   // ============================================
   // EFECTO PARA DETECTAR CAMBIOS DE TAMAÑO DE VENTANA
@@ -1052,19 +1083,23 @@ const disponiblesCount = nodes.filter(n => {
         )}
       </div>
 
-      {renderTooltip()}
-
+      {/* ============================================
+          NUEVA NOTIFICACIÓN DE LOGROS
+          ============================================ */}
       {currentNotification && (
-        <div className="achievement-toast">
-          <div className="toast-icon">
-             {currentNotification.icon}
+        <div className={`achievement-popup ${isClosing ? 'closing' : ''}`}> 
+          <div className="ach-popup-icon">
+            {currentNotification.icon}
           </div>
-          <div className="toast-content">
-             <span className="toast-label">¡LOGRO DESBLOQUEADO!</span>
-             <h4 className="toast-title">{currentNotification.title}</h4>
+          <div className="ach-popup-content">
+            <div className="ach-popup-header">¡Logro Desbloqueado!</div>
+            <h3 className="ach-popup-title">{currentNotification.title}</h3>
+            <p className="ach-popup-desc">{currentNotification.description}</p>
           </div>
         </div>
       )}
+
+      {renderTooltip()}
       {renderAchievementsModal()}
     </div>
   );
