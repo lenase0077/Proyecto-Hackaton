@@ -567,7 +567,6 @@ const disponiblesCount = nodes.filter(n => {
         background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff',
         display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'
       }}>
-        <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#4b5563' }}>Filtros:</span>
         
         {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
