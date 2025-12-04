@@ -35,6 +35,9 @@ export default function App() {
     // C++: string selectedCarrera = localStorage.getItem(...) || "tup";
     return localStorage.getItem('selectedCarrera') || 'tup';
   });
+
+  const [mostrarNotificacion, setMostrarNotificacion] = useState(false);
+  const [conteoRegresivo, setConteoRegresivo] = useState(0);
   
   // useNodesState/useEdgesState son hooks personalizados de reactflow
   // C++: Sería como tener vector<Node> nodes con sus funciones de modificación
@@ -373,6 +376,85 @@ export default function App() {
   };
 
   // ============================================
+  //  FUNCIÓN COMPARTIR EN LINKEDIN
+  // ============================================
+  const handleShareLinkedIn = () => {
+    // 1. Buscamos el nombre de la carrera actual
+    const nombresCarreras = {
+      'tup': 'Tecnicatura Universitaria en Programación',
+      'admi': 'Tecnicatura Universitaria en Administración',
+      'moldes': 'Tecnicatura en Moldes y Matrices',
+      'automotriz': 'Tecnicatura en Industria Automotriz'
+    };
+    // Si no encuentra la carrera, usa un nombre genérico
+    const nombreCarrera = nombresCarreras[selectedCarrera] || 'Mi Carrera UTN';
+
+    // 2. Calculamos las estadísticas matemáticas
+    const total = nodes.length; // Cantidad total de nodos (materias)
+    const aprobadasCount = aprobadas.length; // Cantidad que ya aprobaste
+    // Calculamos porcentaje (evitando dividir por cero)
+    const porcentaje = total > 0 ? Math.round((aprobadasCount / total) * 100) : 0;
+
+    // 3. Buscamos tus "Mejores Logros" (Materias de nivel más alto aprobadas)
+    const logros = nodes
+      .filter(n => aprobadas.includes(n.id)) // Solo miramos las aprobadas
+      .map(n => n.data.originalData)         // Sacamos la info útil (nombre, nivel)
+      .sort((a, b) => (b.nivel || 0) - (a.nivel || 0)) // Ordenamos de Mayor a Menor Nivel
+      .slice(0, 3) // Nos quedamos solo con las 3 primeras (las más difíciles)
+      .map(m => m.nombre); // Nos quedamos solo con el nombre
+
+    // 4. Buscamos tu "Próximo Desafío" (Materia disponible pero NO aprobada)
+    const siguienteObjetivo = nodes.find(n => {
+      if (aprobadas.includes(n.id)) return false; // Si ya la aprobé, no cuenta
+      
+      const mat = n.data.originalData;
+      // Verificamos si tengo las correlativas para cursarla
+      const reqCursadas = mat.requiere_para_cursar || [];
+      const reqFinales = mat.requiere_para_final || [];
+      const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
+      const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
+      
+      return tieneCursadas && tieneFinales; // Devuelve true si está "Disponible"
+    });
+
+    // 5. Armamos el texto profesional con emojis
+    // \n significa "salto de línea" (enter)
+    const texto = `🚀 Progreso Académico: ${nombreCarrera}
+    He completado el ${porcentaje}% de mi plan de estudios en la UTN.
+    ✅ Materias Aprobadas: ${aprobadasCount} de ${total}
+
+    🏆 Últimos logros desbloqueados:
+    ${logros.length > 0 ? logros.map(l => `• ${l}`).join('\n') : '• Iniciando el camino'}
+
+    ${siguienteObjetivo ? `🎯 Próximo objetivo: ${siguienteObjetivo.data.originalData.nombre}` : '🎓 ¡Recta final!'}
+
+    #UTN #Pathfinder #DesarrolloProfesional #Educación #Hackathon`.trim(); // .trim() borra espacios vacíos al inicio y final
+
+    // 2. TEMPORIZADOR
+    navigator.clipboard.writeText(texto).then(async () => {
+      
+      setMostrarNotificacion(true); // Mostramos el cartel
+
+      // Iniciamos un bucle de 3 pasos (3, 2, 1)
+      for (let i = 3; i > 0; i--) {
+        setConteoRegresivo(i); // Actualizamos el número en pantalla
+        // Esperamos 1 segundo (1000 milisegundos) antes de seguir
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      // Cuando termina el bucle (llega a 0):
+      setConteoRegresivo(0); // Reseteamos numero
+      
+      // ABRIMOS LINKEDIN
+      window.open('https://www.linkedin.com/feed/', '_blank');
+
+      // Ocultamos el cartelito un segundo después de abrir, para limpiar
+      setTimeout(() => setMostrarNotificacion(false), 1000);
+
+    });
+  };
+
+  // ============================================
   // FUNCIÓN EXPORTAR IMAGEN (Versión CDN)
   // ============================================
   const downloadImage = useCallback(() => {
@@ -533,7 +615,7 @@ const disponiblesCount = nodes.filter(n => {
                     }}
                     title="Fuente para dislexia"
                   >
-                    {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia'}
+                    {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia OFF'}
                   </button>
 
                   <button
@@ -546,7 +628,7 @@ const disponiblesCount = nodes.filter(n => {
                     }}
                     title="Modo alto contraste para daltonismo"
                   >
-                    {isColorblind ? '🎨 Daltónico ON' : '🎨 Daltónico'}
+                    {isColorblind ? '🎨 Daltonismo ON' : '🎨 Daltonismo OFF'}
                   </button>
               </div>
             </div>
@@ -601,6 +683,24 @@ const disponiblesCount = nodes.filter(n => {
                 ></div>
             </div>
         </div>
+
+        <button 
+          onClick={handleShareLinkedIn}
+          className="btn-download"
+          style={{ marginRight: '5px' }} // Separación con la cámara
+          title="Copiar resumen para LinkedIn"
+        >
+        <svg 
+            width="20px" 
+            height="20px" 
+            viewBox="0 0 382 382" 
+            fill="currentColor" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M347.445,0H34.555C15.471,0,0,15.471,0,34.555v312.889C0,366.529,15.471,382,34.555,382h312.889 C366.529,382,382,366.529,382,347.444V34.555C382,15.471,366.529,0,347.445,0z M118.207,329.844c0,5.554-4.502,10.056-10.056,10.056 H65.345c-5.554,0-10.056-4.502-10.056-10.056V150.403c0-5.554,4.502-10.056,10.056-10.056h42.806 c5.554,0,10.056,4.502,10.056,10.056V329.844z M86.748,123.432c-22.459,0-40.666-18.207-40.666-40.666S64.289,42.1,86.748,42.1 s40.666,18.207,40.666,40.666S109.208,123.432,86.748,123.432z M341.91,330.654c0,5.106-4.14,9.246-9.246,9.246H286.73 c-5.106,0-9.246-4.14-9.246-9.246v-84.168c0-12.556,3.683-55.021-32.813-55.021c-28.309,0-34.051,29.066-35.204,42.11v97.079 c0,5.106-4.139,9.246-9.246,9.246h-44.426c-5.106,0-9.246-4.14-9.246-9.246V149.593c0-5.106,4.14-9.246,9.246-9.246h44.426 c5.106,0,9.246,4.14,9.246,9.246v15.655c10.497-15.753,26.097-27.912,59.312-27.912c73.552,0,73.131,68.716,73.131,106.472 L341.91,330.654L341.91,330.654z"/>
+          </svg>
+
+        </button>
 
         <button 
               onClick={downloadImage}
@@ -676,6 +776,19 @@ const disponiblesCount = nodes.filter(n => {
           </div>
         </div>
       </footer>
+      
+      {/*Notificación Flotante*/}
+
+      <div className={`toast-notification ${mostrarNotificacion ? 'show' : ''}`}>
+        {conteoRegresivo > 0 ? (
+           // MENSAJE DURANTE LA CUENTA REGRESIVA
+           <span>📋 ¡Texto copiado! Redirigiendo a LinkedIn en <strong>{conteoRegresivo}...</strong></span>
+        ) : (
+           // MENSAJE FINAL (O POR DEFECTO)
+           <span>🚀 ¡Listo! Ahora pégalo en tu post (Ctrl + V)</span>
+        )}
+      </div>
+
       {renderTooltip()}
     </div>
   );
