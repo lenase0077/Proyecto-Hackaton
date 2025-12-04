@@ -44,93 +44,111 @@ body {
 
 /* =========================================================
    REDISEÑO DEL TUTORIAL (Driver.js Custom Theme)
-   Estilo: Glassmorphism Dark Tech
+   Estilo: Glassmorphism Dark Tech - CORREGIDO
    ========================================================= */
 
 /* 1. LA CAJA FLOTANTE (TARJETA OSCURA) */
 .driver-popover {
-  background: rgba(15, 23, 42, 0.95) !important; /* Fondo muy oscuro casi negro */
-  backdrop-filter: blur(10px) !important;       /* Efecto vidrio borroso */
-  border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Borde sutil */
+  background: rgba(15, 23, 42, 0.98) !important; /* Casi opaco para mejor lectura */
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: white !important;
   border-radius: 16px !important;
-  box-shadow: 0 0 30px rgba(0,0,0,0.6), 
-              0 0 0 1px rgba(255,255,255,0.05) inset !important; /* Resplandor interno */
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.6) !important;
   padding: 20px !important;
   max-width: 320px !important;
-  font-family: 'Poppins', sans-serif !important;
+  font-family: 'Poppins', system-ui, sans-serif !important; /* Fuente consistente */
 }
 
 /* 2. EL TÍTULO */
 .driver-popover-title {
-  font-size: 1.3rem !important;
-  font-weight: 800 !important;
-  margin-bottom: 10px !important;
-  /* Texto degradado (Azul a Violeta) */
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
   background: linear-gradient(90deg, #60a5fa, #a78bfa) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   display: inline-block !important;
+  line-height: 1.3 !important;
 }
 
 /* 3. EL TEXTO NORMAL */
 .driver-popover-description {
-  color: #cbd5e1 !important; /* Gris claro muy legible */
-  font-size: 0.95rem !important;
-  line-height: 1.6 !important;
+  color: #e2e8f0 !important; /* Blanco hueso, más legible que gris */
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
   margin-bottom: 20px !important;
+  font-weight: 400 !important;
 }
 
-/* 4. BOTÓN "SIGUIENTE" (El principal) */
+/* 4. BOTÓN "SIGUIENTE" (El principal) - CORREGIDO */
 .driver-popover-next-btn {
   background: linear-gradient(90deg, #3b82f6, #7c3aed) !important;
-  font-family: Arial, sans-serif !important;
   border: none !important;
   color: white !important;
   border-radius: 8px !important;
-  padding: 10px 20px !important; /* Un poco más grande */
+  padding: 8px 16px !important;
   
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 1px !important;
+  /* TIPOGRAFÍA ARREGLADA */
+  font-family: inherit !important; /* Usa Poppins igual que el resto */
+  font-size: 0.8rem !important;
+  font-weight: 600 !important; /* Semi-bold (no 100, que era el problema) */
+  text-transform: none !important; /* Quitamos mayúsculas forzadas para que se vea más limpio */
+  letter-spacing: 0.5px !important;
+  text-shadow: none !important; /* Aseguramos que no haya sombra en texto */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important; /* Sombra suave en la caja */
+  
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  cursor: pointer !important;
 }
 
 .driver-popover-next-btn:hover {
-  transform: scale(1.05) !important; /* Efecto pop al pasar mouse */
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5) !important; /* Resplandor azul */
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.5) !important; /* Resplandor al pasar mouse */
 }
 
-/* 5. BOTÓN "ANTERIOR" */
+/* 5. BOTÓN "ANTERIOR" - CORREGIDO */
 .driver-popover-prev-btn {
   background: transparent !important;
-  border: 1px solid rgba(255,255,255,0.2) !important;
-  color: #94a3b8 !important;
+  border: 1px solid rgba(255,255,255,0.2) !important; /* Borde sutil para definirlo */
+  color: #cbd5e1 !important;
   border-radius: 8px !important;
+  padding: 7px 14px !important;
   
-  /* 👇 TIPOGRAFÍA COHERENTE */
-  font-family: Arial, sans-serif !important;
+  /* TIPOGRAFÍA ARREGLADA */
+  font-family: inherit !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  text-shadow: none !important;
   
-  font-size: 0.75rem !important;
-  font-weight: 400 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
 }
+
 .driver-popover-prev-btn:hover {
   background: rgba(255,255,255,0.1) !important;
   color: white !important;
+  border-color: rgba(255,255,255,0.5) !important;
 }
 
-/* 6. LA FLECHITA QUE SEÑALA (Oscura para coincidir con la caja) */
-.driver-popover-arrow-side-left.driver-popover-arrow  { border-right-color: rgba(15, 23, 42, 0.95) !important; }
-.driver-popover-arrow-side-right.driver-popover-arrow { border-left-color: rgba(15, 23, 42, 0.95) !important; }
-.driver-popover-arrow-side-top.driver-popover-arrow   { border-bottom-color: rgba(15, 23, 42, 0.95) !important; }
-.driver-popover-arrow-side-bottom.driver-popover-arrow{ border-top-color: rgba(15, 23, 42, 0.95) !important; }
+/* 6. LA FLECHITA (Triángulo) */
+.driver-popover-arrow-side-left.driver-popover-arrow  { border-right-color: #0f172a !important; }
+.driver-popover-arrow-side-right.driver-popover-arrow { border-left-color: #0f172a !important; }
+.driver-popover-arrow-side-top.driver-popover-arrow   { border-bottom-color: #0f172a !important; }
+.driver-popover-arrow-side-bottom.driver-popover-arrow{ border-top-color: #0f172a !important; }
 
-/* 7. BOTÓN DE CERRAR (X) */
-.driver-popover-close-btn {
+/* 7. TEXTO DE PROGRESO (1 de 5) */
+.driver-popover-progress-text {
   color: #64748b !important;
+  font-size: 0.75rem !important;
+}
+
+/* 8. BOTÓN CERRAR (X) */
+.driver-popover-close-btn {
+  color: #94a3b8 !important;
+  padding: 5px !important;
 }
 .driver-popover-close-btn:hover {
-  color: #f87171 !important; /* Rojo al pasar el mouse */
+  color: #ef4444 !important; /* Rojo */
 }
