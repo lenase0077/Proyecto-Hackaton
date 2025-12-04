@@ -513,3 +513,69 @@ export const triggerVictoryConfetti = () => {
       }
     }());
 };
+
+
+// ============================================================
+// LOGROS / ACHIEVEMENTS
+// ============================================================
+
+
+export const ACHIEVEMENTS = [
+    {
+        id: 'first_step',
+        title: 'Primeros Pasos',
+        description: 'Aprobaste tu primera materia.',
+        icon: '🌱',
+        condition: (aprobadas, nodes) => aprobadas.length >= 1
+
+    },
+    {
+        id: 'getting_started',
+        title: 'En Marcha',
+        description: 'Aprobaste 3 materias.',
+        icon: '🚀',
+        condition: (aprobadas, nodes) => aprobadas.length >= 3
+    },
+    {
+        id: 'warm_up',
+        title: 'Calentando Motores',
+        description: 'Aprobaste 5 materias.',
+        icon: '🔥',
+        condition: (aprobadas, nodes) => aprobadas.length >= 5
+    },
+    {
+        id: 'on_a_roll',
+        title: 'Imparable',
+        description: 'Aprobaste 10 materias.',
+        icon: '💨',
+        condition: (aprobadas, nodes) => aprobadas.length >= 10
+    },
+    {
+        id: 'halfway',
+        title: 'Mitad de Camino',
+        description: 'Alcanzaste el 50% de la carrera.',
+        icon: '🏃',
+        condition: (aprobadas, nodes) => (aprobadas.length / nodes.length) >= 0.5
+    },
+    {
+        id: 'graduate',
+        title: '¡Recibido!',
+        description: 'Completaste todas las materias.',
+        icon: '🎓',
+        condition: (aprobadas, nodes) => aprobadas.length === nodes.length && nodes.length > 0
+    },
+    {
+         id: 'spider_sense',
+        title: 'Sentido Arácnido',
+        description: 'Encontraste el secreto en el logo.',
+        icon: '🕷️',
+        condition: () => false
+    },
+    {
+        id: 'credits_watcher',
+        title: 'Honor a quien honor merece',
+        description: 'Revisaste los créditos del equipo.',
+        icon: '👏',
+        condition: () => false
+    }
+];
