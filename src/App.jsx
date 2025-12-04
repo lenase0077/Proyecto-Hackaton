@@ -125,7 +125,7 @@ export default function App() {
 
     // Audio
     const audio = new Audio('/sounds/Archivement.mp3'); 
-    audio.volume = 0.5;
+    audio.volume = 0.8;
     audio.play().catch(e => console.log("Audio error:", e));
 
     // 4. LÓGICA DE SALIDA (TIMERS)
@@ -466,7 +466,7 @@ useEffect(() => {
              setTimeout(() => {
                 const audioVictory = new Audio('/sounds/victory.mp3');
                 currentaudioVictory.current = audioVictory;
-                audioVictory.volume = 1; // Dani Gil
+                audioVictory.volume = 0.9; // Dani Gil
                 audioVictory.play().catch(e => console.error(e));
                 
                 triggerVictoryConfetti(); // Lluvia con colores del tema
