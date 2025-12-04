@@ -970,3 +970,108 @@ body, html, #root {
 .app-container.dark-mode .ach-info p { color: #9ca3af; }
 .app-container.dark-mode .achievements-progress { background: #111827; color: #cbd5e1; }
 
+/* Tarjeta principal de la calculadora */
+.calculator-card {
+  /* Fondo blanco semi-transparente para efecto vidrio */
+  background: rgba(255, 255, 255, 0.95);
+  width: 90%;
+  max-width: 450px; /* Ancho máximo elegante para PC */
+  border-radius: 20px; /* Bordes muy redondeados */
+  /* Sombra violeta mística difusa para dar profundidad */
+  box-shadow: 0 20px 50px rgba(139, 92, 246, 0.25); 
+  overflow: hidden; /* Corta el contenido que se salga */
+  /* Animación de entrada personalizada */
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255,255,255,0.5); /* Borde sutil */
+  /* Desenfoque de lo que hay detrás (Glassmorphism) */
+  backdrop-filter: blur(10px);
+}
+
+/* Definición de la animación de entrada (rebote) */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Cabecera con degradado */
+.calc-header {
+  /* Degradado diagonal de violeta a azul índigo */
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  padding: 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  color: white;
+}
+
+.calc-header h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+.calc-header .close-btn { color: white; opacity: 0.8; font-size: 2rem; }
+.calc-header .close-btn:hover { opacity: 1; }
+
+.calc-body { padding: 25px; }
+
+.calc-intro {
+  font-size: 0.9rem; color: #64748b; margin-bottom: 25px; text-align: center;
+  line-height: 1.5;
+}
+
+/* ESTILOS DEL SLIDER (INPUT RANGE) */
+.slider-container { margin-bottom: 30px; text-align: center; }
+
+.slider-container label {
+  display: block; font-weight: 600; color: #1e293b; margin-bottom: 15px;
+  font-size: 0.95rem;
+}
+
+/* La etiqueta con el número actual */
+.ritmo-badge {
+  background: #8b5cf6; color: white; padding: 2px 8px; border-radius: 10px;
+  margin-left: 8px; font-size: 1rem;
+}
+
+/* La barra del slider */
+.ritmo-slider {
+  width: 100%; height: 6px; background: #e2e8f0; border-radius: 5px;
+  outline: none; -webkit-appearance: none; cursor: pointer;
+}
+
+/* El círculo del slider (Thumb) - Personalización avanzada */
+.ritmo-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; /* Borra el estilo por defecto del navegador */
+  width: 24px; height: 24px; border-radius: 50%; /* Círculo perfecto */
+  background: #8b5cf6; border: 3px solid white; /* Violeta con borde blanco */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* Pequeña sombra */
+  cursor: grab; transition: transform 0.1s;
+}
+.ritmo-slider::-webkit-slider-thumb:active { transform: scale(1.2); } /* Efecto al apretar */
+
+.slider-labels {
+  display: flex; justify-content: space-between; margin-top: 8px;
+  font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;
+}
+
+/* RESULTADO DE LA PREDICCIÓN */
+.prediction-result {
+  background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 15px;
+  padding: 20px; text-align: center;
+  transition: all 0.3s ease;
+}
+
+.pred-label { display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 5px; }
+
+/* Fecha final con efecto de texto degradado */
+.pred-date {
+  font-size: 2rem; color: #8b5cf6; margin: 5px 0;
+  text-shadow: 0 2px 10px rgba(139, 92, 246, 0.2);
+  /* Truco para degradado dentro del texto */
+  background: -webkit-linear-gradient(45deg, #8b5cf6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pred-details { display: block; font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
+
+/* MODO OSCURO */
+.app-container.dark-mode .calculator-card { background: #1e293b; border-color: #334155; }
+.app-container.dark-mode .calc-intro { color: #94a3b8; }
+.app-container.dark-mode .slider-container label { color: #e2e8f0; }
+.app-container.dark-mode .ritmo-slider { background: #334155; }
+.app-container.dark-mode .prediction-result { background: #0f172a; border-color: #334155; }
