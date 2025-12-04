@@ -399,8 +399,27 @@ export default function App() {
     });
   }, [isDarkMode, selectedCarrera]);
 
+  // ============================================
+  // CÁLCULO DE MATERIAS DISPONIBLES
+  // ============================================
 
-
+const disponiblesCount = nodes.filter(n => {
+    // 1. Si ya está aprobada, no cuenta como "disponible" (ya la hiciste)
+    if (aprobadas.includes(n.id)) return false;
+    
+    const mat = n.data?.originalData;
+    if (!mat) return false;
+    
+    // 2. Revisamos si cumples todos los requisitos
+    const reqCursadas = mat.requiere_para_cursar || [];
+    const reqFinales = mat.requiere_para_final || [];
+    
+    const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
+    const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
+    
+    // 3. Si tienes todo, está disponible
+    return tieneCursadas && tieneFinales;
+  }).length;
 
 
 
@@ -446,6 +465,45 @@ export default function App() {
                 
                 {/* 1. Botón Dark Mode (A la izquierda) */}
                 {/* onClick es como un event handler en C++: button->onClick = [this]{ setIsDarkMode(!isDarkMode); }; */}
+                
+
+                {/* 2. Contador (A la derecha) */}
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.25)', // Verde transparente
+                  border: '1px solid rgba(34, 197, 94, 0.5)', // Borde verde sutil
+                  color: '#86efac', // Texto verde claro brillante
+                  padding: '0 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.9rem',
+                  display: 'flex', 
+                  alignItems: 'center',
+                  height: '35px',
+                  whiteSpace: 'nowrap' // Para que no se rompa el texto en móviles
+                }} title="Total de finales aprobados">
+                  <span>✅ Aprobadas: <strong>{aprobadas.length}</strong></span>
+                </div>
+
+                <div style={{
+                  background: 'rgba(59, 130, 246, 0.25)', // Fondo azulado transparente
+                  border: '1px solid rgba(59, 130, 246, 0.5)', // Borde sutil
+                  color: '#93c5fd', // Texto celeste claro (se lee bien en dark y light)
+                  padding: '0 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.9rem',
+                  display: 'flex', 
+                  alignItems: 'center',
+                  height: '35px',
+                  whiteSpace: 'nowrap' // Que no se rompa el texto
+                }} title="Materias que ya puedes cursar">
+                  <span>🚀 Disponibles: <strong>{disponiblesCount}</strong></span>
+                </div>
+
+              </div>
+
+              {/* FILA 2: Botones Accesibilidad (Bajados) */}
+              
+              <div style={{ display: 'flex', gap: '8px' }}>
+
                 <button 
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   style={{
@@ -464,24 +522,7 @@ export default function App() {
                 >
                   {isDarkMode ? '☀️' : '🌙'} {/* Texto condicional del botón */}
                 </button>
-
-                {/* 2. Contador (A la derecha) */}
-                <div style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  padding: '0 12px',
-                  borderRadius: '20px',
-                  fontSize: '0.9rem',
-                  display: 'flex', 
-                  alignItems: 'center',
-                  height: '35px'
-                }}>
-                  <span>Aprobadas: <strong>{aprobadas.length}</strong></span>
-                  {/* {aprobadas.length} es como string interpolation: "Aprobadas: " + to_string(aprobadas.size()) */}
-                </div>
-              </div>
-
-              {/* FILA 2: Botones Accesibilidad (Bajados) */}
-              <div style={{ display: 'flex', gap: '8px' }}>
+                
                   <button
                     onClick={() => setIsDyslexic(!isDyslexic)}
                     style={{
