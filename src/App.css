@@ -738,3 +738,63 @@ body, html, #root {
     to { opacity: 1; transform: translate(50%, 0); }
   }
 }
+
+.btn-download {
+  background: transparent;
+  border: 1px solid rgba(150, 150, 150, 0.3);
+  cursor: pointer;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-download:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  transform: scale(1.1); /* Efecto pop */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Ajuste para modo oscuro */
+.app-container.dark-mode .btn-download {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+.app-container.dark-mode .btn-download:hover {
+  background: #f59e0b; /* Naranja */
+  border-color: #f59e0b;
+}
+
+/* BARRA DE PROGRESO (Ajustes) */
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress-text {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #64748b;
+}
+.progress-track {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  transition: width 0.5s ease;
+}
+
+/* Responsive: En móvil ocultamos el texto de porcentaje para que entre todo */
+@media (max-width: 600px) {
+  .progress-text { display: none; }
+  .progress-track { width: 60px !important; }
+}
