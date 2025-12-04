@@ -926,31 +926,6 @@ const disponiblesCount = nodes.filter(n => {
         </div>
       </footer>
       
-      {/*Notificación Flotante*/}
-
-      <div className={`toast-notification ${mostrarNotificacion ? 'show' : ''}`}>
-        {conteoRegresivo > 0 ? (
-           // MENSAJE DURANTE LA CUENTA REGRESIVA
-           <span>📋 ¡Texto copiado! Redirigiendo a LinkedIn en <strong>{conteoRegresivo}...</strong></span>
-        ) : (
-           // MENSAJE FINAL (O POR DEFECTO)
-           <span>🚀 ¡Listo! Ahora pégalo en tu post (Ctrl + V)</span>
-        )}
-      </div>
-
-      {renderTooltip()}
-
-      {currentNotification && (
-        <div className="achievement-toast">
-          <div className="toast-icon">
-             {currentNotification.icon}
-          </div>
-          <div className="toast-content">
-             <span className="toast-label">¡LOGRO DESBLOQUEADO!</span>
-             <h4 className="toast-title">{currentNotification.title}</h4>
-          </div>
-        </div>
-      )}
       {renderAchievementsModal()}
     </div>
   );

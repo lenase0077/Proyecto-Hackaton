@@ -815,45 +815,6 @@ body, html, #root {
 }
 
 /* ===========================================
-  Mensaje flotante
-=========================================== */
-.toast-notification {
-  position: fixed;            /* Flota sobre todo */
-  bottom: 80px;               /* Un poco arriba del footer */
-  left: 50%;                  /* Centrado horizontal */
-  transform: translateX(-50%) translateY(20px); /* Ajuste para centrar y animar */
-  
-  background-color: #10b981;  /* Verde Éxito Profesional */
-  color: white;               /* Texto blanco */
-  padding: 12px 24px;         /* Espaciado interno cómodo */
-  border-radius: 50px;        /* Bordes muy redondos (Píldora) */
-  
-  font-weight: 600;           /* Letra un poco gruesa */
-  font-size: 0.95rem;         /* Tamaño legible */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  
-  z-index: 9999;              /* Asegura que esté ARRIBA de todo */
-  opacity: 0;                 /* Invisible por defecto */
-  pointer-events: none;       /* No molesta si no se ve */
-  
-  /* Animación suave al aparecer/desaparecer */
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Cuando activamos la clase "show" desde React */
-.toast-notification.show {
-  opacity: 1;                 /* Se vuelve visible */
-  transform: translateX(-50%) translateY(0); /* Se coloca en su lugar final */
-}
-
-/* Ajuste para MODO OSCURO */
-.app-container.dark-mode .toast-notification {
-  background-color: #059669; /* Un verde un poco más oscuro y elegante */
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); /* Sombra más fuerte */
-}
-
-
-/* ===========================================
    MODAL DE LOGROS (Gamification)
    =========================================== */
 
@@ -969,4 +930,5 @@ body, html, #root {
 .app-container.dark-mode .ach-info h4 { color: #f3f4f6; }
 .app-container.dark-mode .ach-info p { color: #9ca3af; }
 .app-container.dark-mode .achievements-progress { background: #111827; color: #cbd5e1; }
+
 
