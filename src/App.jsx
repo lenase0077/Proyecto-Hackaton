@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -8,11 +8,8 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import './App.css';
 
-import dbMaterias from './data/materias.json'; // C++: #include "materias.json" (pero en JS se importa como módulo)
+import dbMaterias from './data/materias.json'; 
 import CarreraSelector from './components/CarreraSelector';
-
-// SIN IMPORT DE THEME TOGGLE (Porque lo haremos directo aquí)
-// C++: Esto sería como un comentario normal //
 
 import { 
   getLayoutElements, 
@@ -22,82 +19,72 @@ import {
   triggerLevelConfetti,
   ACHIEVEMENTS,
   triggerVictoryConfetti
-} from './utils'; // C++: #include "utils.h" con varias funciones
+} from './utils'; 
 
-// C++: Esta función App() es como tu main(), pero en React los componentes son funciones que devuelven HTML (JSX)
+// ============================================
+// COMPONENTE ICONO DISCORD
+// ============================================
+const DiscordLogo = () => (
+  <svg 
+    width="22" 
+    height="22" 
+    viewBox="0 -28.5 256 256" 
+    fill="currentColor" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path 
+      fillRule="nonzero" 
+      d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"
+    />
+  </svg>
+);
+
 export default function App() {
   // ============================================
-  // ESTADOS (STATE) - Similar a variables miembro en una clase C++
+  // ESTADOS (STATE)
   // ============================================
   
-  // useState es como declarar una variable + su setter
-  // El callback inicial es como un constructor que lee de localStorage
   const [selectedCarrera, setSelectedCarrera] = useState(() => {
-    // C++: string selectedCarrera = localStorage.getItem(...) || "tup";
     return localStorage.getItem('selectedCarrera') || 'tup';
   });
   
-  {/*Mesaje flotante*/}
   const [mostrarNotificacion, setMostrarNotificacion] = useState(false);
-  {/*Conteo para mensaje flotante*/}
   const [conteoRegresivo, setConteoRegresivo] = useState(0);
-  {/*Calculadora predictoria de egreso*/}
   const [showCalculator, setShowCalculator] = useState(false);
-  {/*Materias por cuatrimestre*/}
   const [ritmoEstudio, setRitmoEstudio] = useState(3);
   
-  // useNodesState/useEdgesState son hooks personalizados de reactflow
-  // C++: Sería como tener vector<Node> nodes con sus funciones de modificación
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  // Estado para mostrar logros (achievements)
   const [showAchievements, setShowAchievements] = useState(false);
-  // Controla si la animación de salida se está reproduciendo
-
   const [isClosing, setIsClosing] = useState(false);
 
-  // Estado para tutorial activo
-  const [isTutorialActive, setIsTutorialActive] = useState(false);
-
-
- // Estado para menú móvil
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-// Estado para logros desbloqueados con inicialización desde localStorage
-// C++: vector<string> unlockedAchievements; // con datos cargados desde archivo
   const [unlockedAchievements, setUnlockedAchievements] = useState(() => {
     const saved = localStorage.getItem('unlockedAchievements');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 2. Estado para la notificación visual (Toast)
   const [currentNotification, setCurrentNotification] = useState(null);
   
-  // Estado para detectar si es móvil
-  // C++: bool isMobile = (window.innerWidth < 768);
+  const currentaudioLevel = useRef(null);
+  const currentaudioVictory = useRef(null);
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
-  // Estado para materias aprobadas con inicialización desde localStorage
-  // C++: vector<string> aprobadas; // con datos cargados desde archivo
   const [aprobadas, setAprobadas] = useState(() => {
     const saved = localStorage.getItem('materiasAprobadas');
-    return saved ? JSON.parse(saved) : []; // C++: Parsear un JSON sería como deserializar
+    return saved ? JSON.parse(saved) : [];
   });
 
-  // Estado para modo oscuro
-  // C++: bool isDarkMode = (localStorage.getItem("appTheme") == "dark");
   const [isDarkMode, setIsDarkMode] = useState(() => {
       const savedTheme = localStorage.getItem('appTheme');
-      // Si dice 'light', es light. Si dice 'dark' O si no existe (null), es dark.
       return savedTheme !== 'light'; 
     });
 
-  // Estado para modo disléxico
   const [isDyslexic, setIsDyslexic] = useState(() => {
     return localStorage.getItem('dyslexicMode') === 'true';
   });
 
-  // ESTADO DALTONISMO
   const [isColorblind, setIsColorblind] = useState(() => {
     return localStorage.getItem('colorblindMode') === 'true';
   });
@@ -106,49 +93,36 @@ export default function App() {
   // FUNCIÓN CENTRAL DE DESBLOQUEO
   // ============================================
   const triggerAchievement = (achId) => {
-    // 1. GUARDA: Si ya lo tengo, no hago nada
-    if (unlockedAchievements.includes(achId) || isTutorialActive) return;
+    if (unlockedAchievements.includes(achId)) return;
 
-    // 2. Busco la info
     const ach = ACHIEVEMENTS.find(a => a.id === achId);
     if (!ach) return;
 
-    // 3. ¡PREMIO!
     setUnlockedAchievements(prev => [...prev, achId]);
     
-    // Mostramos la notificación
-    setIsClosing(false); // Aseguramos que no esté cerrándose
+    setIsClosing(false);
     setCurrentNotification(ach);
 
-    // Audio
     const audio = new Audio('/sounds/Archivement.mp3'); 
     audio.volume = 0.5;
     audio.play().catch(e => console.log("Audio error:", e));
 
-    // 4. LÓGICA DE SALIDA (TIMERS)
-    // Esperamos 4 segundos de lectura
     setTimeout(() => {
-      // a) Activamos la animación de salida (clase .closing)
       setIsClosing(true);
-
-      // b) Esperamos 0.6s (lo que dura la animación CSS) y luego borramos el componente
       setTimeout(() => {
         setCurrentNotification(null);
-        setIsClosing(false); // Reset para la próxima
+        setIsClosing(false); 
       }, 600); 
-
     }, 4000);
   };
 
   // ============================================
-  // EFECTOS (useEffect) - Similar a listeners o código que se ejecuta cuando cambian variables
+  // EFECTOS (useEffect)
   // ============================================
   
-  // useEffect es como un observador: "Cuando isDyslexic cambie, haz esto"
-  // C++: Sería como tener un observer pattern o código en un setter
   useEffect(() => { 
     localStorage.setItem('dyslexicMode', isDyslexic); 
-  }, [isDyslexic]); // El array [isDyslexic] dice: "ejecuta esto solo cuando isDyslexic cambie"
+  }, [isDyslexic]);
 
   useEffect(() => { 
     localStorage.setItem('colorblindMode', isColorblind); 
@@ -160,124 +134,36 @@ export default function App() {
 
   useEffect(() => { 
     localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)); 
-  }, [aprobadas]); // C++: Serializar el vector a JSON cuando cambie
+  }, [aprobadas]);
 
   // ============================================
   // MÁS ESTADOS
   // ============================================
   
-  const [viewMode, setViewMode] = useState('todas'); // C++: string viewMode = "todas";
-  const [hoveredNodeId, setHoveredNodeId] = useState(null); // C++: string* hoveredNodeId = nullptr;
-  const [isFooterOpen, setIsFooterOpen] = useState(false); // C++: bool isFooterOpen = false;
-  const [allEdgesCache, setAllEdgesCache] = useState([]); // C++: vector<Edge> allEdgesCache;
+  const [viewMode, setViewMode] = useState('todas');
+  const [hoveredNodeId, setHoveredNodeId] = useState(null);
+  const [isFooterOpen, setIsFooterOpen] = useState(false);
+  const [allEdgesCache, setAllEdgesCache] = useState([]);
 
-  // TUTORIAL DE BIENVENIDA (ONBOARDING)
-  useEffect(() => {
-    const tutorialVisto = localStorage.getItem('tutorial_visto_v1');
-    
-    // Solo inicia si NO lo vio, hay nodos y la librería existe
-    if (!tutorialVisto && nodes.length > 0 && window.driver) {
-      
-      setIsTutorialActive(true); 
-
-      const driver = window.driver.js.driver;
-
-      // 1. CREAMOS UNA FUNCIÓN GLOBAL PARA CERRAR Y GUARDAR
-      // Esto asegura que el botón "Saltar" funcione sí o sí
-      window.cerrarTutorial = () => {
-          localStorage.setItem('tutorial_visto_v1', 'true'); // Guardamos
-          setIsTutorialActive(false);                        // Reactivamos sonidos
-          if (window.tourDriver) {
-              window.tourDriver.destroy();                   // Cerramos
-          }
-      };
-      
-      const driverObj = driver({
-        showProgress: true,
-        animate: true,
-        nextBtnText: 'Siguiente ▶️',
-        prevBtnText: 'Anterior',
-        doneBtnText: '¡Comenzar! 🚀',
-        steps: [
-          { 
-            element: '.utn-logo-svg', 
-            popover: { 
-              title: '¡Bienvenido a UTN Pathfinder!', 
-              description: `
-              Tu mapa interactivo para hackear la carrera y planificar tu futuro.
-              <br/><br/>
-              <div style="text-align: right;">
-                  <button 
-                    onclick="window.cerrarTutorial()" 
-                    style="background: transparent; border: none; color: #9ca3af; text-decoration: none; cursor: pointer; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px;"
-                    onmouseover="this.style.color='#fff'" 
-                    onmouseout="this.style.color='#9ca3af'"
-                  >
-                    SALTAR TUTORIAL ✕
-                  </button>
-              </div>
-            `
-            } 
-          },
-          { 
-            element: '#carrera-selector-tour', 
-            popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí para cargar el plan de estudios.' } 
-          },
-          { 
-            element: '.react-flow', 
-            popover: { title: 'Mapa de Correlativas', description: 'Haz clic en las materias para aprobarlas y ver qué se desbloquea.' } 
-          },
-          { 
-            element: '#btn-calculator-tour',
-            popover: { title: 'Oráculo Académico', description: 'Predice tu fecha exacta de graduación según tu ritmo.' } 
-          },
-          { 
-            element: '#btn-critical-tour',
-            popover: { title: '🔥 Ruta Crítica', description: 'Muestra el camino más largo. Si te atrasas acá, se alarga tu carrera.' } 
-          }
-        ],
-        // Esto captura cuando cierras con ESC, clic afuera o el botón "Comenzar"
-        onDestroyStarted: () => {
-           // Chequeamos por seguridad para no guardar doble
-           if (!localStorage.getItem('tutorial_visto_v1')) {
-               localStorage.setItem('tutorial_visto_v1', 'true');
-               setIsTutorialActive(false);
-           }
-           // NOTA: Ya no llamamos a destroy() aquí para evitar bucles
-        }
-      });
-
-      window.tourDriver = driverObj;
-      setTimeout(() => { driverObj.drive(); }, 1500);
-    }
-  }, [nodes.length]);
-
-  // ============================================
-  // Guardar logros desbloqueados en localStorage cuando cambien
-  // ============================================
   useEffect(() => {
     localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements));
   }, [unlockedAchievements]);
 
   // ============================================
-  // MONITOR DE LOGROS (Checkeo en tiempo real)
+  // MONITOR DE LOGROS
   // ============================================
   useEffect(() => {
-    // Si no hay nodos cargados, no calculamos nada para evitar errores
     if (nodes.length === 0) return;
 
     ACHIEVEMENTS.forEach(ach => {
-      // Solo verificamos si la condición se cumple
-      // La función triggerAchievement se encarga de ver si ya lo tenías o no
       if (ach.condition(aprobadas, nodes)) {
           triggerAchievement(ach.id);
       }
     });
   }, [aprobadas, nodes, unlockedAchievements]);
 
-
   // ============================================
-  // DATOS ESTÁTICOS (como un array constante en C++)
+  // DATOS ESTÁTICOS
   // ============================================
   
   const teamMembers = [
@@ -288,50 +174,39 @@ export default function App() {
   ];
 
   // ============================================
-  // EFECTO PARA CARGAR MATERIAS AL CAMBIAR CARRERA O TAMAÑO PANTALLA
+  // EFECTO PARA CARGAR MATERIAS
   // ============================================
   
-useEffect(() => {
-    // 1. Obtener datos crudos
+  useEffect(() => {
     const listaMaterias = dbMaterias[selectedCarrera] || [];
-    
-    // 2. Calcular posiciones (Layout) -> Esto devuelve nodos BLANCOS
     const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
-    
-    // 3. ¡PINTAR INMEDIATAMENTE! (Aplicar estilos antes de guardar en el estado)
-    //    Le pasamos los nodos blancos y nos devuelve los nodos coloridos
     const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind);
     
-    // 4. Aplicar también la lógica de líneas/highlight inicial
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
         styledNodes, 
         layoutEdges, 
-        null, // No hay hover inicial
+        null, 
         isDarkMode,
-        'todas', // Forzamos vista 'todas' al recalcular layout
+        'todas', 
         isColorblind,
         aprobadas
     );
     
-    // 5. Guardar todo junto en el estado (1 solo render, 0 parpadeos)
     setNodes(finalNodes);
     setEdges(finalEdges);
-    setAllEdgesCache(layoutEdges); // Guardamos la estructura base en caché
+    setAllEdgesCache(layoutEdges);
     
-    // Solo reseteamos la vista si cambiamos de carrera (opcional)
     setViewMode('todas');
 
-  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas]); // Dependencias: si cambian, se re-ejecuta
+  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas]);
 
   // ============================================
-  // EFECTO PARA DETECTAR CAMBIOS DE TAMAÑO DE VENTANA
+  // EFECTO RESIZE
   // ============================================
   
   useEffect(() => {
-    // C++: Esto sería como un event listener en una GUI
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
-      // Solo actualizamos si cambia la categoría (para no renderizar a cada pixel)
       setIsMobile(prev => {
         if (prev !== mobile) return mobile;
         return prev;
@@ -339,21 +214,18 @@ useEffect(() => {
     };
 
     window.addEventListener('resize', handleResize);
-    // C++: IMPORTANTE: El return es como un destructor - limpia el event listener
     return () => window.removeEventListener('resize', handleResize);
-  }, []); // Array vacío [] = "ejecuta solo una vez al montar el componente"
+  }, []);
 
   // ============================================
-  // EFECTO PARA ACTUALIZAR ESTILOS DE NODOS Y LÍNEAS
+  // EFECTO ESTILOS DINÁMICOS
   // ============================================
   
   useEffect(() => {
-    if (nodes.length === 0) return; // C++: if (nodes.empty()) return;
+    if (nodes.length === 0) return; 
     
-    // 1. Estilos de Nodos (como aplicar estilos CSS dinámicamente)
     const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind);
     
-    // 2. Estilos de Líneas
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
         styledNodes, 
         hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode, styledNodes, aprobadas), 
@@ -368,123 +240,113 @@ useEffect(() => {
     setEdges(finalEdges);
 
   }, [aprobadas, isDarkMode, isColorblind, hoveredNodeId, nodes.length, viewMode]);
-  // C++: Observa estas variables y cuando cambian, re-ejecuta
 
   // ============================================
-  // MANEJADORES DE EVENTOS (Event handlers)
+  // MANEJADORES DE EVENTOS
   // ============================================
   
   const handleCarreraChange = (nuevaCarrera) => {
-    // C++: void handleCarreraChange(string nuevaCarrera) { ... }
     setSelectedCarrera(nuevaCarrera);
     localStorage.setItem('selectedCarrera', nuevaCarrera);
   };
 
-  // useCallback es como memoizar una función para no recrearla en cada render
-  // C++: Sería como tener una función miembro constante
   const onNodeClick = useCallback((event, node) => {
-    // C++: void onNodeClick(Event event, Node node) { ... }
-    if (!node.data?.clickable) return; // C++: if (!node.data || !node.data->clickable) return;
+    if (!node.data?.clickable) return; 
     
-    const matId = node.id; // C++: string matId = node.id;
-    
-    // Chequeamos si la estamos desmarcando
-    const isUnchecking = aprobadas.includes(matId); // C++: find(aprobadas.begin(), aprobadas.end(), matId)
+    const matId = node.id; 
+    const isUnchecking = aprobadas.includes(matId); 
     let nuevasAprobadas;
     const listaMaterias = dbMaterias[selectedCarrera] || [];
     
     if (isUnchecking) {
-        // ========== LÓGICA PARA DESMARCAR (y desmarcar dependientes) ==========
-        // C++: Esto es como un algoritmo de búsqueda en grafos
-        // 1. Iniciamos un Set con la materia que acabamos de clickear
-        const idsAElminar = new Set([matId]); // C++: unordered_set<string> idsAEliminar = {matId};
-        
-        // 2. Usamos una pila para buscar recursivamente hacia adelante
-        const pilaDeBusqueda = [matId]; // C++: stack<string> pilaDeBusqueda; pilaDeBusqueda.push(matId);
+        // Desmarcar y recursividad
+        const idsAElminar = new Set([matId]); 
+        const pilaDeBusqueda = [matId]; 
 
         while (pilaDeBusqueda.length > 0) {
-            const idActual = pilaDeBusqueda.pop(); // C++: string idActual = pilaDeBusqueda.top(); pilaDeBusqueda.pop();
+            const idActual = pilaDeBusqueda.pop(); 
 
-            // Buscamos todas las materias que requieren 'idActual' (para cursar o final)
             const dependientes = listaMaterias.filter(m => {
-                // C++: filter sería como copy_if con una condición lambda
                 const reqCursada = m.requiere_para_cursar || [];
                 const reqFinal = m.requiere_para_final || [];
                 return reqCursada.includes(idActual) || reqFinal.includes(idActual);
             });
 
             dependientes.forEach(dep => {
-                // Si la dependiente está aprobada y no la hemos marcado para borrar aún...
                 if (aprobadas.includes(dep.id) && !idsAElminar.has(dep.id)) {
-                    idsAElminar.add(dep.id);      // La marcamos para borrar
-                    pilaDeBusqueda.push(dep.id);  // La agregamos a la pila para buscar SUS hijas
+                    idsAElminar.add(dep.id);      
+                    pilaDeBusqueda.push(dep.id);  
                 }
             });
         }
 
-        // 3. Filtramos: Nos quedamos solo con las que NO están en el Set de eliminar
         nuevasAprobadas = aprobadas.filter(id => !idsAElminar.has(id));
-        // C++: copy_if(aprobadas.begin(), aprobadas.end(), back_inserter(nuevasAprobadas), 
-        //        [&](const string& id){ return idsAEliminar.find(id) == idsAEliminar.end(); });
         
     } else {
-        // ========== LÓGICA PARA MARCAR COMO APROBADA ==========
-        nuevasAprobadas = [...aprobadas, matId]; // C++: vector<string> nuevasAprobadas = aprobadas; nuevasAprobadas.push_back(matId);
+        // Marcar como aprobada
+        nuevasAprobadas = [...aprobadas, matId]; 
         
-        // DATOS PARA CALCULAR NIVELES
         const listaMaterias = dbMaterias[selectedCarrera] || [];
         const materiaActual = node.data.originalData;
-        
-        // Calculamos nivel actual
         const nivelActual = materiaActual.nivel || (materiaActual.posY ? materiaActual.posY + 1 : 1);
 
-        // Filtramos materias de ese nivel
         const materiasDelNivel = listaMaterias.filter(m => {
             const mNivel = m.nivel || (m.posY ? m.posY + 1 : 1);
             return mNivel === nivelActual;
         });
 
-        // Verificaciones
         const nivelCompleto = materiasDelNivel.every(m => nuevasAprobadas.includes(m.id));
         const carreraCompleta = listaMaterias.every(m => nuevasAprobadas.includes(m.id));
 
         // --- LÓGICA DE FIESTA Y SONIDO ---
         if (carreraCompleta) {
-             // 🏆 GANASTE LA CARRERA
+            // 🏆 GANASTE LA CARRERA
+            if (currentaudioLevel.current){
+               currentaudioLevel.current.pause();
+               currentaudioLevel.current.currentTime = 0;
+            }
+            if (currentaudioVictory.current){
+               currentaudioVictory.current.pause();
+               currentaudioVictory.current.currentTime = 0;
+            }  
+
              setTimeout(() => {
                 const audioVictory = new Audio('/sounds/victory.mp3');
-                audioVictory.volume = 0.6; // Volumen controlado
+                currentaudioVictory.current = audioVictory;
+                audioVictory.volume = 0.1;
                 audioVictory.play().catch(e => console.error(e));
-                
-                triggerVictoryConfetti(); // Lluvia con colores del tema
+                triggerVictoryConfetti();
              }, 100);
 
         } else if (nivelCompleto) {
              // ⭐️ COMPLETASTE EL NIVEL
+            if (currentaudioLevel.current){
+                currentaudioLevel.current.pause();
+                currentaudioLevel.current.currentTime = 0;
+            }
+
              setTimeout(() => {
                 const audioLevel = new Audio('/sounds/Celebracion-Nivel.mp3');
-
-                audioLevel.playbackRate = 0.9 + Math.random() * 0.3; // Pequeña variación
+                currentaudioLevel.current = audioLevel;
+                audioLevel.playbackRate = 0.9 + Math.random() * 0.3;
                 audioLevel.preservesPitch = false;
-                audioLevel.volume = 0.6; // Volumen controlado
+                audioLevel.volume = 0.1; 
                 audioLevel.play().catch(e => console.error(e));
-                
-                triggerLevelConfetti();   // Explosión Dorada
+                triggerLevelConfetti();
              }, 100);
 
         } else {
-             // 🔹 MATERIA INDIVIDUAL (Pop con Pitch Variable)
+             // 🔹 MATERIA INDIVIDUAL
              const audioPop = new Audio('/sounds/pop.mp3');
-             audioPop.volume = 0.4; // Más suave
-             // Variación aleatoria de tono (0.9 a 1.1) para que suene orgánico
+             audioPop.volume = 0.4;
              audioPop.playbackRate = 0.9 + Math.random() * 0.3;
              audioPop.preservesPitch = false;
              audioPop.play().catch(() => {});
         }
     }
     
-    setAprobadas(nuevasAprobadas); // C++: this->aprobadas = nuevasAprobadas;
-  }, [aprobadas, selectedCarrera]); // Dependencias: esta función se recrea si aprobadas o selectedCarrera cambian
+    setAprobadas(nuevasAprobadas); 
+  }, [aprobadas, selectedCarrera]); 
 
   
   // ============================================
@@ -499,10 +361,9 @@ useEffect(() => {
 
 
   // ============================================
-  // LÓGICA DEL TOOLTIP INTELIGENTE
+  // TOOLTIP INTELIGENTE
   // ============================================
   const renderTooltip = () => {
-    // 1. Si no hay hover o el nodo no existe, no mostramos nada
     if (!hoveredNodeId) return null;
     const node = nodes.find(n => n.id === hoveredNodeId);
     if (!node) return null;
@@ -510,31 +371,24 @@ useEffect(() => {
     const mat = node.data?.originalData;
     if (!mat) return null;
 
-    // 2. Si la materia YA está aprobada o disponible, no mostramos el tooltip de bloqueo
-    // (Opcional: podrías mostrar info extra aquí si quisieras)
     const estaAprobada = aprobadas.includes(mat.id);
     if (estaAprobada) return null;
 
-    // 3. Calculamos qué falta
     const faltantes = [];
     
-    // Revisamos cursadas requeridas
     if (mat.requiere_para_cursar) {
         mat.requiere_para_cursar.forEach(reqId => {
             if (!aprobadas.includes(reqId)) {
-                // Buscamos el nombre de la materia faltante
                 const reqNode = nodes.find(n => n.id === reqId);
                 if (reqNode) faltantes.push({ nombre: reqNode.data.label, tipo: 'Cursada' });
             }
         });
     }
 
-    // Revisamos finales requeridos
     if (mat.requiere_para_final) {
         mat.requiere_para_final.forEach(reqId => {
             if (!aprobadas.includes(reqId)) {
                 const reqNode = nodes.find(n => n.id === reqId);
-                // Evitamos duplicados si falta cursada y final de la misma
                 if (reqNode && !faltantes.some(f => f.nombre === reqNode.data.label)) {
                     faltantes.push({ nombre: reqNode.data.label, tipo: 'Final' });
                 }
@@ -542,10 +396,8 @@ useEffect(() => {
         });
     }
 
-    // 4. Si no falta nada (está disponible), no mostramos tooltip
     if (faltantes.length === 0) return null;
 
-    // 5. Renderizamos la tarjeta
     return (
       <div className="smart-tooltip">
         <div className="tooltip-header">
@@ -566,49 +418,40 @@ useEffect(() => {
   };
 
   // ============================================
-  //  FUNCIÓN COMPARTIR EN LINKEDIN
+  // COMPARTIR EN LINKEDIN
   // ============================================
   const handleShareLinkedIn = () => {
-    // 1. Buscamos el nombre de la carrera actual
     const nombresCarreras = {
       'tup': 'Tecnicatura Universitaria en Programación',
       'admi': 'Tecnicatura Universitaria en Administración',
       'moldes': 'Tecnicatura en Moldes y Matrices',
       'automotriz': 'Tecnicatura en Industria Automotriz'
     };
-    // Si no encuentra la carrera, usa un nombre genérico
     const nombreCarrera = nombresCarreras[selectedCarrera] || 'Mi Carrera UTN';
 
-    // 2. Calculamos las estadísticas matemáticas
-    const total = nodes.length; // Cantidad total de nodos (materias)
-    const aprobadasCount = aprobadas.length; // Cantidad que ya aprobaste
-    // Calculamos porcentaje (evitando dividir por cero)
+    const total = nodes.length; 
+    const aprobadasCount = aprobadas.length; 
     const porcentaje = total > 0 ? Math.round((aprobadasCount / total) * 100) : 0;
 
-    // 3. Buscamos tus "Mejores Logros" (Materias de nivel más alto aprobadas)
     const logros = nodes
-      .filter(n => aprobadas.includes(n.id)) // Solo miramos las aprobadas
-      .map(n => n.data.originalData)         // Sacamos la info útil (nombre, nivel)
-      .sort((a, b) => (b.nivel || 0) - (a.nivel || 0)) // Ordenamos de Mayor a Menor Nivel
-      .slice(0, 3) // Nos quedamos solo con las 3 primeras (las más difíciles)
-      .map(m => m.nombre); // Nos quedamos solo con el nombre
+      .filter(n => aprobadas.includes(n.id)) 
+      .map(n => n.data.originalData)         
+      .sort((a, b) => (b.nivel || 0) - (a.nivel || 0)) 
+      .slice(0, 3) 
+      .map(m => m.nombre); 
 
-    // 4. Buscamos tu "Próximo Desafío" (Materia disponible pero NO aprobada)
     const siguienteObjetivo = nodes.find(n => {
-      if (aprobadas.includes(n.id)) return false; // Si ya la aprobé, no cuenta
+      if (aprobadas.includes(n.id)) return false; 
       
       const mat = n.data.originalData;
-      // Verificamos si tengo las correlativas para cursarla
       const reqCursadas = mat.requiere_para_cursar || [];
       const reqFinales = mat.requiere_para_final || [];
       const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
       const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
       
-      return tieneCursadas && tieneFinales; // Devuelve true si está "Disponible"
+      return tieneCursadas && tieneFinales; 
     });
 
-    // 5. Armamos el texto profesional con emojis
-    // \n significa "salto de línea" (enter)
     const texto = `🚀 Progreso Académico: ${nombreCarrera}
     He completado el ${porcentaje}% de mi plan de estudios en la UTN.
     ✅ Materias Aprobadas: ${aprobadasCount} de ${total}
@@ -618,50 +461,35 @@ useEffect(() => {
 
     ${siguienteObjetivo ? `🎯 Próximo objetivo: ${siguienteObjetivo.data.originalData.nombre}` : '🎓 ¡Recta final!'}
 
-    #UTN #Pathfinder #DesarrolloProfesional #Educación #Hackathon`.trim(); // .trim() borra espacios vacíos al inicio y final
+    #UTN #Pathfinder #DesarrolloProfesional #Educación #Hackathon`.trim(); 
 
-    // 2. TEMPORIZADOR
     navigator.clipboard.writeText(texto).then(async () => {
-      
-      setMostrarNotificacion(true); // Mostramos el cartel
-
-      // Iniciamos un bucle de 3 pasos (3, 2, 1)
+      setMostrarNotificacion(true); 
       for (let i = 3; i > 0; i--) {
-        setConteoRegresivo(i); // Actualizamos el número en pantalla
-        // Esperamos 1 segundo (1000 milisegundos) antes de seguir
+        setConteoRegresivo(i); 
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
-      
-      // Cuando termina el bucle (llega a 0):
-      setConteoRegresivo(0); // Reseteamos numero
-      
-      // ABRIMOS LINKEDIN
+      setConteoRegresivo(0); 
       window.open('https://www.linkedin.com/feed/', '_blank');
-
-      // Ocultamos el cartelito un segundo después de abrir, para limpiar
       setTimeout(() => setMostrarNotificacion(false), 1000);
-
     });
   };
 
   // ============================================
-  // FUNCIÓN EXPORTAR IMAGEN (Versión CDN)
+  // EXPORTAR IMAGEN
   // ============================================
   const downloadImage = useCallback(() => {
-    // Buscamos el div que contiene el grafo
     const elem = document.querySelector('.react-flow');
     
     if (!elem || !window.htmlToImage) return;
 
-    // Usamos la variable global window.htmlToImage
     window.htmlToImage.toPng(elem, {
-      backgroundColor: isDarkMode ? '#111827' : '#f8fafc', // Forzamos el color de fondo
+      backgroundColor: isDarkMode ? '#111827' : '#f8fafc',
       style: {
         width: '100%',
         height: '100%',
       } 
     }).then((dataUrl) => {
-      // Creamos un link fantasma para descargar
       const link = document.createElement('a');
       link.download = `Plan-${selectedCarrera}-${new Date().toISOString().slice(0, 10)}.png`;
       link.href = dataUrl;
@@ -672,38 +500,31 @@ useEffect(() => {
   }, [isDarkMode, selectedCarrera]);
 
   // ============================================
-  // CÁLCULO DE MATERIAS DISPONIBLES
+  // CÁLCULO MATERIAS DISPONIBLES
   // ============================================
 
-const disponiblesCount = nodes.filter(n => {
-    // 1. Si ya está aprobada, no cuenta como "disponible" (ya la hiciste)
+  const disponiblesCount = nodes.filter(n => {
     if (aprobadas.includes(n.id)) return false;
     
     const mat = n.data?.originalData;
     if (!mat) return false;
     
-    // 2. Revisamos si cumples todos los requisitos
     const reqCursadas = mat.requiere_para_cursar || [];
     const reqFinales = mat.requiere_para_final || [];
     
     const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
     const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
     
-    // 3. Si tienes todo, está disponible
     return tieneCursadas && tieneFinales;
   }).length;
 
-
-
-// ============================================
-  // RENDERIZADO DE LOGROS (MODAL)
+  // ============================================
+  // MODAL LOGROS
   // ============================================
   const renderAchievementsModal = () => {
     if (!showAchievements) return null;
 
     const totalLogros = ACHIEVEMENTS.length;
-    
-    // CORRECCIÓN 1: Contamos los que están en la lista guardada, no los que cumplen la condición
     const logrosDesbloqueados = unlockedAchievements.length; 
 
     return (
@@ -724,8 +545,6 @@ const disponiblesCount = nodes.filter(n => {
 
           <div className="achievements-list">
             {ACHIEVEMENTS.map(ach => {
-              // CORRECCIÓN 2: Verificamos si el ID está en el array de desbloqueados
-              // ANTES: const isUnlocked = ach.condition(aprobadas, nodes);
               const isUnlocked = unlockedAchievements.includes(ach.id);
 
               return (
@@ -747,139 +566,165 @@ const disponiblesCount = nodes.filter(n => {
   };
 
   // ============================================
-  // RENDER (RETURN) - Esto es lo que se dibuja en pantalla
+  // RENDER (RETURN)
   // ============================================
-  // C++: En una GUI de C++ sería como el método paint() o render()
   
   return (
-    // El className dinámico es como tener clases CSS condicionales
-    // C++: Sería como string className = "app-container " + (isDarkMode ? "dark-mode " : "") + ...
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
       
-{/* HEADER FINAL (Responsive & Clean) */}
-      <div className="app-header">
-        
-        {/* 1. FILA SUPERIOR: Logo y Botón Menú */}
-        <div className="header-top-row">
-            <div className="logo-section">
-                <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="40" fill="currentColor" style={{ minWidth: '30px' }}>
-                    <path clipRule="evenodd" d="M246.6 0h102v190.8C429.4 168.4 489 94.1 489 6.4h106.3c0 146.5-106.8 268.9-246.6 293.2v4.4h233.9v104.2H368.2c130 31.8 227 149.5 227 289.1H489c0-87.7-59.6-162-140.3-184.4v186.5h-102V512.9c-80.7 22.4-140.3 96.7-140.3 184.4H0C0 557.7 97 440 227 408.2H12.8V304h233.9v-4.4C106.8 275.3 0 152.9 0 6.4h106.3c0 87.7 59.6 162 140.3 184.4z" fillRule="evenodd"/>
-                </svg>
-                <div className="title-container">
-                    <h1>UTN Pathfinder</h1>
-                    <p>Hackea tu carrera. Visualiza tu camino
-                    </p>
-                </div>
+      {/* HEADER */}
+      <div style={{
+        padding: '10px 20px',
+        background: isDarkMode ? '#1f2937' : '#3b82f6',
+        color: 'white',
+        display: 'flex', flexDirection: 'column', gap: '10px',
+        borderBottom: '1px solid rgba(255,255,255,0.1)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            {/* LADO IZQUIERDO: Logo y Título */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '5px' }}>
+                  <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="45" fill="currentColor" style={{ minWidth: '30px' }}>
+                      <path clipRule="evenodd" d="M246.6 0h102v190.8C429.4 168.4 489 94.1 489 6.4h106.3c0 146.5-106.8 268.9-246.6 293.2v4.4h233.9v104.2H368.2c130 31.8 227 149.5 227 289.1H489c0-87.7-59.6-162-140.3-184.4v186.5h-102V512.9c-80.7 22.4-140.3 96.7-140.3 184.4H0C0 557.7 97 440 227 408.2H12.8V304h233.9v-4.4C106.8 275.3 0 152.9 0 6.4h106.3c0 87.7 59.6 162 140.3 184.4z" fillRule="evenodd"/>
+                  </svg>
+                  <h1 style={{ margin: 0, fontSize: '1.3rem', lineHeight: 1 }}>UTN Pathfinder</h1>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.9 }}>
+                Hackea tu carrera. Visualiza tu camino
+              </p>
             </div>
-
-            <button 
-                className="mobile-menu-toggle"
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-            >
-                {showMobileMenu ? '✕' : '⚙️'}
-            </button>
-        </div>
-
-        {/* LADO DERECHO: Botones y Controles */}
-        {/* IMPORTANTE: Quitamos el style inline para que el CSS pueda ocultarlo en móvil */}
-        <div className={`header-right-side ${showMobileMenu ? 'show' : ''}`}>
+            
+            {/* LADO DERECHO: Botones y Controles */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
               
-              {/* FILA 1 (ARRIBA): Solo Información (Contadores) */}
-              <div className="header-row-top"> {/* Le puse clase para ordenarlo en CSS */}
+              {/* FILA 1: Botón Tema + Contador Aprobadas */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 
-                {/* 1. Contador Aprobadas */}
                 <div style={{
                   background: 'rgba(34, 197, 94, 0.25)', 
-                  border: '1px solid rgba(34, 197, 94, 0.5)',
+                  border: '1px solid rgba(34, 197, 94, 0.5)', 
                   color: '#86efac', 
-                  padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
-                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
+                  padding: '0 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.9rem',
+                  display: 'flex', 
+                  alignItems: 'center',
+                  height: '35px',
+                  whiteSpace: 'nowrap' 
                 }} title="Total de finales aprobados">
-                  <span>✅ <strong>{aprobadas.length}</strong></span>
+                  <span>✅ Aprobadas: <strong>{aprobadas.length}</strong></span>
                 </div>
 
-                {/* 2. Contador Disponibles */}
                 <div style={{
                   background: 'rgba(59, 130, 246, 0.25)', 
-                  border: '1px solid rgba(59, 130, 246, 0.5)',
+                  border: '1px solid rgba(59, 130, 246, 0.5)', 
                   color: '#93c5fd', 
-                  padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
-                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
+                  padding: '0 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.9rem',
+                  display: 'flex', 
+                  alignItems: 'center',
+                  height: '35px',
+                  whiteSpace: 'nowrap' 
                 }} title="Materias que ya puedes cursar">
-                  <span>🚀 <strong>{disponiblesCount}</strong></span>
+                  <span>🚀 Disponibles: <strong>{disponiblesCount}</strong></span>
                 </div>
 
               </div>
 
-              {/* FILA 2 (ABAJO): Herramientas */}
-              <div className="header-row-bottom"> {/* Le puse clase para ordenarlo en CSS */}
+              {/* FILA 2: Botones Accesibilidad y DISCORD */}
+              <div style={{ display: 'flex', gap: '8px' }}>
 
-                {/* 1. Botón Logros */}
+                {/* ⭐️ BOTÓN DISCORD ⭐️ */}
+                <a 
+                  href="https://discord.gg/yNKDGSac9j" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn-download"
+                  style={{ 
+                    color: '#5865F2', 
+                    borderColor: 'rgba(88, 101, 242, 0.3)',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    textDecoration: 'none'
+                  }} 
+                  title="Únete a la comunidad en Discord"
+                >
+                  <DiscordLogo />
+                </a>
+
                 <button 
                   onClick={() => setShowAchievements(true)}
                   className="btn-download"
-                  style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} 
+                  style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }} 
                   title="Ver Logros"
                 >
                   🏆
                 </button>
               
-                {/* 2. Botón Oráculo */}
                 <button 
-                id="btn-calculator-tour"  // <--- AGREGAR ESTE ID
-                onClick={() => setShowCalculator(true)}
-                className="btn-download"
-                style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }}
-                title="Calculadora de Graduación"
-              >
-                🔮
-              </button>
+                  onClick={() => setShowCalculator(true)}
+                  className="btn-download"
+                  style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} 
+                  title="Calculadora de Graduación"
+                >
+                  🔮
+                </button>
 
-                {/* Separador */}
-                <div style={{ width: '1px', height: '15px', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }}></div>
-
-                {/* 3. Botón Tema */}
                 <button 
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   style={{
-                    background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white',
-                    width: '28px', height: '28px', borderRadius: '50%',
-                    cursor: 'pointer', fontSize: '0.9rem', padding: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    background: 'rgba(255,255,255,0.2)', 
+                    border: 'none', 
+                    color: 'white',
+                    width: '35px', 
+                    height: '35px', 
+                    borderRadius: '50%',
+                    cursor: 'pointer', 
+                    fontSize: '1.1rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: 0, lineHeight: 1
                   }}
-                  title="Cambiar Tema"
+                  title={isDarkMode ? "Activar modo claro" : "Activar modo oscuro"}
                 >
-                  {isDarkMode ? '☀️' : '🌙'}
+                  {isDarkMode ? '☀️' : '🌙'} 
                 </button>
                 
-                {/* 4. Botón Dislexia */}
-                <button 
-                    onClick={() => setIsDyslexic(!isDyslexic)} 
-                    className={`btn-tool ${isDyslexic ? 'active' : ''}`}
-                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
-                >
-                    👁️ Dislexia
-                </button>
-                
-                {/* 5. Botón Daltonismo */}
-                <button 
-                    onClick={() => setIsColorblind(!isColorblind)} 
-                    className={`btn-tool ${isColorblind ? 'active' : ''}`}
-                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
-                >
-                    🎨 Daltónico
-                </button>
+                  <button
+                    onClick={() => setIsDyslexic(!isDyslexic)}
+                    style={{
+                       background: isDyslexic ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+                       border: '1px solid rgba(255,255,255,0.3)', color: 'white',
+                       borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem',
+                       cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
+                    }}
+                    title="Fuente para dislexia"
+                  >
+                    {isDyslexic ? '👁️ ON' : '👁️ OFF'}
+                  </button>
+
+                  <button
+                    onClick={() => setIsColorblind(!isColorblind)}
+                    style={{
+                       background: isColorblind ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+                       border: '1px solid rgba(255,255,255,0.3)', color: 'white',
+                       borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem',
+                       cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
+                    }}
+                    title="Modo alto contraste para daltonismo"
+                  >
+                    {isColorblind ? '🎨 ON' : '🎨 OFF'}
+                  </button>
               </div>
             </div>
-
-
-        {/* Selector de Carrera (Siempre abajo) */}
-        <div id="carrera-selector-tour" className="carrera-selector-container">
-             <CarreraSelector currentCarrera={selectedCarrera} onSelect={handleCarreraChange} />
         </div>
 
+        {/* Selector de Carrera */}
+        <div style={{ width: '100%', overflowX: 'auto', paddingBottom: '5px' }}>
+             <CarreraSelector currentCarrera={selectedCarrera} onSelect={handleCarreraChange} />
+        </div>
       </div>
-      
 
       {/* BARRA DE FILTROS */}
       <div style={{
@@ -888,13 +733,11 @@ const disponiblesCount = nodes.filter(n => {
         display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'
       }}>
         
-        {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
         
-        {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
         {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
           <button
-            key={mode} // key es como un ID único para React (necesario en listas)
+            key={mode} 
             onClick={() => setViewMode(mode)}
             style={{
               padding: '5px 12px', borderRadius: '15px', border: 'none',
@@ -905,28 +748,9 @@ const disponiblesCount = nodes.filter(n => {
               cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s'
             }}
           >
-            {/* mode.charAt(0).toUpperCase() + mode.slice(1) = poner primera letra mayúscula */}
             {mode.charAt(0).toUpperCase() + mode.slice(1)}
           </button>
         ))}
-
-        <button
-          id="btn-critical-tour"
-          title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera."
-          onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')}
-          style={{
-            padding: '5px 12px', borderRadius: '15px', border: 'none',
-            /* Si está activo: Rojo Neón. Si no: Gris */
-            background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'),
-            color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
-            cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s',
-            fontWeight: 'bold', marginLeft: '5px',
-            boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none',
-            display: 'flex', alignItems: 'center', gap: '5px'
-          }}
-        >
-          🔥 Ruta Crítica
-        </button>
 
         <div className="progress-section">
             <span className="progress-text">
@@ -943,7 +767,7 @@ const disponiblesCount = nodes.filter(n => {
         <button 
           onClick={handleShareLinkedIn}
           className="btn-download"
-          style={{ marginRight: '5px' }} // Separación con la cámara
+          style={{ marginRight: '5px' }} 
           title="Copiar resumen para LinkedIn"
         >
         <svg 
@@ -970,10 +794,6 @@ const disponiblesCount = nodes.filter(n => {
       {/* ÁREA PRINCIPAL DEL GRAFO */}
       <div style={{ flex: 1, position: 'relative' }}>
         {nodes.length > 0 ? (
-          // Conditional rendering: si hay nodos, mostrar ReactFlow, sino mensaje
-          // C++: if (nodes.size() > 0) { dibujarGrafo(); } else { dibujarMensaje(); }
-          
-          // ReactFlow es como un widget de gráfico/como un QGraphicsView en Qt
           <ReactFlow
             nodes={nodes} edges={edges}
             
@@ -997,20 +817,18 @@ const disponiblesCount = nodes.filter(n => {
       </div>
       
       {/* LEYENDA */}
-      {/* className es como class en HTML pero en JSX */}
       <div className="legend-container">
         <div className="legend-item"><div className="legend-dot aprobada"></div><span>Aprobada</span></div>
         <div className="legend-item"><div className="legend-dot disponible"></div><span>Disponible</span></div>
         <div className="legend-item"><div className="legend-dot bloqueada"></div><span>Bloqueada</span></div>
       </div>
       
-      {/* FOOTER (PIE DE PÁGINA) */}
+      {/* FOOTER */}
       <footer className={`app-footer ${isFooterOpen ? 'open' : ''}`}>
         <button 
             className="footer-toggle-btn" 
             onClick={() => {
                 setIsFooterOpen(!isFooterOpen);
-                // Si estamos abriendo (no cerrando), damos el logro
                 if (!isFooterOpen) {
                     triggerAchievement('credits_watcher');
                 }
@@ -1031,7 +849,6 @@ const disponiblesCount = nodes.filter(n => {
           <div className="footer-team">
             <h4>Desarrollado por:</h4>
             <div className="team-grid">
-              {/* Mapear el array teamMembers a enlaces */}
               {teamMembers.map((member, index) => (
                 <a key={index} href={member.linkedin} target="_blank" rel="noopener noreferrer" className="team-link">
                   {member.name}
@@ -1042,12 +859,7 @@ const disponiblesCount = nodes.filter(n => {
         </div>
       </footer>
 
-      {/*Calculadora Academica*/}
-      
-      {/* ==============================================
-          MODAL CALCULADORA (Oráculo Académico)
-          Renderizado Condicional: Solo se muestra si showCalculator es TRUE
-          ============================================== */}
+      {/* CALCULADORA (Oráculo) */}
       {showCalculator && (
         <div className="modal-overlay" onClick={() => setShowCalculator(false)}>
           <div className="calculator-card" onClick={e => e.stopPropagation()}>
@@ -1058,23 +870,17 @@ const disponiblesCount = nodes.filter(n => {
             </div>
 
             <div className="calc-body">
-              
-              {/* --- LÓGICA DE CORRECCIÓN: FILTRADO POR CARRERA --- */}
               {(() => {
-                 // 1. Calculamos cuántas aprobadas pertenecen REALMENTE a esta carrera
-                 // Comparamos los IDs de 'aprobadas' con los IDs de los 'nodes' actuales
                  const aprobadasEstaCarrera = nodes.filter(n => aprobadas.includes(n.id)).length;
                  const totalEstaCarrera = nodes.length;
 
                  return (
                    <>
-                     {/* Texto de introducción actualizado */}
                      <p className="calc-intro">
                        Según tu progreso actual ({aprobadasEstaCarrera} aprobadas de {totalEstaCarrera}), 
                        vamos a predecir tu futuro.
                      </p>
 
-                     {/* SLIDER (Igual que antes) */}
                      <div className="slider-container">
                        <label>
                          ¿Cuántas materias aprobarás por cuatrimestre?
@@ -1097,20 +903,15 @@ const disponiblesCount = nodes.filter(n => {
                        </div>
                      </div>
 
-                     {/* RESULTADO PREDICTIVO */}
                      <div className="prediction-result">
                         {(() => {
-                          // A. CÁLCULOS MATEMÁTICOS (Usando la variable filtrada)
                           const faltantes = totalEstaCarrera - aprobadasEstaCarrera;
                           
-                          // Caso base: Si no falta nada
                           if (faltantes <= 0) return <div>¡Ya terminaste! 🎉</div>;
 
-                          // Cálculo de tiempo
                           const cuatrimestresRestantes = Math.ceil(faltantes / ritmoEstudio);
                           const mesesTotales = cuatrimestresRestantes * 6;
                           
-                          // B. CÁLCULO DE FECHA
                           const fechaFutura = new Date();
                           fechaFutura.setMonth(fechaFutura.getMonth() + mesesTotales);
                           
@@ -1138,21 +939,16 @@ const disponiblesCount = nodes.filter(n => {
         </div>
       )}
       
-      {/*Notificación Flotante*/}
-
+      {/* Notificación Flotante */}
       <div className={`toast-notification ${mostrarNotificacion ? 'show' : ''}`}>
         {conteoRegresivo > 0 ? (
-           // MENSAJE DURANTE LA CUENTA REGRESIVA
            <span>📋 ¡Texto copiado! Redirigiendo a LinkedIn en <strong>{conteoRegresivo}...</strong></span>
         ) : (
-           // MENSAJE FINAL (O POR DEFECTO)
            <span>🚀 ¡Listo! Ahora pégalo en tu post (Ctrl + V)</span>
         )}
       </div>
 
-      {/* ============================================
-          NUEVA NOTIFICACIÓN DE LOGROS
-          ============================================ */}
+      {/* POPUP DE LOGROS */}
       {currentNotification && (
         <div className={`achievement-popup ${isClosing ? 'closing' : ''}`}> 
           <div className="ach-popup-icon">
@@ -1170,5 +966,4 @@ const disponiblesCount = nodes.filter(n => {
       {renderAchievementsModal()}
     </div>
   );
-  // Fin del return y de la función App
 }
