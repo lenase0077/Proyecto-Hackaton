@@ -373,6 +373,38 @@ export default function App() {
   };
 
   // ============================================
+  // FUNCIÓN EXPORTAR IMAGEN (Versión CDN)
+  // ============================================
+  const downloadImage = useCallback(() => {
+    // Buscamos el div que contiene el grafo
+    const elem = document.querySelector('.react-flow');
+    
+    if (!elem || !window.htmlToImage) return;
+
+    // Usamos la variable global window.htmlToImage
+    window.htmlToImage.toPng(elem, {
+      backgroundColor: isDarkMode ? '#111827' : '#f8fafc', // Forzamos el color de fondo
+      style: {
+        width: '100%',
+        height: '100%',
+      } 
+    }).then((dataUrl) => {
+      // Creamos un link fantasma para descargar
+      const link = document.createElement('a');
+      link.download = `Plan-${selectedCarrera}-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = dataUrl;
+      link.click();
+    }).catch((err) => {
+      console.error('Error al exportar imagen:', err);
+    });
+  }, [isDarkMode, selectedCarrera]);
+
+
+
+
+
+
+  // ============================================
   // RENDER (RETURN) - Esto es lo que se dibuja en pantalla
   // ============================================
   // C++: En una GUI de C++ sería como el método paint() o render()
@@ -530,7 +562,13 @@ export default function App() {
             </div>
         </div>
 
-        
+        <button 
+              onClick={downloadImage}
+              className="btn-download"
+              title="Guardar imagen"
+            >
+              📷
+          </button>
       </div>
 
       {/* ÁREA PRINCIPAL DEL GRAFO */}
