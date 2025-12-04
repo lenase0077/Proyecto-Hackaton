@@ -20,6 +20,7 @@ import {
   filterEdgesByMode,
   applyHighlightStyles,
   triggerLevelConfetti,
+  ACHIEVEMENTS,
   triggerVictoryConfetti
 } from './utils'; // C++: #include "utils.h" con varias funciones
 
@@ -43,6 +44,19 @@ export default function App() {
   // C++: Sería como tener vector<Node> nodes con sus funciones de modificación
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  // Estado para mostrar logros (achievements)
+  const [showAchievements, setShowAchievements] = useState(false);
+
+// Estado para logros desbloqueados con inicialización desde localStorage
+// C++: vector<string> unlockedAchievements; // con datos cargados desde archivo
+  const [unlockedAchievements, setUnlockedAchievements] = useState(() => {
+    const saved = localStorage.getItem('unlockedAchievements');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // 2. Estado para la notificación visual (Toast)
+  const [currentNotification, setCurrentNotification] = useState(null);
   
   // Estado para detectar si es móvil
   // C++: bool isMobile = (window.innerWidth < 768);
@@ -73,6 +87,47 @@ export default function App() {
     return localStorage.getItem('colorblindMode') === 'true';
   });
   
+ // ============================================
+  // FUNCIÓN CENTRAL DE DESBLOQUEO
+  // ============================================
+  const triggerAchievement = (achId) => {
+    // 1. GUARDA: Si ya lo tengo en la lista, NO hago nada (evita bucles)
+    if (unlockedAchievements.includes(achId)) return;
+
+    // 2. Busco la info del logro
+    const ach = ACHIEVEMENTS.find(a => a.id === achId);
+    if (!ach) return;
+
+    // 3. ¡PREMIO!
+    // Actualizamos estado (esto guardará en localStorage automáticamente por el otro useEffect)
+    setUnlockedAchievements(prev => [...prev, achId]);
+    
+    // Mostramos la notificación visual
+    setCurrentNotification(ach);
+
+    // Reproducimos sonido
+    // NOTA: Asegúrate de que este archivo exista en public/sounds/
+    // He corregido el nombre a 'victory.mp3' que dijiste que funcionaba, 
+    // si tienes uno específico para logros, pon su nombre exacto aquí.
+    const audio = new Audio('/sounds/Archivement.mp3'); 
+    audio.volume = 0.5;
+    audio.playbackRate = 1; // Un poco más agudo para diferenciarlo del final
+    audio.preservesPitch = false;
+    audio.play().catch(e => console.log("Audio error:", e));
+
+    // Ocultar notificación a los 4 segundos
+    setTimeout(() => {
+      setCurrentNotification(null);
+    }, 4000);
+  };
+
+
+
+
+
+
+
+
   // ============================================
   // EFECTOS (useEffect) - Similar a listeners o código que se ejecuta cuando cambian variables
   // ============================================
@@ -103,6 +158,30 @@ export default function App() {
   const [hoveredNodeId, setHoveredNodeId] = useState(null); // C++: string* hoveredNodeId = nullptr;
   const [isFooterOpen, setIsFooterOpen] = useState(false); // C++: bool isFooterOpen = false;
   const [allEdgesCache, setAllEdgesCache] = useState([]); // C++: vector<Edge> allEdgesCache;
+
+  // ============================================
+  // Guardar logros desbloqueados en localStorage cuando cambien
+  // ============================================
+  useEffect(() => {
+    localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements));
+  }, [unlockedAchievements]);
+
+  // ============================================
+  // MONITOR DE LOGROS (Checkeo en tiempo real)
+  // ============================================
+  useEffect(() => {
+    // Si no hay nodos cargados, no calculamos nada para evitar errores
+    if (nodes.length === 0) return;
+
+    ACHIEVEMENTS.forEach(ach => {
+      // Solo verificamos si la condición se cumple
+      // La función triggerAchievement se encarga de ver si ya lo tenías o no
+      if (ach.condition(aprobadas, nodes)) {
+          triggerAchievement(ach.id);
+      }
+    });
+  }, [aprobadas, nodes, unlockedAchievements]);
+
 
   // ============================================
   // DATOS ESTÁTICOS (como un array constante en C++)
@@ -505,6 +584,57 @@ const disponiblesCount = nodes.filter(n => {
 
 
 
+// ============================================
+  // RENDERIZADO DE LOGROS (MODAL)
+  // ============================================
+  const renderAchievementsModal = () => {
+    if (!showAchievements) return null;
+
+    const totalLogros = ACHIEVEMENTS.length;
+    
+    // CORRECCIÓN 1: Contamos los que están en la lista guardada, no los que cumplen la condición
+    const logrosDesbloqueados = unlockedAchievements.length; 
+
+    return (
+      <div className="modal-overlay" onClick={() => setShowAchievements(false)}>
+        <div className="modal-content achievements-modal" onClick={e => e.stopPropagation()}>
+          
+          <div className="modal-header">
+            <h2>🏆 Sala de Trofeos</h2>
+            <button className="close-btn" onClick={() => setShowAchievements(false)}>×</button>
+          </div>
+
+          <div className="achievements-progress">
+             <span>{logrosDesbloqueados} / {totalLogros} Desbloqueados</span>
+             <div className="progress-track" style={{width: '100%', marginTop: '5px'}}>
+                <div className="progress-fill" style={{width: `${(logrosDesbloqueados/totalLogros)*100}%`}}></div>
+             </div>
+          </div>
+
+          <div className="achievements-list">
+            {ACHIEVEMENTS.map(ach => {
+              // CORRECCIÓN 2: Verificamos si el ID está en el array de desbloqueados
+              // ANTES: const isUnlocked = ach.condition(aprobadas, nodes);
+              const isUnlocked = unlockedAchievements.includes(ach.id);
+
+              return (
+                <div key={ach.id} className={`achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`}>
+                  <div className="ach-icon">{isUnlocked ? ach.icon : '🔒'}</div>
+                  <div className="ach-info">
+                    <h4>{ach.title}</h4>
+                    <p>{ach.description}</p>
+                  </div>
+                  {isUnlocked && <div className="ach-check">✓</div>}
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+    );
+  };
+
   // ============================================
   // RENDER (RETURN) - Esto es lo que se dibuja en pantalla
   // ============================================
@@ -529,7 +659,7 @@ const disponiblesCount = nodes.filter(n => {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '5px' }}>
                   {/* SVG del logo - esto es como un widget gráfico en C++ */}
-                  <svg className="utn-logo-svg" viewBox="0 0 595.3 699.4" height="45" fill="currentColor" style={{ minWidth: '30px' }}>
+                  <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="45" fill="currentColor" style={{ minWidth: '30px' }}>
                       <path clipRule="evenodd" d="M246.6 0h102v190.8C429.4 168.4 489 94.1 489 6.4h106.3c0 146.5-106.8 268.9-246.6 293.2v4.4h233.9v104.2H368.2c130 31.8 227 149.5 227 289.1H489c0-87.7-59.6-162-140.3-184.4v186.5h-102V512.9c-80.7 22.4-140.3 96.7-140.3 184.4H0C0 557.7 97 440 227 408.2H12.8V304h233.9v-4.4C106.8 275.3 0 152.9 0 6.4h106.3c0 87.7 59.6 162 140.3 184.4z" fillRule="evenodd"/>
                   </svg>
                   <h1 style={{ margin: 0, fontSize: '1.3rem', lineHeight: 1 }}>UTN Pathfinder</h1>
@@ -585,6 +715,16 @@ const disponiblesCount = nodes.filter(n => {
               {/* FILA 2: Botones Accesibilidad (Bajados) */}
               
               <div style={{ display: 'flex', gap: '8px' }}>
+
+                <button 
+                onClick={() => setShowAchievements(true)}
+                className="btn-download"
+                style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }} // Dorado
+                title="Ver Logros"
+              >
+                🏆
+              </button>
+
 
                 <button 
                   onClick={() => setIsDarkMode(!isDarkMode)}
@@ -750,7 +890,16 @@ const disponiblesCount = nodes.filter(n => {
       
       {/* FOOTER (PIE DE PÁGINA) */}
       <footer className={`app-footer ${isFooterOpen ? 'open' : ''}`}>
-        <button className="footer-toggle-btn" onClick={() => setIsFooterOpen(!isFooterOpen)}>
+        <button 
+            className="footer-toggle-btn" 
+            onClick={() => {
+                setIsFooterOpen(!isFooterOpen);
+                // Si estamos abriendo (no cerrando), damos el logro
+                if (!isFooterOpen) {
+                    triggerAchievement('credits_watcher');
+                }
+            }}
+        >
           <span style={{ display: 'inline-block', transform: isFooterOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', marginRight: '5px' }}>▲</span>
           {isFooterOpen ? 'CERRAR' : 'CRÉDITOS'}
         </button>
@@ -790,6 +939,19 @@ const disponiblesCount = nodes.filter(n => {
       </div>
 
       {renderTooltip()}
+
+      {currentNotification && (
+        <div className="achievement-toast">
+          <div className="toast-icon">
+             {currentNotification.icon}
+          </div>
+          <div className="toast-content">
+             <span className="toast-label">¡LOGRO DESBLOQUEADO!</span>
+             <h4 className="toast-title">{currentNotification.title}</h4>
+          </div>
+        </div>
+      )}
+      {renderAchievementsModal()}
     </div>
   );
   // Fin del return y de la función App
