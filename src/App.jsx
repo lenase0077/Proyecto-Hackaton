@@ -298,8 +298,6 @@ export default function App() {
   // ============================================
   // C++: En una GUI de C++ sería como el método paint() o render()
   
-<<<<<<< Updated upstream
-=======
 
 
   const totalMaterias = nodes.length;
@@ -314,7 +312,6 @@ export default function App() {
   // ============================================
   // C++: En una GUI de C++ sería como el método paint() o render()
   
->>>>>>> Stashed changes
   return (
     // El className dinámico es como tener clases CSS condicionales
     // C++: Sería como string className = "app-container " + (isDarkMode ? "dark-mode " : "") + ...
@@ -432,15 +429,12 @@ export default function App() {
         background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff',
         display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'
       }}>
-<<<<<<< Updated upstream
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#4b5563' }}>Filtros:</span>
         
         {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
-=======
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
         
         {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
->>>>>>> Stashed changes
         {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
           <button
             key={mode} // key es como un ID único para React (necesario en listas)
