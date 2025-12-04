@@ -198,19 +198,37 @@ export default function App() {
   // EFECTO PARA CARGAR MATERIAS AL CAMBIAR CARRERA O TAMAÑO PANTALLA
   // ============================================
   
-  useEffect(() => {
-    // C++: Esto se ejecutaría en un constructor o método onCarreraChange()
-    const listaMaterias = dbMaterias[selectedCarrera] || []; // C++: Acceso a mapa/JSON
+useEffect(() => {
+    // 1. Obtener datos crudos
+    const listaMaterias = dbMaterias[selectedCarrera] || [];
     
-    // AHORA PASAMOS isMobile A LA FUNCIÓN
-    // C++: getLayoutElements sería una función que devuelve una struct {nodes, edges}
+    // 2. Calcular posiciones (Layout) -> Esto devuelve nodos BLANCOS
     const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
     
-    setNodes(layoutNodes); // C++: this->nodes = layoutNodes;
-    setEdges(layoutEdges);
-    setAllEdgesCache(layoutEdges);
+    // 3. ¡PINTAR INMEDIATAMENTE! (Aplicar estilos antes de guardar en el estado)
+    //    Le pasamos los nodos blancos y nos devuelve los nodos coloridos
+    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind);
+    
+    // 4. Aplicar también la lógica de líneas/highlight inicial
+    const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
+        styledNodes, 
+        layoutEdges, 
+        null, // No hay hover inicial
+        isDarkMode,
+        'todas', // Forzamos vista 'todas' al recalcular layout
+        isColorblind,
+        aprobadas
+    );
+    
+    // 5. Guardar todo junto en el estado (1 solo render, 0 parpadeos)
+    setNodes(finalNodes);
+    setEdges(finalEdges);
+    setAllEdgesCache(layoutEdges); // Guardamos la estructura base en caché
+    
+    // Solo reseteamos la vista si cambiamos de carrera (opcional)
     setViewMode('todas');
-  }, [selectedCarrera, isMobile, setNodes, setEdges]); // Dependencias: si cambian, se re-ejecuta
+
+  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas]); // Dependencias: si cambian, se re-ejecuta
 
   // ============================================
   // EFECTO PARA DETECTAR CAMBIOS DE TAMAÑO DE VENTANA
