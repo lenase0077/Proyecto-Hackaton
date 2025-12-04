@@ -57,6 +57,9 @@ export default function App() {
 
   const [isClosing, setIsClosing] = useState(false);
 
+  // Estado para tutorial activo
+  const [isTutorialActive, setIsTutorialActive] = useState(false);
+
 
  // Estado para menú móvil
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -104,7 +107,7 @@ export default function App() {
   // ============================================
   const triggerAchievement = (achId) => {
     // 1. GUARDA: Si ya lo tengo, no hago nada
-    if (unlockedAchievements.includes(achId)) return;
+    if (unlockedAchievements.includes(achId) || isTutorialActive) return;
 
     // 2. Busco la info
     const ach = ACHIEVEMENTS.find(a => a.id === achId);
@@ -170,13 +173,24 @@ export default function App() {
 
   // TUTORIAL DE BIENVENIDA (ONBOARDING)
   useEffect(() => {
-    // Revisa si ya vio el tutorial antes
     const tutorialVisto = localStorage.getItem('tutorial_visto_v1');
     
-    // Solo inicia si NO lo vio, si hay nodos cargados y si la librería cargó bien
+    // Solo inicia si NO lo vio, hay nodos y la librería existe
     if (!tutorialVisto && nodes.length > 0 && window.driver) {
       
+      setIsTutorialActive(true); 
+
       const driver = window.driver.js.driver;
+
+      // 1. CREAMOS UNA FUNCIÓN GLOBAL PARA CERRAR Y GUARDAR
+      // Esto asegura que el botón "Saltar" funcione sí o sí
+      window.cerrarTutorial = () => {
+          localStorage.setItem('tutorial_visto_v1', 'true'); // Guardamos
+          setIsTutorialActive(false);                        // Reactivamos sonidos
+          if (window.tourDriver) {
+              window.tourDriver.destroy();                   // Cerramos
+          }
+      };
       
       const driverObj = driver({
         showProgress: true,
@@ -189,13 +203,12 @@ export default function App() {
             element: '.utn-logo-svg', 
             popover: { 
               title: '¡Bienvenido a UTN Pathfinder!', 
-              // 2. Boton de "Saltar"
               description: `
               Tu mapa interactivo para hackear la carrera y planificar tu futuro.
               <br/><br/>
               <div style="text-align: right;">
                   <button 
-                    onclick="window.tourDriver.destroy()" 
+                    onclick="window.cerrarTutorial()" 
                     style="background: transparent; border: none; color: #9ca3af; text-decoration: none; cursor: pointer; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px;"
                     onmouseover="this.style.color='#fff'" 
                     onmouseout="this.style.color='#9ca3af'"
@@ -207,32 +220,34 @@ export default function App() {
             } 
           },
           { 
-            element: '#carrera-selector-tour', // <--- ID QUE PONDREMOS ABAJO
-            popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí para cargar el plan.' } 
+            element: '#carrera-selector-tour', 
+            popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí para cargar el plan de estudios.' } 
           },
           { 
             element: '.react-flow', 
             popover: { title: 'Mapa de Correlativas', description: 'Haz clic en las materias para aprobarlas y ver qué se desbloquea.' } 
           },
           { 
-            element: '#btn-calculator-tour', // <--- ID QUE PONDREMOS ABAJO
-            popover: { title: 'Oráculo Académico', description: 'Predice tu fecha exacta de graduación.' } 
+            element: '#btn-calculator-tour',
+            popover: { title: 'Oráculo Académico', description: 'Predice tu fecha exacta de graduación según tu ritmo.' } 
           },
           { 
-            element: '#btn-critical-tour', // <--- ID QUE PONDREMOS ABAJO
-            popover: { title: '🔥 Ruta Crítica', description: 'Muestra la cadena de materias más larga. ¡Tu cuello de botella principal!' } 
+            element: '#btn-critical-tour',
+            popover: { title: '🔥 Ruta Crítica', description: 'Muestra el camino más largo. Si te atrasas acá, se alarga tu carrera.' } 
           }
         ],
+        // Esto captura cuando cierras con ESC, clic afuera o el botón "Comenzar"
         onDestroyStarted: () => {
-           // Cuando termina o lo cierra, guardamos que ya lo vio
-           localStorage.setItem('tutorial_visto_v1', 'true');
-           driverObj.destroy();
+           // Chequeamos por seguridad para no guardar doble
+           if (!localStorage.getItem('tutorial_visto_v1')) {
+               localStorage.setItem('tutorial_visto_v1', 'true');
+               setIsTutorialActive(false);
+           }
+           // NOTA: Ya no llamamos a destroy() aquí para evitar bucles
         }
       });
 
       window.tourDriver = driverObj;
-
-      // Pequeña pausa para asegurar que la interfaz cargó
       setTimeout(() => { driverObj.drive(); }, 1500);
     }
   }, [nodes.length]);
