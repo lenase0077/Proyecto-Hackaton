@@ -152,3 +152,74 @@ body {
 .driver-popover-close-btn:hover {
   color: #ef4444 !important; /* Rojo */
 }
+
+/* =========================================================
+   EASTER EGG: MATRIX MODE
+   ========================================================= */
+
+.matrix-mode {
+  /* Fondo negro absoluto */
+  background-color: #000 !important;
+  font-family: 'Courier New', Courier, monospace !important; /* Fuente Hacker */
+  overflow: hidden; /* Evitar scrolls raros por la lluvia */
+}
+
+/* Forzar colores en TODO el texto y bordes */
+.matrix-mode * {
+  border-color: #0f0 !important; /* Verde Fósforo */
+  color: #0f0 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); /* Resplandor */
+  box-shadow: none !important; /* Quitar sombras 3D modernas */
+}
+
+/* Excepción: El fondo de los nodos y botones debe ser negro para que se lea */
+.matrix-mode .react-flow__node,
+.matrix-mode button, 
+.matrix-mode .modal-content,
+.matrix-mode .calculator-card,
+.matrix-mode .app-header,
+.matrix-mode .app-footer,
+.matrix-mode input {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border: 1px solid #0f0 !important;
+  border-radius: 0 !important; /* Bordes cuadrados estilo retro */
+}
+
+/* Las líneas (edges) del grafo */
+.matrix-mode .react-flow__edge path {
+  stroke: #0f0 !important;
+  stroke-width: 2px !important;
+  animation: matrix-pulse 2s infinite;
+}
+
+/* Los puntos del fondo (Background) */
+.matrix-mode .react-flow__background circle {
+  fill: #0f0 !important;
+  opacity: 0.2;
+}
+
+/* Ocultar cosas que molesten visualmente en este modo (opcional) */
+.matrix-mode .utn-logo-svg {
+  filter: drop-shadow(0 0 5px #0f0) !important;
+  fill: #0f0 !important;
+}
+
+.matrix-mode .progress-fill {
+  background: #0f0 !important;
+  box-shadow: 0 0 10px #0f0 !important;
+}
+
+/* Animación de pulso para las líneas */
+@keyframes matrix-pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; filter: drop-shadow(0 0 2px #0f0); }
+  100% { opacity: 0.5; }
+}
+
+/* Botones en hover estilo terminal */
+.matrix-mode button:hover {
+  background: #0f0 !important;
+  color: #000 !important; /* Texto negro sobre fondo verde */
+  cursor: help !important; /* Cursor retro */
+}
