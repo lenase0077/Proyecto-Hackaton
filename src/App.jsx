@@ -293,12 +293,10 @@ export default function App() {
     setAprobadas(nuevasAprobadas); // C++: this->aprobadas = nuevasAprobadas;
   }, [aprobadas, selectedCarrera]); // Dependencias: esta función se recrea si aprobadas o selectedCarrera cambian
 
-  // ============================================
-  // RENDER (RETURN) - Esto es lo que se dibuja en pantalla
-  // ============================================
-  // C++: En una GUI de C++ sería como el método paint() o render()
   
-
+  // ============================================
+  // CÁLCULO DE PROGRESO
+  // ============================================
 
   const totalMaterias = nodes.length;
   const aprobadasCount = nodes.filter(n => aprobadas.includes(n.id)).length;
@@ -306,6 +304,73 @@ export default function App() {
       ? Math.round((aprobadasCount / totalMaterias) * 100) 
       : 0;
 
+
+  // ============================================
+  // LÓGICA DEL TOOLTIP INTELIGENTE
+  // ============================================
+  const renderTooltip = () => {
+    // 1. Si no hay hover o el nodo no existe, no mostramos nada
+    if (!hoveredNodeId) return null;
+    const node = nodes.find(n => n.id === hoveredNodeId);
+    if (!node) return null;
+
+    const mat = node.data?.originalData;
+    if (!mat) return null;
+
+    // 2. Si la materia YA está aprobada o disponible, no mostramos el tooltip de bloqueo
+    // (Opcional: podrías mostrar info extra aquí si quisieras)
+    const estaAprobada = aprobadas.includes(mat.id);
+    if (estaAprobada) return null;
+
+    // 3. Calculamos qué falta
+    const faltantes = [];
+    
+    // Revisamos cursadas requeridas
+    if (mat.requiere_para_cursar) {
+        mat.requiere_para_cursar.forEach(reqId => {
+            if (!aprobadas.includes(reqId)) {
+                // Buscamos el nombre de la materia faltante
+                const reqNode = nodes.find(n => n.id === reqId);
+                if (reqNode) faltantes.push({ nombre: reqNode.data.label, tipo: 'Cursada' });
+            }
+        });
+    }
+
+    // Revisamos finales requeridos
+    if (mat.requiere_para_final) {
+        mat.requiere_para_final.forEach(reqId => {
+            if (!aprobadas.includes(reqId)) {
+                const reqNode = nodes.find(n => n.id === reqId);
+                // Evitamos duplicados si falta cursada y final de la misma
+                if (reqNode && !faltantes.some(f => f.nombre === reqNode.data.label)) {
+                    faltantes.push({ nombre: reqNode.data.label, tipo: 'Final' });
+                }
+            }
+        });
+    }
+
+    // 4. Si no falta nada (está disponible), no mostramos tooltip
+    if (faltantes.length === 0) return null;
+
+    // 5. Renderizamos la tarjeta
+    return (
+      <div className="smart-tooltip">
+        <div className="tooltip-header">
+            <span className="lock-icon">🔒</span> 
+            <strong>{mat.nombre}</strong>
+        </div>
+        <div className="tooltip-divider"></div>
+        <p className="tooltip-label">Para desbloquear necesitas:</p>
+        <ul className="tooltip-list">
+            {faltantes.map((f, i) => (
+                <li key={i}>
+                    • {f.nombre}
+                </li>
+            ))}
+        </ul>
+      </div>
+    );
+  };
 
   // ============================================
   // RENDER (RETURN) - Esto es lo que se dibuja en pantalla
@@ -533,6 +598,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      {renderTooltip()}
     </div>
   );
   // Fin del return y de la función App
