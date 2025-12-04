@@ -815,6 +815,46 @@ body, html, #root {
 }
 
 /* ===========================================
+  Mensaje flotante
+=========================================== */
+
+.toast-notification {
+  position: fixed;            /* Flota sobre todo */
+  bottom: 80px;               /* Un poco arriba del footer */
+  left: 50%;                  /* Centrado horizontal */
+  transform: translateX(-50%) translateY(20px); /* Ajuste para centrar y animar */
+  
+  background-color: #10b981;  /* Verde Éxito Profesional */
+  color: white;               /* Texto blanco */
+  padding: 12px 24px;         /* Espaciado interno cómodo */
+  border-radius: 50px;        /* Bordes muy redondos (Píldora) */
+  
+  font-weight: 600;           /* Letra un poco gruesa */
+  font-size: 0.95rem;         /* Tamaño legible */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  
+  z-index: 9999;              /* Asegura que esté ARRIBA de todo */
+  opacity: 0;                 /* Invisible por defecto */
+  pointer-events: none;       /* No molesta si no se ve */
+  
+  /* Animación suave al aparecer/desaparecer */
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Cuando activamos la clase "show" desde React */
+.toast-notification.show {
+  opacity: 1;                 /* Se vuelve visible */
+  transform: translateX(-50%) translateY(0); /* Se coloca en su lugar final */
+}
+
+/* Ajuste para MODO OSCURO */
+.app-container.dark-mode .toast-notification {
+  background-color: #059669; /* Un verde un poco más oscuro y elegante */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); /* Sombra más fuerte */
+}
+
+
+/* ===========================================
    MODAL DE LOGROS (Gamification)
    =========================================== */
 
@@ -931,4 +971,119 @@ body, html, #root {
 .app-container.dark-mode .ach-info p { color: #9ca3af; }
 .app-container.dark-mode .achievements-progress { background: #111827; color: #cbd5e1; }
 
+/* ===========================================
+   NOTIFICACIÓN DE LOGROS (ACHIEVEMENT POPUP)
+   Basado en el estilo de Smart Tooltip
+=========================================== */
 
+.achievement-popup {
+  position: fixed;
+  top: 80px; /* Justo debajo del header */
+  left: 50%;
+  transform: translateX(-50%); /* Centrado horizontal */
+  width: 320px;
+  
+  /* Estilo Glassmorphism idéntico al tooltip */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 15px 20px;
+  border-radius: 12px;
+  
+  /* BORDE DORADO/AMBAR PARA LOGROS */
+  border-left: 6px solid #f59e0b; 
+  
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  z-index: 10000; /* Por encima de todo */
+  
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  
+  /* Animación de entrada estilo rebote */
+  animation: achievementSlideDown 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+/* Animación: Baja desde arriba y rebota */
+@keyframes achievementSlideDown {
+  0% { top: -100px; opacity: 0; }
+  100% { top: 80px; opacity: 1; }
+}
+
+/* Ícono del logro */
+.ach-popup-icon {
+  font-size: 2.5rem;
+  background: #fffbeb; /* Fondo muy suave */
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  animation: spinTrophy 1s ease-out;
+}
+
+@keyframes spinTrophy {
+  from { transform: rotate(-180deg) scale(0); }
+  to { transform: rotate(0) scale(1); }
+}
+
+/* Texto del logro */
+.ach-popup-content {
+  flex: 1;
+}
+
+.ach-popup-header {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #f59e0b; /* Color dorado */
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.ach-popup-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ach-popup-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* MODO OSCURO */
+.app-container.dark-mode .achievement-popup {
+  background: rgba(31, 41, 55, 0.95); /* Fondo oscuro */
+  border-left-color: #fbbf24; /* Dorado más brillante */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.app-container.dark-mode .ach-popup-icon {
+  background: #374151;
+}
+
+.app-container.dark-mode .ach-popup-title {
+  color: #f3f4f6;
+}
+
+.app-container.dark-mode .ach-popup-desc {
+  color: #9ca3af;
+}
+
+/* RESPONSIVE MÓVIL */
+@media (max-width: 768px) {
+  .achievement-popup {
+    width: 90%;
+    top: 20px; /* Más arriba en móvil para no tapar el grafo */
+  }
+  
+  @keyframes achievementSlideDown {
+    0% { top: -100px; opacity: 0; }
+    100% { top: 20px; opacity: 1; }
+  }
+}
