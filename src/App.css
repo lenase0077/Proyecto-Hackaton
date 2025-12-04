@@ -612,7 +612,7 @@ body, html, #root {
   .progress-section {
     margin-left: 0; /* Ya no se empuja a la derecha */
     width: 100%;
-    justify-content: space-between; /* Texto a un lado, barra al otro */
+    justify-content: center; /* Texto a un lado, barra al otro */
     margin-top: 5px;
     padding-top: 5px;
     border-top: 1px solid rgba(0,0,0,0.05);
@@ -788,11 +788,27 @@ body, html, #root {
   transition: width 0.5s ease;
 }
 
-/* Responsive: En móvil ocultamos el texto de porcentaje para que entre todo */
-@media (max-width: 600px) {
-  .progress-text { display: none; }
-  .progress-track { width: 60px !important; }
+/* Responsive: En móvil, apilar verticalmente */
+@media (max-width: 768px) {
+  .progress-section {
+    flex-direction: column;        /* Texto encima, barra debajo */
+    align-items: stretch;          /* Barra ocupa todo el ancho */
+    width: 100%;
+    gap: 5px;                      /* Espacio pequeño entre texto y barra */
+  }
+  
+  .progress-text { 
+    display: block !important;     /* Mostrar el texto */
+    text-align: center;            /* Centrar el porcentaje */
+    font-size: 0.75rem;
+  }
+  
+  .progress-track { 
+    width: 80% !important;        /* Barra ocupa todo el ancho */
+    margin: 0 auto;               /* Centrar la barra */
+  }
 }
+
 
 .react-flow__edge {
   pointer-events: none !important;
