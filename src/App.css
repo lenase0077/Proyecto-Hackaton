@@ -1219,3 +1219,229 @@ body, html, #root {
 .app-container.dark-mode .slider-container label { color: #e2e8f0; }
 .app-container.dark-mode .ritmo-slider { background: #334155; }
 .app-container.dark-mode .prediction-result { background: #0f172a; border-color: #334155; }
+
+
+/* ===========================================
+   HEADER OPTIMIZADO (Responsive)
+   =========================================== */
+
+.app-header {
+  background: #3b82f6;
+  color: white;
+  padding: 10px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.3s ease;
+}
+
+.app-container.dark-mode .app-header {
+  background: #1f2937;
+}
+
+/* Fila Superior: Logo y Título */
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-container h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.title-container p {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Botón Menú Móvil (Oculto en PC) */
+.mobile-menu-toggle {
+  display: none; /* Por defecto no se ve */
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Contadores */
+.counters-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.counter-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  white-space: nowrap;
+}
+
+.counter-pill.aprobadas {
+  background: rgba(34, 197, 94, 0.25);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  color: #86efac;
+}
+
+.counter-pill.disponibles {
+  background: rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  color: #93c5fd;
+}
+
+/* Herramientas (Botones) */
+.header-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.tools-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Botones de herramientas bonitos */
+.btn-tool {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex; gap: 5px; align-items: center;
+  transition: all 0.2s;
+}
+
+.btn-tool.active {
+  background: #f59e0b; /* Fondo Naranja/Dorado */
+  border-color: #f59e0b;
+  color: #1e293b; /* Texto oscuro para buen contraste */
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); /* Resplandor */
+}
+
+
+.btn-tool:hover { transform: translateY(-2px); }
+
+.btn-tool.gold { color: #fcd34d; border-color: rgba(251, 191, 36, 0.4); }
+.btn-tool.purple { color: #d8b4fe; border-color: rgba(167, 139, 250, 0.4); }
+
+.btn-circle {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.btn-tool-small {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.btn-tool-small.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  opacity: 1;
+}
+
+/* Selector de Carrera Contenedor */
+.carrera-selector-container {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+/* ===========================================
+   MEDIA QUERIES (Aquí ocurre la magia móvil)
+   =========================================== */
+@media (max-width: 768px) {
+  
+  /* 1. Mostrar botón hamburguesa */
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 2. Ocultar herramientas por defecto */
+  .header-tools {
+    display: none; /* Se oculta */
+    flex-direction: column; /* Se apila cuando se muestra */
+    background: rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+  }
+
+  /* 3. Mostrar herramientas cuando está activo */
+  .header-tools.show {
+    display: flex;
+    animation: slideDown 0.3s ease;
+  }
+
+  .tools-group {
+    width: 100%;
+    justify-content: space-between; /* Botones grandes */
+  }
+  
+  .btn-tool {
+    flex: 1; /* Botones ocupan espacio igual */
+    justify-content: center;
+    padding: 10px; /* Más grandes para dedos */
+  }
+
+  /* 4. Contadores Compactos */
+  .counters-row {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .counter-pill {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+  
+  /* OCULTAR TEXTO EN MÓVIL */
+  .counter-label {
+    display: none; /* Adiós texto "Aprobadas:" */
+  }
+  /* Resultado: Se ve "✅ 5" en vez de "✅ Aprobadas: 5" */
+
+  .logo-section .title-container p {
+    display: none; /* Ocultar subtítulo para ganar espacio */
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
