@@ -106,10 +106,10 @@ export default function App() {
   // ============================================
   
   const teamMembers = [
-    { name: "Durazzini Sebastian", linkedin: "https://www.linkedin.com/" },
-    { name: "Martinez Alejo", linkedin: "https://www.linkedin.com/" },
-    { name: "Raho Daniel", linkedin: "https://www.linkedin.com/" },
-    { name: "Serrano Leandro", linkedin: "https://www.linkedin.com/" },
+    { name: "Durazzini Sebastian", linkedin: "https://www.linkedin.com/in/sebastian-durazzini/"},
+    { name: "Martinez Alejo", linkedin: "https://www.linkedin.com/in/alejo-martinez-olmedo-877004283/" },
+    { name: "Raho Daniel", linkedin: "https://www.linkedin.com/in/pablo-daniel-raho-17a611354/" },
+    { name: "Serrano Leandro", linkedin: "https://www.linkedin.com/in/leandro-serrano/" },
   ];
 
   // ============================================
