@@ -1087,3 +1087,27 @@ body, html, #root {
     100% { top: 20px; opacity: 1; }
   }
 }
+
+.achievement-popup.closing {
+  /* Usamos la misma duración y la misma curva bezier para que se sienta idéntico */
+  animation: achievementSlideUp 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+@keyframes achievementSlideUp {
+  0% { 
+    top: 80px; 
+    opacity: 1; 
+  }
+  100% { 
+    top: -100px; /* Vuelve arriba */
+    opacity: 0; 
+  }
+}
+
+/* Ajuste para móvil en reversa */
+@media (max-width: 768px) {
+  @keyframes achievementSlideUp {
+    0% { top: 20px; opacity: 1; }
+    100% { top: -100px; opacity: 0; }
+  }
+}
