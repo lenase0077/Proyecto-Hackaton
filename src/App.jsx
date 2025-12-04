@@ -57,6 +57,9 @@ export default function App() {
 
   const [isClosing, setIsClosing] = useState(false);
 
+
+ // Estado para menú móvil
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 // Estado para logros desbloqueados con inicialización desde localStorage
 // C++: vector<string> unlockedAchievements; // con datos cargados desde archivo
   const [unlockedAchievements, setUnlockedAchievements] = useState(() => {
@@ -738,86 +741,75 @@ const disponiblesCount = nodes.filter(n => {
     // C++: Sería como string className = "app-container " + (isDarkMode ? "dark-mode " : "") + ...
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
       
-      {/* HEADER */}
-      {/* Esto es JSX: parece HTML pero es JavaScript */}
-      <div style={{
-        padding: '10px 20px',
-        background: isDarkMode ? '#1f2937' : '#3b82f6', // Estilos inline condicionales
-        color: 'white',
-        display: 'flex', flexDirection: 'column', gap: '10px',
-        borderBottom: '1px solid rgba(255,255,255,0.1)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            {/* LADO IZQUIERDO: Logo y Título */}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '5px' }}>
-                  {/* SVG del logo - esto es como un widget gráfico en C++ */}
-                  <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="45" fill="currentColor" style={{ minWidth: '30px' }}>
-                      <path clipRule="evenodd" d="M246.6 0h102v190.8C429.4 168.4 489 94.1 489 6.4h106.3c0 146.5-106.8 268.9-246.6 293.2v4.4h233.9v104.2H368.2c130 31.8 227 149.5 227 289.1H489c0-87.7-59.6-162-140.3-184.4v186.5h-102V512.9c-80.7 22.4-140.3 96.7-140.3 184.4H0C0 557.7 97 440 227 408.2H12.8V304h233.9v-4.4C106.8 275.3 0 152.9 0 6.4h106.3c0 87.7 59.6 162 140.3 184.4z" fillRule="evenodd"/>
-                  </svg>
-                  <h1 style={{ margin: 0, fontSize: '1.3rem', lineHeight: 1 }}>UTN Pathfinder</h1>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.9 }}>
-                Hackea tu carrera. Visualiza tu camino
-              </p>
+{/* HEADER FINAL (Responsive & Clean) */}
+      <div className="app-header">
+        
+        {/* 1. FILA SUPERIOR: Logo y Botón Menú */}
+        <div className="header-top-row">
+            <div className="logo-section">
+                <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="40" fill="currentColor" style={{ minWidth: '30px' }}>
+                    <path clipRule="evenodd" d="M246.6 0h102v190.8C429.4 168.4 489 94.1 489 6.4h106.3c0 146.5-106.8 268.9-246.6 293.2v4.4h233.9v104.2H368.2c130 31.8 227 149.5 227 289.1H489c0-87.7-59.6-162-140.3-184.4v186.5h-102V512.9c-80.7 22.4-140.3 96.7-140.3 184.4H0C0 557.7 97 440 227 408.2H12.8V304h233.9v-4.4C106.8 275.3 0 152.9 0 6.4h106.3c0 87.7 59.6 162 140.3 184.4z" fillRule="evenodd"/>
+                </svg>
+                <div className="title-container">
+                    <h1>UTN Pathfinder</h1>
+                    <p>Hackea tu carrera. Visualiza tu camino
+                    </p>
+                </div>
             </div>
-            
-            {/* LADO DERECHO: Botones y Controles */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-              
-              {/* FILA 1: Botón Tema + Contador Aprobadas */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                
-                {/* 1. Botón Dark Mode (A la izquierda) */}
-                {/* onClick es como un event handler en C++: button->onClick = [this]{ setIsDarkMode(!isDarkMode); }; */}
-                
 
-                {/* 2. Contador (A la derecha) */}
+            <button 
+                className="mobile-menu-toggle"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+                {showMobileMenu ? '✕' : '⚙️'}
+            </button>
+        </div>
+
+        {/* LADO DERECHO: Botones y Controles */}
+        {/* IMPORTANTE: Quitamos el style inline para que el CSS pueda ocultarlo en móvil */}
+        <div className={`header-right-side ${showMobileMenu ? 'show' : ''}`}>
+              
+              {/* FILA 1 (ARRIBA): Solo Información (Contadores) */}
+              <div className="header-row-top"> {/* Le puse clase para ordenarlo en CSS */}
+                
+                {/* 1. Contador Aprobadas */}
                 <div style={{
-                  background: 'rgba(34, 197, 94, 0.25)', // Verde transparente
-                  border: '1px solid rgba(34, 197, 94, 0.5)', // Borde verde sutil
-                  color: '#86efac', // Texto verde claro brillante
-                  padding: '0 12px',
-                  borderRadius: '20px',
-                  fontSize: '0.9rem',
-                  display: 'flex', 
-                  alignItems: 'center',
-                  height: '35px',
-                  whiteSpace: 'nowrap' // Para que no se rompa el texto en móviles
+                  background: 'rgba(34, 197, 94, 0.25)', 
+                  border: '1px solid rgba(34, 197, 94, 0.5)',
+                  color: '#86efac', 
+                  padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
+                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
                 }} title="Total de finales aprobados">
-                  <span>✅ Aprobadas: <strong>{aprobadas.length}</strong></span>
+                  <span>✅ <strong>{aprobadas.length}</strong></span>
                 </div>
 
+                {/* 2. Contador Disponibles */}
                 <div style={{
-                  background: 'rgba(59, 130, 246, 0.25)', // Fondo azulado transparente
-                  border: '1px solid rgba(59, 130, 246, 0.5)', // Borde sutil
-                  color: '#93c5fd', // Texto celeste claro (se lee bien en dark y light)
-                  padding: '0 12px',
-                  borderRadius: '20px',
-                  fontSize: '0.9rem',
-                  display: 'flex', 
-                  alignItems: 'center',
-                  height: '35px',
-                  whiteSpace: 'nowrap' // Que no se rompa el texto
+                  background: 'rgba(59, 130, 246, 0.25)', 
+                  border: '1px solid rgba(59, 130, 246, 0.5)',
+                  color: '#93c5fd', 
+                  padding: '0 12px', borderRadius: '20px', fontSize: '0.85rem',
+                  display: 'flex', alignItems: 'center', height: '28px', whiteSpace: 'nowrap'
                 }} title="Materias que ya puedes cursar">
-                  <span>🚀 Disponibles: <strong>{disponiblesCount}</strong></span>
+                  <span>🚀 <strong>{disponiblesCount}</strong></span>
                 </div>
 
               </div>
 
-              {/* FILA 2: Botones Accesibilidad (Bajados) */}
-              
-              <div style={{ display: 'flex', gap: '8px' }}>
+              {/* FILA 2 (ABAJO): Herramientas */}
+              <div className="header-row-bottom"> {/* Le puse clase para ordenarlo en CSS */}
 
+                {/* 1. Botón Logros */}
                 <button 
-                onClick={() => setShowAchievements(true)}
-                className="btn-download"
-                style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }} // Dorado
-                title="Ver Logros"
-              >
-                🏆
-              </button>
+                  onClick={() => setShowAchievements(true)}
+                  className="btn-download"
+                  style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} 
+                  title="Ver Logros"
+                >
+                  🏆
+                </button>
               
+                {/* 2. Botón Oráculo */}
                 <button 
                 id="btn-calculator-tour"  // <--- AGREGAR ESTE ID
                 onClick={() => setShowCalculator(true)}
@@ -828,63 +820,51 @@ const disponiblesCount = nodes.filter(n => {
                 🔮
               </button>
 
+                {/* Separador */}
+                <div style={{ width: '1px', height: '15px', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }}></div>
+
+                {/* 3. Botón Tema */}
                 <button 
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   style={{
-                    background: 'rgba(255,255,255,0.2)', 
-                    border: 'none', 
-                    color: 'white',
-                    width: '35px', 
-                    height: '35px', 
-                    borderRadius: '50%',
-                    cursor: 'pointer', 
-                    fontSize: '1.1rem',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: 0, lineHeight: 1
+                    background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white',
+                    width: '28px', height: '28px', borderRadius: '50%',
+                    cursor: 'pointer', fontSize: '0.9rem', padding: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}
-                  title={isDarkMode ? "Activar modo claro" : "Activar modo oscuro"}
+                  title="Cambiar Tema"
                 >
-                  {isDarkMode ? '☀️' : '🌙'} {/* Texto condicional del botón */}
+                  {isDarkMode ? '☀️' : '🌙'}
                 </button>
                 
-                  <button
-                    onClick={() => setIsDyslexic(!isDyslexic)}
-                    style={{
-                       background: isDyslexic ? '#f59e0b' : 'rgba(255,255,255,0.1)',
-                       border: '1px solid rgba(255,255,255,0.3)', color: 'white',
-                       borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem',
-                       cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
-                    }}
-                    title="Fuente para dislexia"
-                  >
-                    {isDyslexic ? '👁️ Dislexia ON' : '👁️ Dislexia OFF'}
-                  </button>
-
-                  <button
-                    onClick={() => setIsColorblind(!isColorblind)}
-                    style={{
-                       background: isColorblind ? '#f59e0b' : 'rgba(255,255,255,0.1)',
-                       border: '1px solid rgba(255,255,255,0.3)', color: 'white',
-                       borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem',
-                       cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
-                    }}
-                    title="Modo alto contraste para daltonismo"
-                  >
-                    {isColorblind ? '🎨 Daltonismo ON' : '🎨 Daltonismo OFF'}
-                  </button>
+                {/* 4. Botón Dislexia */}
+                <button 
+                    onClick={() => setIsDyslexic(!isDyslexic)} 
+                    className={`btn-tool ${isDyslexic ? 'active' : ''}`}
+                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
+                >
+                    👁️ Dislexia
+                </button>
+                
+                {/* 5. Botón Daltonismo */}
+                <button 
+                    onClick={() => setIsColorblind(!isColorblind)} 
+                    className={`btn-tool ${isColorblind ? 'active' : ''}`}
+                    style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}
+                >
+                    🎨 Daltónico
+                </button>
               </div>
             </div>
-        </div>
 
-        {/* Selector de Carrera */}
-        <div id="carrera-selector-tour" style={{ width: '100%', overflowX: 'auto', paddingBottom: '5px' }}>
-              {/* CarreraSelector es como un widget/componente personalizado */}
-             {/* currentCarrera y onSelect son "props" (parámetros del componente) */}
-             {/* C++: Sería como CarreraSelector selector(currentCarrera, onSelectFunction); */}
+
+        {/* Selector de Carrera (Siempre abajo) */}
+        <div id="carrera-selector-tour" className="carrera-selector-container">
              <CarreraSelector currentCarrera={selectedCarrera} onSelect={handleCarreraChange} />
         </div>
 
       </div>
+      
 
       {/* BARRA DE FILTROS */}
       <div style={{
