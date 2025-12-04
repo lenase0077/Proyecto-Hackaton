@@ -134,9 +134,9 @@ export default function App() {
     setIsClosing(false); 
     setCurrentNotification(ach);
 
-    const audio = new Audio('/sounds/victory.mp3');
-    audio.volume = 0.5;
-    audio.playbackRate = 1.5;
+    const audio = new Audio('/sounds/Archivement.mp3');
+    audio.volume = 0.8;
+    audio.playbackRate = 1;
     audio.preservesPitch = false;
     audio.play().catch(() => {});
 
