@@ -7,6 +7,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './App.css';
+import MatrixRain from './components/MatrixRain';
 
 import dbMaterias from './data/materias.json'; // C++: #include "materias.json" (pero en JS se importa como módulo)
 import CarreraSelector from './components/CarreraSelector';
@@ -24,12 +25,14 @@ import {
   triggerVictoryConfetti
 } from './utils'; // C++: #include "utils.h" con varias funciones
 
+
+
 // C++: Esta función App() es como tu main(), pero en React los componentes son funciones que devuelven HTML (JSX)
 export default function App() {
   // ============================================
   // ESTADOS (STATE) - Similar a variables miembro en una clase C++
   // ============================================
-  
+  const [isMatrixMode, setIsMatrixMode] = useState(false);
   // useState es como declarar una variable + su setter
   // El callback inicial es como un constructor que lee de localStorage
   const [selectedCarrera, setSelectedCarrera] = useState(() => {
@@ -164,6 +167,33 @@ export default function App() {
   useEffect(() => { 
     localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)); 
   }, [aprobadas]); // C++: Serializar el vector a JSON cuando cambie
+
+  useEffect(() => {
+    const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    let keyIndex = 0;
+
+    const handleKeyDown = (e) => {
+      if (e.key === konamiCode[keyIndex]) {
+        keyIndex++;
+        if (keyIndex === konamiCode.length) {
+          // Activar Modo
+          setIsMatrixMode(prev => !prev);
+          // Reproducir sonido si se activa
+          if (!isMatrixMode) { 
+              const audio = new Audio('/sounds/matrix.mp3');
+              audio.volume = 1.0;
+              audio.play().catch(err => console.error("Error audio:", err));
+          }
+          keyIndex = 0;
+        }
+      } else {
+        keyIndex = 0;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMatrixMode]);
 
   // ============================================
   // MÁS ESTADOS
@@ -774,8 +804,8 @@ const disponiblesCount = nodes.filter(n => {
   return (
     // El className dinámico es como tener clases CSS condicionales
     // C++: Sería como string className = "app-container " + (isDarkMode ? "dark-mode " : "") + ...
-    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
-      
+    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isMatrixMode ? 'matrix-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ...`}>
+    {isMatrixMode && <MatrixRain />}
 {/* HEADER FINAL (Responsive & Clean) */}
       <div className="app-header">
         
@@ -912,23 +942,36 @@ const disponiblesCount = nodes.filter(n => {
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
         
         {/* Mapear un array a elementos JSX - similar a un for loop en C++ que crea botones */}
-        {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
-          <button
-            key={mode} // key es como un ID único para React (necesario en listas)
-            onClick={() => setViewMode(mode)}
-            style={{
-              padding: '5px 12px', borderRadius: '15px', border: 'none',
-              background: viewMode === mode 
-                ? (mode === 'final' ? '#ef4444' : mode === 'simplificada' ? '#10b981' : '#3b82f6')
-                : (isDarkMode ? '#374151' : '#e2e8f0'),
-              color: viewMode === mode ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
-              cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s'
-            }}
-          >
-            {/* mode.charAt(0).toUpperCase() + mode.slice(1) = poner primera letra mayúscula */}
-            {mode.charAt(0).toUpperCase() + mode.slice(1)}
-          </button>
-        ))}
+        {/* 1. Definimos los textos (puedes poner esto fuera del return para que quede limpio) */}
+        {(() => {
+          const filterDescriptions = {
+            todas: "Visualiza el mapa completo con todas las conexiones de cursada y finales.",
+            cursar: "Muestra solo las correlativas necesarias para cursar. Ideal para inscripciones.",
+            final: "Muestra solo los requisitos para rendir finales. Útil para planificar mesas.",
+            simplificada: "Vista limpia. Oculta el ruido y destaca solo tus materias disponibles inmediatas."
+          };
+
+          return ['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              
+              /* 👇 AQUÍ AGREGAMOS EL TITLE DINÁMICO 👇 */
+              title={filterDescriptions[mode]} 
+              
+              style={{
+                padding: '5px 12px', borderRadius: '15px', border: 'none',
+                background: viewMode === mode 
+                  ? (mode === 'final' ? '#ef4444' : mode === 'simplificada' ? '#10b981' : '#3b82f6')
+                  : (isDarkMode ? '#374151' : '#e2e8f0'),
+                color: viewMode === mode ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
+                cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s'
+              }}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ));
+        })()}
 
         <button
           id="btn-critical-tour"
