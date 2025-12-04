@@ -36,9 +36,15 @@ export default function App() {
     // C++: string selectedCarrera = localStorage.getItem(...) || "tup";
     return localStorage.getItem('selectedCarrera') || 'tup';
   });
-
+  
+  {/*Mesaje flotante*/}
   const [mostrarNotificacion, setMostrarNotificacion] = useState(false);
+  {/*Conteo para mensaje flotante*/}
   const [conteoRegresivo, setConteoRegresivo] = useState(0);
+  {/*Calculadora predictoria de egreso*/}
+  const [showCalculator, setShowCalculator] = useState(false);
+  {/*Materias por cuatrimestre*/}
+  const [ritmoEstudio, setRitmoEstudio] = useState(3);
   
   // useNodesState/useEdgesState son hooks personalizados de reactflow
   // C++: Sería como tener vector<Node> nodes con sus funciones de modificación
@@ -127,6 +133,7 @@ export default function App() {
 
     }, 4000);
   };
+
 
 
 
@@ -748,7 +755,15 @@ const disponiblesCount = nodes.filter(n => {
               >
                 🏆
               </button>
-
+              
+                <button 
+                  onClick={() => setShowCalculator(true)}
+                  className="btn-download"
+                  style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} // Violeta Místico
+                  title="Calculadora de Graduación"
+                >
+                  🔮
+                </button>
 
                 <button 
                   onClick={() => setIsDarkMode(!isDarkMode)}
@@ -949,6 +964,112 @@ const disponiblesCount = nodes.filter(n => {
           </div>
         </div>
       </footer>
+
+      {/*Calculadora Academica*/}
+      
+      {/* ==============================================
+          MODAL CALCULADORA (Oráculo Académico)
+          Renderizado Condicional: Solo se muestra si showCalculator es TRUE
+          ============================================== */}
+      {showCalculator && (
+        
+        // 1. EL FONDO OSCURO (OVERLAY)
+        // Ocupa toda la pantalla. Si haces click en el fondo, se cierra el modal.
+        <div className="modal-overlay" onClick={() => setShowCalculator(false)}>
+          
+          {/* 2. LA TARJETA (CARD) */}
+          {/* stopPropagation evita que el click dentro de la tarjeta cierre el modal */}
+          <div className="calculator-card" onClick={e => e.stopPropagation()}>
+            
+            {/* CABECERA: Título y Botón Cerrar */}
+            <div className="calc-header">
+              <h3>🔮 Oráculo Académico</h3>
+              <button className="close-btn" onClick={() => setShowCalculator(false)}>×</button>
+            </div>
+
+            {/* CUERPO: Inputs y Resultados */}
+            <div className="calc-body">
+              
+              {/* Texto de introducción con datos reales */}
+              <p className="calc-intro">
+                Según tu progreso actual ({aprobadas.length} aprobadas de {nodes.length}), 
+                vamos a predecir tu futuro.
+              </p>
+
+              {/* === SLIDER (Rango 1 a 6) === */}
+              <div className="slider-container">
+                <label>
+                  ¿Cuántas materias aprobarás por cuatrimestre?
+                  {/* Muestra el número seleccionado actualmente */}
+                  <span className="ritmo-badge">{ritmoEstudio}</span>
+                </label>
+                
+                {/* Input tipo Range para deslizar */}
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="6" 
+                  step="1" 
+                  value={ritmoEstudio}
+                  // Al moverlo, actualizamos el estado "ritmoEstudio"
+                  onChange={(e) => setRitmoEstudio(parseInt(e.target.value))}
+                  className="ritmo-slider"
+                />
+                
+                <div className="slider-labels">
+                  <span>Relax (1)</span>
+                  <span>Tryhard (6)</span>
+                </div>
+              </div>
+
+              {/* === LA LÓGICA DE PREDICCIÓN === */}
+              <div className="prediction-result">
+                {(() => {
+                  // A. CÁLCULOS MATEMÁTICOS
+                  const faltantes = nodes.length - aprobadas.length;
+                  
+                  // Caso base: Si no falta nada, celebramos
+                  if (faltantes <= 0) return <div>¡Ya terminaste! 🎉</div>;
+
+                  // Cálculo de tiempo:
+                  // Math.ceil redondea hacia arriba (ej: 2.1 cuatrimestres son 3 cuatrimestres reales)
+                  const cuatrimestresRestantes = Math.ceil(faltantes / ritmoEstudio);
+                  
+                  // Asumimos que cada cuatrimestre dura 6 meses calendario
+                  const mesesTotales = cuatrimestresRestantes * 6;
+                  
+                  // B. CÁLCULO DE FECHA (La magia de Javascript)
+                  const fechaFutura = new Date(); // Fecha de HOY
+                  
+                  // Sumamos los meses a la fecha de hoy.
+                  // JS es inteligente: si sumas 13 meses, automáticamente cambia el año.
+                  fechaFutura.setMonth(fechaFutura.getMonth() + mesesTotales);
+                  
+                  // C. FORMATEO DE TEXTO (Para que se vea bonito en español)
+                  const opcionesFecha = { month: 'long', year: 'numeric' }; // Ej: "agosto 2026"
+                  const fechaTexto = fechaFutura.toLocaleDateString('es-ES', opcionesFecha);
+                  
+                  // Truco visual: Poner la primera letra en Mayúscula (agosto -> Agosto)
+                  const fechaFinal = fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1);
+
+                  // D. LO QUE SE DIBUJA EN PANTALLA
+                  return (
+                    <>
+                      <span className="pred-label">Te recibirías aproximadamente en:</span>
+                      <h2 className="pred-date">{fechaFinal}</h2>
+                      <span className="pred-details">
+                        (Faltan {faltantes} materias = {cuatrimestresRestantes} cuatrimestres)
+                      </span>
+                    </>
+                  );
+                })()} 
+                {/* Los paréntesis () al final ejecutan esta función inmediatamente */}
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
       
       {/*Notificación Flotante*/}
 
