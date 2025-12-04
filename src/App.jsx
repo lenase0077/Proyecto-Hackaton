@@ -466,7 +466,7 @@ useEffect(() => {
              setTimeout(() => {
                 const audioVictory = new Audio('/sounds/victory.mp3');
                 currentaudioVictory.current = audioVictory;
-                audioVictory.volume = 0.1; // Volumen controlado
+                audioVictory.volume = 1; // Dani Gil
                 audioVictory.play().catch(e => console.error(e));
                 
                 triggerVictoryConfetti(); // Lluvia con colores del tema
