@@ -732,7 +732,40 @@ export default function App() {
           ));
         })()}
 
-        <button id="btn-critical-tour" title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera." onClick={() => {setViewMode(viewMode === 'critical' ? 'todas' : 'critical'); triggerAchievement('priorities');}} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s', fontWeight: 'bold', marginLeft: '5px', boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
+        
+<button 
+          id="btn-critical-tour" 
+          /* Usamos la descripción detallada de tu compa */
+          title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera." 
+          
+          /* FUSIONAMOS LA LÓGICA: Cambia la vista Y dispara el logro */
+          onClick={() => {
+            setViewMode(viewMode === 'critical' ? 'todas' : 'critical');
+            triggerAchievement('priorities'); 
+          }} 
+          
+          style={{ 
+            /* Estilos base (Igual a los demás filtros para que quede alineado) */
+            padding: '5px 12px', 
+            borderRadius: '15px', 
+            border: 'none', 
+            cursor: 'pointer', 
+            fontSize: '0.85rem', 
+            transition: 'all 0.2s',
+            
+            /* Colores: Rojo/Fuego si está activo, Gris si no */
+            background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), 
+            color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), 
+            
+            /* Layout para el emoji */
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '5px',
+
+            /* ✨ EFECTO NEÓN (Conservado) ✨ */
+            boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none'
+          }}
+        >
           🔥 Ruta Crítica
         </button>
 
