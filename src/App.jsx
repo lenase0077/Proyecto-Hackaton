@@ -66,6 +66,13 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  // --- Sticky Notes (NUEVO) ---
+  const [nodeNotes, setNodeNotes] = useState(() => {
+    const saved = localStorage.getItem('nodeNotes');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [editingNoteNode, setEditingNoteNode] = useState(null);
+
   // --- Configuración Visual ---
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('appTheme');
@@ -73,6 +80,7 @@ export default function App() {
   });
   const [isDyslexic, setIsDyslexic] = useState(() => localStorage.getItem('dyslexicMode') === 'true');
   const [isColorblind, setIsColorblind] = useState(() => localStorage.getItem('colorblindMode') === 'true');
+  const [isMuted, setIsMuted] = useState(() => localStorage.getItem('isMuted') === 'true'); // Estado de Mute/Sonido
 
   // --- Grafo ---
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -89,7 +97,7 @@ export default function App() {
   
   // --- Modals y Popups ---
   const [showCalculator, setShowCalculator] = useState(false);
-  const [showStats, setShowStats] = useState(false); // <--- ESTE FALTABA Y CAUSABA EL ERROR
+  const [showStats, setShowStats] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   
   const [ritmoEstudio, setRitmoEstudio] = useState(3);
@@ -106,7 +114,7 @@ export default function App() {
   // --- Referencias de Audio ---
   const currentaudioLevel = useRef(null);
   const currentaudioVictory = useRef(null);
-
+  const isCelebrationActive = useRef(false); 
 
   // ============================================================================
   // 4. LÓGICA DE NEGOCIO (HELPERS)
@@ -149,11 +157,13 @@ export default function App() {
     setIsClosing(false); 
     setCurrentNotification(ach);
 
-    const audio = new Audio('/sounds/Archivement.mp3');
-    audio.volume = 0.8;
-    audio.playbackRate = 1;
-    audio.preservesPitch = false;
-    audio.play().catch(() => {});
+    if (!isMuted) { // CHECK DE MUTE AÑADIDO
+        const audio = new Audio('/sounds/Archivement.mp3');
+        audio.volume = 0.8;
+        audio.playbackRate = 1;
+        audio.preservesPitch = false;
+        audio.play().catch(() => {});
+    }
 
     setTimeout(() => {
       setIsClosing(true);
@@ -175,6 +185,7 @@ export default function App() {
   useEffect(() => localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'), [isDarkMode]);
   useEffect(() => localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)), [aprobadas]);
   useEffect(() => localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements)), [unlockedAchievements]);
+  useEffect(() => localStorage.setItem('isMuted', isMuted), [isMuted]); // Persistencia de Mute
 
   // Responsive & Konami
   useEffect(() => {
@@ -187,12 +198,15 @@ export default function App() {
       if (e.key === konamiCode[keyIndex]) {
         keyIndex++;
         if (keyIndex === konamiCode.length) {
-          setIsMatrixMode(p => !p);
-          if (!isMatrixMode) { 
-              const audio = new Audio('/sounds/matrix.mp3');
-              audio.volume = 1.0;
-              audio.play().catch(() => {});
-          }
+          setIsMatrixMode(p => {
+              const newMode = !p;
+              if (newMode && !isMuted) { // CHECK DE MUTE AÑADIDO
+                  const audio = new Audio('/sounds/matrix.mp3');
+                  audio.volume = 1.0;
+                  audio.play().catch(() => {});
+              }
+              return newMode;
+          });
           keyIndex = 0;
         }
       } else { keyIndex = 0; }
@@ -203,13 +217,13 @@ export default function App() {
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isMatrixMode]);
+  }, [isMatrixMode, isMuted]); // isMuted AÑADIDO A DEPENDENCIAS
 
   // Carga de Carrera y Grafo
   useEffect(() => {
     const listaMaterias = dbMaterias[selectedCarrera] || [];
     const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
-    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind);
+    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind, nodeNotes);
     
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
         styledNodes, layoutEdges, null, isDarkMode, 'todas', isColorblind, aprobadas
@@ -245,42 +259,121 @@ export default function App() {
   // Tutorial
   useEffect(() => {
     const tutorialVisto = localStorage.getItem('tutorial_visto_v1');
+    
+    //Si el tutorial YA está activo, NO hacemos nada (evita reinicio al cambiar carrera)
+    if (isTutorialActive) return;
+
     if (!tutorialVisto && nodes.length > 0 && window.driver) {
-      setIsTutorialActive(true);
       const driver = window.driver.js.driver;
 
-      window.cerrarTutorial = () => {
+      // Función auxiliar para limpiar todo correctamente
+      const finalizarTutorial = () => {
           localStorage.setItem('tutorial_visto_v1', 'true');
           setIsTutorialActive(false);
-          if (window.tourDriver) window.tourDriver.destroy();
+          // Forzamos la destrucción si quedó algo colgado
+          if (window.tourDriver) {
+              window.tourDriver.destroy();
+              window.tourDriver = null;
+          }
       };
+
+      // Exponemos la función al window para el botón de "Saltar" en el HTML
+      window.cerrarTutorial = finalizarTutorial;
       
       const driverObj = driver({
-        showProgress: true, animate: true,
-        nextBtnText: 'Siguiente ▶️', prevBtnText: 'Anterior', doneBtnText: '¡Comenzar! 🚀',
+        showProgress: true, 
+        animate: true,
+        allowClose: false,
+        nextBtnText: 'Siguiente ▶️', 
+        prevBtnText: 'Anterior', 
+        doneBtnText: '¡Comenzar! 🚀',
         steps: [
-          { element: '.utn-logo-svg', popover: { title: '¡Bienvenido a UTN Pathfinder!', description: `Tu mapa interactivo para hackear la carrera.<br/><br/><div style="text-align: right;"><button onclick="window.cerrarTutorial()" style="background:transparent;border:none;color:#9ca3af;cursor:pointer;">SALTAR ✕</button></div>` } },
+          { element: '.utn-logo-svg', popover: { title: '¡Bienvenido a UTN Pathfinder!', description: `
+              Tu mapa interactivo para hackear la carrera y planificar tu futuro.
+              <br/><br/>
+              <div style="display: flex; justify-content: flex-end; margin-top: 15px;">
+                  <button 
+                    onclick="window.cerrarTutorial()" 
+                    style="
+                      background: rgba(255, 255, 255, 0.05); 
+                      border: 1px solid rgba(156, 163, 175, 0.4); 
+                      color: #cbd5e1; 
+                      border-radius: 30px; 
+                      padding: 8px 16px; 
+                      cursor: pointer; 
+                      font-size: 0.75rem; 
+                      font-weight: 600; 
+                      letter-spacing: 1px;
+                      transition: all 0.3s ease;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                      text-transform: uppercase;
+                    "
+                    onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.color='#fff'; this.style.borderColor='rgba(255, 255, 255, 0.6)';" 
+                    onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.color='#cbd5e1'; this.style.borderColor='rgba(156, 163, 175, 0.4)';"
+                  >
+                    <span>Saltar</span> 
+                    <span style="font-size: 1rem; line-height: 0;">×</span>
+                  </button>
+              </div>
+            ` } },
           { element: '#carrera-selector-tour', popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí.' } },
           { element: '.react-flow', popover: { title: 'Mapa Interactivo', description: 'Haz clic para aprobar materias.' } },
           { element: '#btn-calculator-tour', popover: { title: 'Oráculo', description: 'Predice tu fecha de graduación.' } },
           { element: '#btn-critical-tour', popover: { title: '🔥 Ruta Crítica', description: 'El camino más largo de correlativas.' } }
         ],
+        // Esto se ejecuta al dar click en "¡Comenzar!" o al cerrar con la X o ESC
         onDestroyStarted: () => {
-           if (!localStorage.getItem('tutorial_visto_v1')) {
-               localStorage.setItem('tutorial_visto_v1', 'true');
-               setIsTutorialActive(false);
-           }
+           finalizarTutorial(); // Llamamos a nuestra función de limpieza
+           driverObj.destroy(); // Destruimos la instancia visual
         }
       });
+
+      // Guardamos referencia y activamos estado
       window.tourDriver = driverObj;
+      setIsTutorialActive(true); 
+      
       setTimeout(() => { driverObj.drive(); }, 1500);
     }
+    // Quitamos isTutorialActive de las dependencias para evitar bucles
   }, [nodes.length]);
-
 
   // ============================================================================
   // 6. HANDLERS
   // ============================================================================
+  
+  const handleToggleMute = () => { // Handler para mutear/desmutear
+    const newState = !isMuted;
+    setIsMuted(newState);
+
+    if (newState) {
+      // Detener todos los audios si el modo mute se activa
+      if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
+      if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
+    }
+  };
+
+
+  const onNodeContextMenu = useCallback((event, node) => {
+    event.preventDefault(); // Evita el menú del navegador
+    setEditingNoteNode({ 
+        id: node.id, 
+        nombre: node.data.originalData.nombre,
+        text: nodeNotes[node.id] || '' 
+    });
+  }, [nodeNotes]);
+
+  const handleSaveNote = (id, text) => {
+    const newNotes = { ...nodeNotes };
+    if (text && text.trim()) {
+        newNotes[id] = text.trim();
+    } else {
+        delete newNotes[id]; // Si está vacío, borrar
+    }
+    setNodeNotes(newNotes);
+    setEditingNoteNode(null); // Cerrar modal
+  };
 
   const handleCarreraChange = (nuevaCarrera) => {
     setSelectedCarrera(nuevaCarrera);
@@ -350,35 +443,36 @@ export default function App() {
         const nivelCompleto = matsNivel.every(m => nuevasAprobadas.includes(m.id));
         const carreraCompleta = listaMaterias.every(m => nuevasAprobadas.includes(m.id));
 
-        if (carreraCompleta) {
-             if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
-             setTimeout(() => {
-                const audio = new Audio('/sounds/victory.mp3');
-                currentaudioVictory.current = audio;
-                audio.volume = 0.9;
-                audio.play().catch(() => {});
-                triggerVictoryConfetti();
-             }, 100);
-        } else if (nivelCompleto) {
-             if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
-             setTimeout(() => {
-                const audio = new Audio('/sounds/Celebracion-Nivel.mp3');
-                currentaudioLevel.current = audio;
-                audio.volume = 0.6;
-                audio.play().catch(() => {});
-                triggerLevelConfetti();
-             }, 100);
-        } else {
-             const audio = new Audio('/sounds/pop.mp3');
-             audio.volume = 0.4;
-             audio.playbackRate = 0.9 + Math.random() * 0.3;
-             audio.preservesPitch = false;
-             audio.play().catch(() => {});
-        }
+        if (!isMuted) { // CHECK DE MUTE AÑADIDO
+            if (carreraCompleta) {
+                 if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
+                 setTimeout(() => {
+                    const audio = new Audio('/sounds/victory.mp3');
+                    currentaudioVictory.current = audio;
+                    audio.volume = 0.9;
+                    audio.play().catch(() => {});
+                    triggerVictoryConfetti();
+                 }, 100);
+            } else if (nivelCompleto) {
+                 if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
+                 setTimeout(() => {
+                    const audio = new Audio('/sounds/Celebracion-Nivel.mp3');
+                    currentaudioLevel.current = audio;
+                    audio.volume = 0.6;
+                    audio.play().catch(() => {});
+                    triggerLevelConfetti();
+                 }, 100);
+            } else {
+                 const audio = new Audio('/sounds/pop.mp3');
+                 audio.volume = 0.4;
+                 audio.playbackRate = 0.9 + Math.random() * 0.3;
+                 audio.preservesPitch = false;
+                 audio.play().catch(() => {});
+            }
+        } // FIN CHECK DE MUTE
     }
     setAprobadas(nuevasAprobadas);
-  }, [aprobadas, selectedCarrera]);
-
+  }, [aprobadas, selectedCarrera, isMuted]); // isMuted AÑADIDO A DEPENDENCIAS
 
   // ============================================================================
   // 7. RENDER HELPERS
@@ -387,34 +481,71 @@ export default function App() {
   const renderTooltip = () => {
     if (!hoveredNodeId) return null;
     const node = nodes.find(n => n.id === hoveredNodeId);
-    if (!node || !node.data?.originalData || aprobadas.includes(node.id)) return null;
+    if (!node || !node.data?.originalData) return null; // Pequeño fix de seguridad
 
+    // Si la materia ya está aprobada, normalmente no mostramos tooltip, 
+    // PERO si tiene nota, queremos verla igual.
+    const estaAprobada = aprobadas.includes(node.id);
+    
     const mat = node.data.originalData;
     const faltantes = [];
     
-    (mat.requiere_para_cursar || []).forEach(reqId => {
-        if (!aprobadas.includes(reqId)) {
-            const req = nodes.find(n => n.id === reqId);
-            if (req) faltantes.push({ nombre: req.data.label, tipo: 'Cursada' });
-        }
-    });
-    (mat.requiere_para_final || []).forEach(reqId => {
-        if (!aprobadas.includes(reqId)) {
-            const req = nodes.find(n => n.id === reqId);
-            if (req && !faltantes.some(f => f.nombre === req.data.label)) {
-                faltantes.push({ nombre: req.data.label, tipo: 'Final' });
+    // Calculamos faltantes solo si NO está aprobada
+    if (!estaAprobada) {
+        (mat.requiere_para_cursar || []).forEach(reqId => {
+            if (!aprobadas.includes(reqId)) {
+                const req = nodes.find(n => n.id === reqId);
+                if (req) faltantes.push({ nombre: req.data.label, tipo: 'Cursada' });
             }
-        }
-    });
+        });
+        (mat.requiere_para_final || []).forEach(reqId => {
+            if (!aprobadas.includes(reqId)) {
+                const req = nodes.find(n => n.id === reqId);
+                if (req && !faltantes.some(f => f.nombre === req.data.label)) {
+                    faltantes.push({ nombre: req.data.label, tipo: 'Final' });
+                }
+            }
+        });
+    }
 
-    if (faltantes.length === 0) return null;
+    // Buscamos si hay nota (Asegúrate de haber creado el estado nodeNotes en el paso 1)
+    // Si todavía no creaste el estado, esto dará error, avísame si te falta el Paso 1.
+    const userNote = typeof nodeNotes !== 'undefined' ? nodeNotes[node.id] : null;
+
+    // Si no hay faltantes Y no hay nota, no mostramos nada
+    if (faltantes.length === 0 && !userNote) return null;
 
     return (
       <div className="smart-tooltip">
         <div className="tooltip-header"><span className="lock-icon">🔒</span><strong>{mat.nombre}</strong></div>
         <div className="tooltip-divider"></div>
-        <p className="tooltip-label">Para desbloquear necesitas:</p>
-        <ul className="tooltip-list">{faltantes.map((f, i) => (<li key={i}>• {f.nombre}</li>))}</ul>
+        
+        {/* MOSTRAR NOTA SI EXISTE (DISEÑO POST-IT) */}
+        {userNote && (
+            <div style={{ 
+                marginBottom: '12px', 
+                padding: '10px 12px', 
+                background: isDarkMode ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb', 
+                border: isDarkMode ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid #fcd34d',
+                borderRadius: '8px', 
+                color: isDarkMode ? '#fbbf24' : '#92400e',
+                fontSize: '0.85rem',
+                lineHeight: '1.4',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'flex-start'
+            }}>
+                <span style={{ fontSize: '1rem' }}>📝</span>
+                <span style={{ fontStyle: 'italic', fontWeight: '500' }}>"{userNote}"</span>
+            </div>
+        )}
+
+        {faltantes.length > 0 && (
+            <>
+                <p className="tooltip-label">Para desbloquear necesitas:</p>
+                <ul className="tooltip-list">{faltantes.map((f, i) => (<li key={i}>• {f.nombre}</li>))}</ul>
+            </>
+        )}
       </div>
     );
   };
@@ -518,7 +649,7 @@ export default function App() {
         <div className={`header-right-side ${showMobileMenu ? 'show' : ''}`}>
               
               <div className="header-row-top"> 
-                <div className="counter-pill aprobadas" title="Finales aprobados"><span>✅ <strong>{aprobadas.length}</strong></span></div>
+                <div className="counter-pill aprobadas" title="Finales aprobados de esta carrera"> <span>✅ <strong>{aprobadasCount}</strong></span> </div>
                 <div className="counter-pill disponibles" title="Materias disponibles"><span>🚀 <strong>{disponiblesCount}</strong></span></div>
               </div>
 
@@ -559,6 +690,23 @@ export default function App() {
                 <button onClick={() => setIsColorblind(!isColorblind)} className={`btn-tool ${isColorblind ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>🎨 Daltónico</button>
                 
                 {/* BOTÓN DE SONIDO */}
+                <button 
+                  onClick={handleToggleMute} 
+                  className={`btn-tool ${isMuted ? 'active' : ''}`} 
+                  title={isMuted ? 'Activar Sonido' : 'Silenciar Sonido'}
+                  style={{ 
+                    fontSize: '0.9rem', 
+                    padding: '0 8px', 
+                    height: '28px', 
+                    fontWeight: 'bold', 
+                    background: isMuted ? '#ef4444' : (isDarkMode ? '#374151' : '#e2e8f0'), 
+                    color: isMuted ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b') 
+                  }}
+                >
+                  {isMuted ? '🔇' : '🔊'}
+                </button>
+                
+                {/* BOTÓN DE SONIDO */}
 
 >>>>>>> Stashed changes
               </div>
@@ -571,7 +719,7 @@ export default function App() {
       </div>
       
       {/* BARRA DE FILTROS & ACCIONES */}
-      <div style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="filters-bar" style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
         {(() => {
@@ -626,13 +774,14 @@ export default function App() {
             nodes={nodes} edges={edges}
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
+            onNodeContextMenu={onNodeContextMenu}
             onNodeMouseEnter={(e, n) => setHoveredNodeId(n.id)}
             onNodeMouseLeave={() => setHoveredNodeId(null)}
             fitView minZoom={0.1}
             nodesDraggable={false} nodesConnectable={false}
           >
             <Background color={isDarkMode ? "#4b5563" : "#cbd5e1"} gap={20} variant="dots"/>
-            <Controls position="bottom-right" />
+            <Controls position="bottom-right" showInteractive={false} />
           </ReactFlow>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', color: isDarkMode ? '#fff' : '#000' }}>
@@ -742,6 +891,55 @@ export default function App() {
       {renderStatsModal()}
       {renderTooltip()}
       {renderAchievementsModal()}
+
+      {typeof editingNoteNode !== 'undefined' && editingNoteNode && (
+        <div className="modal-overlay" onClick={() => setEditingNoteNode(null)}>
+          <div className="note-modal-card" onClick={e => e.stopPropagation()}>
+            
+            <div className="note-header-row">
+                <h3>
+                  <span className="note-header-icon">📝</span> 
+                  Nota Personal
+                </h3>
+                <button className="close-btn" onClick={() => setEditingNoteNode(null)}>×</button>
+            </div>
+            
+            <p style={{ margin: 0, fontSize: '0.9rem', color: isDarkMode ? '#9ca3af' : '#64748b' }}>
+                Agregando comentario para: <strong style={{color: isDarkMode ? '#f3f4f6' : '#1e293b'}}>{editingNoteNode.nombre}</strong>
+            </p>
+            
+            <textarea
+                id="note-textarea"
+                className="note-textarea"
+                autoFocus
+                placeholder="Escribe aquí... (Ej: 'Cursar en verano', 'Difícil', 'Profesor X es crack')"
+                defaultValue={editingNoteNode.text}
+                rows={5}
+                spellCheck={false}
+            />
+            
+            <div className="note-actions">
+                <button 
+                    className="btn-secondary"
+                    onClick={() => {
+                        handleSaveNote(editingNoteNode.id, ''); // Borrar
+                    }}
+                >
+                    Eliminar Nota
+                </button>
+                <button 
+                    className="btn-primary"
+                    onClick={() => {
+                        const val = document.getElementById('note-textarea').value;
+                        handleSaveNote(editingNoteNode.id, val);
+                    }}
+                >
+                    Guardar
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
