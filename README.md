@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/logo-pathfinder.png" alt="UTN Pathfinder Logo" width="120" />
+  <img src="./public/logo.png" alt="UTN Pathfinder Logo" width="120" />
 
   <h1>🎓 UTN Pathfinder</h1>
   
