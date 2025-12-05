@@ -298,6 +298,13 @@ export default function App() {
               </div>` } },
           { element: '#carrera-selector-tour', popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí.' } },
           { element: '.react-flow', popover: { title: 'Mapa Interactivo', description: 'Haz clic para aprobar materias.' } },
+          { 
+            element: '.progress-section', 
+            popover: { 
+              title: '📊 Dashboard de Estadísticas', 
+              description: '¡Esta barra es interactiva! <strong>Haz clic en ella</strong> para abrir un tablero con gráficos detallados sobre tu avance y estado de materias.' 
+            },
+          },
           { element: '#btn-calculator-tour', popover: { title: 'Oráculo', description: 'Predice tu fecha de graduación.' } },
           { element: '#btn-critical-tour', popover: { title: '🔥 Ruta Crítica', description: 'El camino más largo de correlativas.' } }
         ],
