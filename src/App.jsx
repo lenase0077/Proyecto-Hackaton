@@ -107,6 +107,8 @@ export default function App() {
   const [isClosing, setIsClosing] = useState(false);
   const [mostrarNotificacion, setMostrarNotificacion] = useState(false); // LinkedIn toast
   const [conteoRegresivo, setConteoRegresivo] = useState(0);
+  const [mostrarNotificacionDiscord, setMostrarNotificacionDiscord] = useState(false); // Discord toast
+  const [conteoDiscord, setConteoDiscord] = useState(0);
 
   // --- Tutorial ---
   const [isTutorialActive, setIsTutorialActive] = useState(false);
@@ -397,6 +399,23 @@ export default function App() {
     });
   };
 
+  const handleDiscordClick = async (e) => {
+    e.preventDefault(); // Evitamos que el link abra la página inmediatamente
+    
+    triggerAchievement('the_dojo'); // Disparamos el logro aquí
+
+    setMostrarNotificacionDiscord(true);
+    
+    for (let i = 3; i > 0; i--) { 
+        setConteoDiscord(i); 
+        await new Promise(r => setTimeout(r, 1000)); 
+    }
+    
+    setConteoDiscord(0);
+    window.open('https://discord.gg/yNKDGSac9j', '_blank');
+    setTimeout(() => setMostrarNotificacionDiscord(false), 1000);
+  };
+
   const downloadImage = useCallback(() => {
     triggerAchievement('photographer');
     const elem = document.querySelector('.react-flow');
@@ -662,12 +681,12 @@ export default function App() {
                 <button id="btn-calculator-tour" onClick={() => {setShowCalculator(true); triggerAchievement('the_prophecy');}} className="btn-download" style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Oráculo">🔮</button>
                 <div style={{ width: '1px', height: '15px', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }}></div>
                 <a 
-                  href="https://discord.gg/yNKDGSac9j" 
+                  href="#" 
+                  onClick={handleDiscordClick}
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="btn-discord" 
                   title="Necesitas ayuda? Unite a nuestra comunidad!"
-                  onClick={() =>triggerAchievement('the_dojo')}
                 >
                   <DiscordLogo />
                 </a>
@@ -889,6 +908,16 @@ export default function App() {
       {/* 2. Toast LinkedIn */}
       <div className={`toast-notification ${mostrarNotificacion ? 'show' : ''}`}>
         {conteoRegresivo > 0 ? <span>📋 Redirigiendo a LinkedIn en <strong>{conteoRegresivo}...</strong></span> : <span>🚀 ¡Texto copiado!</span>}
+      </div>
+
+      {/*Toast Discord (Texto Azul) */}
+      <div 
+        className={`toast-notification ${mostrarNotificacionDiscord ? 'show' : ''}`}
+        style={{ backgroundColor: '#5865F2' }} /* Color oficial de Discord */
+      >
+        <span style={{ color: '#ffffff', fontWeight: 'bold' }}>
+            👾 Redirigiendo al Discord en {conteoDiscord}...
+        </span>
       </div>
 
       {/* 3. Notificación Logro */}
