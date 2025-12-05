@@ -761,3 +761,154 @@ html, body, #root {
   background: #5865F2;
   color: white;
 }
+
+¡Entendido! He revisado todos los archivos que subiste (App.jsx, App.css, utils.js y demás). El código está muy limpio y profesional. Has hecho un gran trabajo refactorizando.
+
+Ahora vamos a implementar el Dashboard de Métricas (Estadísticas) al hacer clic en la barra de progreso, integrándolo perfectamente en tu estructura actual.
+
+Aquí tienes el plan de acción en 3 pasos:
+
+Paso 1: Agregar los Estilos del Modal en App.css
+Necesitamos definir cómo se ve la ventana flotante y los gráficos de anillos. Copia este bloque y pégalo al final de tu archivo App.css.
+
+CSS
+
+/* ===========================================
+   DASHBOARD DE MÉTRICAS (ESTADÍSTICAS)
+   =========================================== */
+
+/* Modal Content (Estilo Tarjeta Grande) */
+.stats-modal-content {
+  background: white;
+  width: 90%;
+  max-width: 700px; /* Ancho cómodo para dos gráficos */
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: scaleIn 0.3s ease; /* Usamos tu animación existente */
+  max-height: 90vh; /* Que no se salga de pantalla en vertical */
+  overflow-y: auto;
+}
+
+/* Grid para los gráficos */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* Tarjeta individual de gráfico */
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Contenedor SVG */
+.chart-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin-bottom: 10px;
+}
+
+/* Texto central del anillo */
+.chart-center-text {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.chart-percentage {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.chart-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+/* SVG Shapes */
+.circular-chart {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 2.5;
+}
+
+.circle {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  animation: progress 1.5s ease-out forwards;
+}
+
+/* Colores de Gráficos */
+.stroke-blue { stroke: #3b82f6; }
+.stroke-green { stroke: #10b981; }
+.stroke-orange { stroke: #f59e0b; }
+.stroke-gray { stroke: #94a3b8; }
+
+/* Animación de carga del anillo */
+@keyframes progress {
+  0% { stroke-dasharray: 0 100; }
+}
+
+/* Frase Motivacional */
+.motivational-quote {
+  margin-top: 30px;
+  padding: 15px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: 12px;
+  color: #1e40af;
+  font-weight: 500;
+  text-align: center;
+  font-size: 1.1rem;
+  border-left: 5px solid #3b82f6;
+}
+
+/* MODO OSCURO */
+.app-container.dark-mode .stats-modal-content {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+.app-container.dark-mode .stat-card {
+  background: #111827;
+  border-color: #374151;
+}
+.app-container.dark-mode .stat-title { color: #94a3b8; }
+.app-container.dark-mode .chart-percentage { color: #f3f4f6; }
+.app-container.dark-mode .circle-bg { stroke: #374151; }
+.app-container.dark-mode .motivational-quote {
+  background: linear-gradient(135deg, #1e3a8a, #172554);
+  color: #bfdbfe;
+  border-left-color: #60a5fa;
+}
