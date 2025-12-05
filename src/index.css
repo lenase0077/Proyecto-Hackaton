@@ -110,10 +110,12 @@ body {
 /* 5. BOTÓN "ANTERIOR" - CORREGIDO */
 .driver-popover-prev-btn {
   background: transparent !important;
-  border: 1px solid rgba(255,255,255,0.2) !important; /* Borde sutil para definirlo */
+  border: 1px solid rgba(255,255,255,0.2) !important; 
   color: #cbd5e1 !important;
   border-radius: 8px !important;
   padding: 7px 14px !important;
+  
+  margin-left: 15px !important; /* Separa el botón del texto "X of Y" */
   
   /* TIPOGRAFÍA ARREGLADA */
   font-family: inherit !important;
@@ -158,56 +160,97 @@ body {
    ========================================================= */
 
 .matrix-mode {
-  /* Fondo negro absoluto */
   background-color: #000 !important;
-  font-family: 'Courier New', Courier, monospace !important; /* Fuente Hacker */
-  overflow: hidden; /* Evitar scrolls raros por la lluvia */
+  font-family: 'Courier New', Courier, monospace !important;
+  overflow: hidden;
 }
 
-/* Forzar colores en TODO el texto y bordes */
+/* Regla Maestra: Todo texto y borde en verde */
 .matrix-mode * {
-  border-color: #0f0 !important; /* Verde Fósforo */
+  border-color: #0f0 !important;
   color: #0f0 !important;
   font-family: 'Courier New', Courier, monospace !important;
-  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); /* Resplandor */
-  box-shadow: none !important; /* Quitar sombras 3D modernas */
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+  box-shadow: none !important; /* Adiós sombras modernas */
 }
 
-/* Excepción: El fondo de los nodos y botones debe ser negro para que se lea */
+/* === FIX: CONTENEDORES QUE SE PONÍAN BLANCOS === */
+
+/* 1. Fondo general de componentes principales */
 .matrix-mode .react-flow__node,
 .matrix-mode button, 
-.matrix-mode .modal-content,
-.matrix-mode .calculator-card,
+.matrix-mode .filters-bar,
+.matrix-mode .modal-content,      /* Modal Logros */
+.matrix-mode .stats-modal-content,/* Modal Dashboard */
+.matrix-mode .calculator-card,    /* Modal Calculadora */
 .matrix-mode .app-header,
 .matrix-mode .app-footer,
-.matrix-mode input {
-  background: rgba(0, 0, 0, 0.9) !important;
+.matrix-mode input,
+.matrix-mode .legend-container,   /* Leyenda */
+.matrix-mode .achievement-card,   /* Tarjetas de logros */
+.matrix-mode .stat-card,          /* Tarjetas de estadísticas */
+.matrix-mode .achievements-progress,
+.matrix-mode .progress-track,     /* Barra de fondo progreso */
+.matrix-mode .smart-tooltip {
+  background: #000 !important;    /* NEGRO PURO */
+  background-color: #000 !important;
   border: 1px solid #0f0 !important;
-  border-radius: 0 !important; /* Bordes cuadrados estilo retro */
+  border-radius: 0 !important;    /* Bordes cuadrados retro */
 }
 
-/* Las líneas (edges) del grafo */
+/* 2. Arreglos específicos de texto dentro de modales */
+.matrix-mode h2, 
+.matrix-mode h3, 
+.matrix-mode h4, 
+.matrix-mode p, 
+.matrix-mode span,
+.matrix-mode label,
+.matrix-mode .stat-title,
+.matrix-mode .chart-percentage,
+.matrix-mode .motivational-quote {
+  color: #0f0 !important;
+  text-shadow: none !important;
+}
+
+/* 3. La barra de progreso (relleno) */
+.matrix-mode .progress-fill {
+  background: #0f0 !important;
+  box-shadow: 0 0 10px #0f0 !important;
+  border-radius: 0 !important;
+}
+
+/* 4. Los puntitos de la leyenda */
+.matrix-mode .legend-dot {
+  background: #000 !important;
+  border: 1px solid #0f0 !important;
+  border-radius: 50% !important; /* Mantener redondos los puntos */
+}
+
+/* 5. Iconos y SVGs (Logros, Discord, etc) */
+.matrix-mode .ach-icon,
+.matrix-mode .ach-popup-icon,
+.matrix-mode .btn-discord {
+  background: #000 !important;
+  border: 1px solid #0f0 !important;
+}
+
+/* 6. Gráficos del Dashboard (SVG Strokes) */
+.matrix-mode .circular-chart path {
+  stroke: #0f0 !important;
+}
+.matrix-mode .circle-bg {
+  stroke: #003300 !important; /* Verde muy oscuro para el fondo del gráfico */
+}
+
+/* 7. React Flow */
 .matrix-mode .react-flow__edge path {
   stroke: #0f0 !important;
   stroke-width: 2px !important;
   animation: matrix-pulse 2s infinite;
 }
-
-/* Los puntos del fondo (Background) */
 .matrix-mode .react-flow__background circle {
   fill: #0f0 !important;
   opacity: 0.2;
-}
-
-/* Ocultar cosas que molesten visualmente en este modo (opcional) */
-.matrix-mode .utn-logo-svg {
-  filter: drop-shadow(0 0 5px #0f0) !important;
-  fill: #0f0 !important;
-}
-
-.matrix-mode .progress-fill {
-  background: #0f0 !important;
-  box-shadow: 0 0 10px #0f0 !important;
 }
 
 /* Animación de pulso para las líneas */
@@ -217,9 +260,11 @@ body {
   100% { opacity: 0.5; }
 }
 
-/* Botones en hover estilo terminal */
-.matrix-mode button:hover {
+/* Botones Hover */
+.matrix-mode button:hover,
+.matrix-mode .btn-download:hover,
+.matrix-mode .btn-discord:hover {
   background: #0f0 !important;
-  color: #000 !important; /* Texto negro sobre fondo verde */
-  cursor: help !important; /* Cursor retro */
+  color: #000 !important;
+  cursor: help !important;
 }

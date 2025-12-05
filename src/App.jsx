@@ -192,6 +192,7 @@ export default function App() {
               const audio = new Audio('/sounds/matrix.mp3');
               audio.volume = 1.0;
               audio.play().catch(() => {});
+              triggerAchievement('the_chosen_one');
           }
           keyIndex = 0;
         }
@@ -203,7 +204,7 @@ export default function App() {
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isMatrixMode]);
+  }, [isMatrixMode , triggerAchievement]);
 
   // Carga de Carrera y Grafo
   useEffect(() => {
@@ -245,38 +246,85 @@ export default function App() {
   // Tutorial
   useEffect(() => {
     const tutorialVisto = localStorage.getItem('tutorial_visto_v1');
+    
+    //Si el tutorial YA está activo, NO hacemos nada (evita reinicio al cambiar carrera)
+    if (isTutorialActive) return;
+
     if (!tutorialVisto && nodes.length > 0 && window.driver) {
-      setIsTutorialActive(true);
       const driver = window.driver.js.driver;
 
-      window.cerrarTutorial = () => {
+      // Función auxiliar para limpiar todo correctamente
+      const finalizarTutorial = () => {
           localStorage.setItem('tutorial_visto_v1', 'true');
           setIsTutorialActive(false);
-          if (window.tourDriver) window.tourDriver.destroy();
+          // Forzamos la destrucción si quedó algo colgado
+          if (window.tourDriver) {
+              window.tourDriver.destroy();
+              window.tourDriver = null;
+          }
       };
+
+      // Exponemos la función al window para el botón de "Saltar" en el HTML
+      window.cerrarTutorial = finalizarTutorial;
       
       const driverObj = driver({
-        showProgress: true, animate: true,
-        nextBtnText: 'Siguiente ▶️', prevBtnText: 'Anterior', doneBtnText: '¡Comenzar! 🚀',
+        showProgress: true, 
+        animate: true,
+        allowClose: false,
+        nextBtnText: 'Siguiente ▶️', 
+        prevBtnText: 'Anterior', 
+        doneBtnText: '¡Comenzar! 🚀',
         steps: [
-          { element: '.utn-logo-svg', popover: { title: '¡Bienvenido a UTN Pathfinder!', description: `Tu mapa interactivo para hackear la carrera.<br/><br/><div style="text-align: right;"><button onclick="window.cerrarTutorial()" style="background:transparent;border:none;color:#9ca3af;cursor:pointer;">SALTAR ✕</button></div>` } },
+          { element: '.utn-logo-svg', popover: { title: '¡Bienvenido a UTN Pathfinder!', description: `
+              Tu mapa interactivo para hackear la carrera y planificar tu futuro.
+              <br/><br/>
+              <div style="display: flex; justify-content: flex-end; margin-top: 15px;">
+                  <button 
+                    onclick="window.cerrarTutorial()" 
+                    style="
+                      background: rgba(255, 255, 255, 0.05); 
+                      border: 1px solid rgba(156, 163, 175, 0.4); 
+                      color: #cbd5e1; 
+                      border-radius: 30px; 
+                      padding: 8px 16px; 
+                      cursor: pointer; 
+                      font-size: 0.75rem; 
+                      font-weight: 600; 
+                      letter-spacing: 1px;
+                      transition: all 0.3s ease;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                      text-transform: uppercase;
+                    "
+                    onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.color='#fff'; this.style.borderColor='rgba(255, 255, 255, 0.6)';" 
+                    onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.color='#cbd5e1'; this.style.borderColor='rgba(156, 163, 175, 0.4)';"
+                  >
+                    <span>Saltar</span> 
+                    <span style="font-size: 1rem; line-height: 0;">×</span>
+                  </button>
+              </div>
+            ` } },
           { element: '#carrera-selector-tour', popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí.' } },
           { element: '.react-flow', popover: { title: 'Mapa Interactivo', description: 'Haz clic para aprobar materias.' } },
           { element: '#btn-calculator-tour', popover: { title: 'Oráculo', description: 'Predice tu fecha de graduación.' } },
           { element: '#btn-critical-tour', popover: { title: '🔥 Ruta Crítica', description: 'El camino más largo de correlativas.' } }
         ],
+        // Esto se ejecuta al dar click en "¡Comenzar!" o al cerrar con la X o ESC
         onDestroyStarted: () => {
-           if (!localStorage.getItem('tutorial_visto_v1')) {
-               localStorage.setItem('tutorial_visto_v1', 'true');
-               setIsTutorialActive(false);
-           }
+           finalizarTutorial(); // Llamamos a nuestra función de limpieza
+           driverObj.destroy(); // Destruimos la instancia visual
         }
       });
+
+      // Guardamos referencia y activamos estado
       window.tourDriver = driverObj;
+      setIsTutorialActive(true); 
+      
       setTimeout(() => { driverObj.drive(); }, 1500);
     }
+    // Quitamos isTutorialActive de las dependencias para evitar bucles
   }, [nodes.length]);
-
 
   // ============================================================================
   // 6. HANDLERS
@@ -548,7 +596,7 @@ export default function App() {
       </div>
       
       {/* BARRA DE FILTROS & ACCIONES */}
-      <div style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="filters-bar" style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
         {(() => {
