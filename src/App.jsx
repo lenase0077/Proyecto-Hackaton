@@ -199,6 +199,7 @@ export default function App() {
         keyIndex++;
         if (keyIndex === konamiCode.length) {
           setIsMatrixMode(p => {
+              triggerAchievement('the_chosen_one');
               const newMode = !p;
               if (newMode && !isMuted) { // CHECK DE MUTE AÑADIDO
                   const audio = new Audio('/sounds/matrix.mp3');
@@ -385,6 +386,8 @@ export default function App() {
     const carrera = nombres[selectedCarrera] || 'UTN';
     const texto = `🚀 Progreso Académico: ${carrera}\nCompletado: ${porcentaje}%\n✅ Materias: ${aprobadasCount}/${totalMaterias}\n\n#UTN #Pathfinder`;
     
+    triggerAchievement('workman');
+
     navigator.clipboard.writeText(texto).then(async () => {
       setMostrarNotificacion(true);
       for (let i = 3; i > 0; i--) { setConteoRegresivo(i); await new Promise(r => setTimeout(r, 1000)); }
@@ -395,6 +398,7 @@ export default function App() {
   };
 
   const downloadImage = useCallback(() => {
+    triggerAchievement('photographer');
     const elem = document.querySelector('.react-flow');
     if (!elem || !window.htmlToImage) return;
     window.htmlToImage.toPng(elem, {
@@ -655,7 +659,7 @@ export default function App() {
 
               <div className="header-row-bottom">
                 <button onClick={() => setShowAchievements(true)} className="btn-download" style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Ver Logros">🏆</button>
-                <button id="btn-calculator-tour" onClick={() => setShowCalculator(true)} className="btn-download" style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Oráculo">🔮</button>
+                <button id="btn-calculator-tour" onClick={() => {setShowCalculator(true); triggerAchievement('the_prophecy');}} className="btn-download" style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Oráculo">🔮</button>
                 <div style={{ width: '1px', height: '15px', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }}></div>
                 <a 
                   href="https://discord.gg/yNKDGSac9j" 
@@ -663,10 +667,11 @@ export default function App() {
                   rel="noopener noreferrer"
                   className="btn-discord" 
                   title="Necesitas ayuda? Unite a nuestra comunidad!"
+                  onClick={() =>triggerAchievement('the_dojo')}
                 >
                   <DiscordLogo />
                 </a>
-                <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Tema">{isDarkMode ? '☀️' : '🌙'}</button>
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className="btn-tool" style={{ background: 'rgba(255,255,255,0.15)' , border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Tema">{isDarkMode ? '☀️' : '🌙'}</button>
                                 {/* BOTÓN DE SONIDO */}
                 <button 
                   onClick={handleToggleMute} 
@@ -727,12 +732,12 @@ export default function App() {
           ));
         })()}
 
-        <button id="btn-critical-tour" title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera." onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s', fontWeight: 'bold', marginLeft: '5px', boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <button id="btn-critical-tour" title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera." onClick={() => {setViewMode(viewMode === 'critical' ? 'todas' : 'critical'); triggerAchievement('priorities');}} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s', fontWeight: 'bold', marginLeft: '5px', boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
           🔥 Ruta Crítica
         </button>
 
         {/* Barra de Progreso */}
-        <div className="progress-section" onClick={() => setShowStats(true)} style={{ cursor: 'pointer' }} title="Ver estadísticas detalladas">
+        <div className="progress-section" onClick={() =>{ setShowStats(true); triggerAchievement('analist');}} style={{ cursor: 'pointer' }} title="Ver estadísticas detalladas">
             <span className="progress-text">{aprobadasCount}/{totalMaterias} ({porcentaje}%)</span>
             <div className="progress-track">
                 <div className="progress-fill" style={{ width: `${porcentaje}%` }}></div>
