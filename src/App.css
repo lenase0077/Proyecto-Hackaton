@@ -719,3 +719,45 @@ html, body, #root {
   .progress-text { display: block !important; text-align: center; font-size: 0.75rem; }
   .progress-track { width: 80% !important; margin: 0 auto; }
 }
+
+/* ===========================================
+   BOTÓN DISCORD
+   =========================================== */
+.btn-discord {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 28px;
+  height: 28px;
+  border-radius: 50%; /* Redondo como el solcito */
+  
+  background: rgba(88, 101, 242, 0.15); /* Azul Discord transparente */
+  border: 1px solid rgba(59, 71, 204, 0.3);
+  color: #ffffff; /* Azul Discord */
+  
+  text-decoration: none; /* Al ser un tag <a> */
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Hover Effect */
+.btn-discord:hover {
+  background: #5865F2; /* Azul Discord Sólido */
+  border-color: #5865F2;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(88, 101, 242, 0.4); /* Resplandor */
+}
+
+/* Modo Oscuro: Ajuste de contraste */
+.app-container.dark-mode .btn-discord {
+  background: rgba(88, 101, 242, 0.2);
+  border-color: rgba(88, 101, 242, 0.5);
+  color: #7289da; /* Un azul un poco más claro para dark mode */
+}
+
+.app-container.dark-mode .btn-discord:hover {
+  background: #5865F2;
+  color: white;
+}
