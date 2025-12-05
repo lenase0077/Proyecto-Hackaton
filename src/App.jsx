@@ -687,7 +687,7 @@ export default function App() {
             nodesDraggable={false} nodesConnectable={false}
           >
             <Background color={isDarkMode ? "#4b5563" : "#cbd5e1"} gap={20} variant="dots"/>
-            <Controls position="bottom-right" />
+            <Controls position="bottom-right" showInteractive={false} />
           </ReactFlow>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', color: isDarkMode ? '#fff' : '#000' }}>
