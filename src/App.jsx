@@ -66,6 +66,13 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  // --- Sticky Notes (NUEVO) ---
+  const [nodeNotes, setNodeNotes] = useState(() => {
+    const saved = localStorage.getItem('nodeNotes');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [editingNoteNode, setEditingNoteNode] = useState(null);
+
   // --- Configuración Visual ---
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('appTheme');
@@ -175,6 +182,7 @@ export default function App() {
   useEffect(() => localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'), [isDarkMode]);
   useEffect(() => localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)), [aprobadas]);
   useEffect(() => localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements)), [unlockedAchievements]);
+  useEffect(() => { localStorage.setItem('nodeNotes', JSON.stringify(nodeNotes)); }, [nodeNotes]);
 
   // Responsive & Konami
   useEffect(() => {
@@ -210,7 +218,7 @@ export default function App() {
   useEffect(() => {
     const listaMaterias = dbMaterias[selectedCarrera] || [];
     const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
-    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind);
+    const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind, nodeNotes);
     
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
         styledNodes, layoutEdges, null, isDarkMode, 'todas', isColorblind, aprobadas
@@ -329,6 +337,26 @@ export default function App() {
   // ============================================================================
   // 6. HANDLERS
   // ============================================================================
+
+  const onNodeContextMenu = useCallback((event, node) => {
+    event.preventDefault(); // Evita el menú del navegador
+    setEditingNoteNode({ 
+        id: node.id, 
+        nombre: node.data.originalData.nombre,
+        text: nodeNotes[node.id] || '' 
+    });
+  }, [nodeNotes]);
+
+  const handleSaveNote = (id, text) => {
+    const newNotes = { ...nodeNotes };
+    if (text && text.trim()) {
+        newNotes[id] = text.trim();
+    } else {
+        delete newNotes[id]; // Si está vacío, borrar
+    }
+    setNodeNotes(newNotes);
+    setEditingNoteNode(null); // Cerrar modal
+  };
 
   const handleCarreraChange = (nuevaCarrera) => {
     setSelectedCarrera(nuevaCarrera);
@@ -457,7 +485,6 @@ export default function App() {
     setAprobadas(nuevasAprobadas);
   }, [aprobadas, selectedCarrera]);
 
-
   // ============================================================================
   // 7. RENDER HELPERS
   // ============================================================================
@@ -465,34 +492,71 @@ export default function App() {
   const renderTooltip = () => {
     if (!hoveredNodeId) return null;
     const node = nodes.find(n => n.id === hoveredNodeId);
-    if (!node || !node.data?.originalData || aprobadas.includes(node.id)) return null;
+    if (!node || !node.data?.originalData) return null; // Pequeño fix de seguridad
 
+    // Si la materia ya está aprobada, normalmente no mostramos tooltip, 
+    // PERO si tiene nota, queremos verla igual.
+    const estaAprobada = aprobadas.includes(node.id);
+    
     const mat = node.data.originalData;
     const faltantes = [];
     
-    (mat.requiere_para_cursar || []).forEach(reqId => {
-        if (!aprobadas.includes(reqId)) {
-            const req = nodes.find(n => n.id === reqId);
-            if (req) faltantes.push({ nombre: req.data.label, tipo: 'Cursada' });
-        }
-    });
-    (mat.requiere_para_final || []).forEach(reqId => {
-        if (!aprobadas.includes(reqId)) {
-            const req = nodes.find(n => n.id === reqId);
-            if (req && !faltantes.some(f => f.nombre === req.data.label)) {
-                faltantes.push({ nombre: req.data.label, tipo: 'Final' });
+    // Calculamos faltantes solo si NO está aprobada
+    if (!estaAprobada) {
+        (mat.requiere_para_cursar || []).forEach(reqId => {
+            if (!aprobadas.includes(reqId)) {
+                const req = nodes.find(n => n.id === reqId);
+                if (req) faltantes.push({ nombre: req.data.label, tipo: 'Cursada' });
             }
-        }
-    });
+        });
+        (mat.requiere_para_final || []).forEach(reqId => {
+            if (!aprobadas.includes(reqId)) {
+                const req = nodes.find(n => n.id === reqId);
+                if (req && !faltantes.some(f => f.nombre === req.data.label)) {
+                    faltantes.push({ nombre: req.data.label, tipo: 'Final' });
+                }
+            }
+        });
+    }
 
-    if (faltantes.length === 0) return null;
+    // Buscamos si hay nota (Asegúrate de haber creado el estado nodeNotes en el paso 1)
+    // Si todavía no creaste el estado, esto dará error, avísame si te falta el Paso 1.
+    const userNote = typeof nodeNotes !== 'undefined' ? nodeNotes[node.id] : null;
+
+    // Si no hay faltantes Y no hay nota, no mostramos nada
+    if (faltantes.length === 0 && !userNote) return null;
 
     return (
       <div className="smart-tooltip">
         <div className="tooltip-header"><span className="lock-icon">🔒</span><strong>{mat.nombre}</strong></div>
         <div className="tooltip-divider"></div>
-        <p className="tooltip-label">Para desbloquear necesitas:</p>
-        <ul className="tooltip-list">{faltantes.map((f, i) => (<li key={i}>• {f.nombre}</li>))}</ul>
+        
+        {/* MOSTRAR NOTA SI EXISTE (DISEÑO POST-IT) */}
+        {userNote && (
+            <div style={{ 
+                marginBottom: '12px', 
+                padding: '10px 12px', 
+                background: isDarkMode ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb', 
+                border: isDarkMode ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid #fcd34d',
+                borderRadius: '8px', 
+                color: isDarkMode ? '#fbbf24' : '#92400e',
+                fontSize: '0.85rem',
+                lineHeight: '1.4',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'flex-start'
+            }}>
+                <span style={{ fontSize: '1rem' }}>📝</span>
+                <span style={{ fontStyle: 'italic', fontWeight: '500' }}>"{userNote}"</span>
+            </div>
+        )}
+
+        {faltantes.length > 0 && (
+            <>
+                <p className="tooltip-label">Para desbloquear necesitas:</p>
+                <ul className="tooltip-list">{faltantes.map((f, i) => (<li key={i}>• {f.nombre}</li>))}</ul>
+            </>
+        )}
       </div>
     );
   };
@@ -681,6 +745,7 @@ export default function App() {
             nodes={nodes} edges={edges}
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
+            onNodeContextMenu={onNodeContextMenu}
             onNodeMouseEnter={(e, n) => setHoveredNodeId(n.id)}
             onNodeMouseLeave={() => setHoveredNodeId(null)}
             fitView minZoom={0.1}
@@ -797,6 +862,55 @@ export default function App() {
       {renderStatsModal()}
       {renderTooltip()}
       {renderAchievementsModal()}
+
+      {typeof editingNoteNode !== 'undefined' && editingNoteNode && (
+        <div className="modal-overlay" onClick={() => setEditingNoteNode(null)}>
+          <div className="note-modal-card" onClick={e => e.stopPropagation()}>
+            
+            <div className="note-header-row">
+                <h3>
+                  <span className="note-header-icon">📝</span> 
+                  Nota Personal
+                </h3>
+                <button className="close-btn" onClick={() => setEditingNoteNode(null)}>×</button>
+            </div>
+            
+            <p style={{ margin: 0, fontSize: '0.9rem', color: isDarkMode ? '#9ca3af' : '#64748b' }}>
+                Agregando comentario para: <strong style={{color: isDarkMode ? '#f3f4f6' : '#1e293b'}}>{editingNoteNode.nombre}</strong>
+            </p>
+            
+            <textarea
+                id="note-textarea"
+                className="note-textarea"
+                autoFocus
+                placeholder="Escribe aquí... (Ej: 'Cursar en verano', 'Difícil', 'Profesor X es crack')"
+                defaultValue={editingNoteNode.text}
+                rows={5}
+                spellCheck={false}
+            />
+            
+            <div className="note-actions">
+                <button 
+                    className="btn-secondary"
+                    onClick={() => {
+                        handleSaveNote(editingNoteNode.id, ''); // Borrar
+                    }}
+                >
+                    Eliminar Nota
+                </button>
+                <button 
+                    className="btn-primary"
+                    onClick={() => {
+                        const val = document.getElementById('note-textarea').value;
+                        handleSaveNote(editingNoteNode.id, val);
+                    }}
+                >
+                    Guardar
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

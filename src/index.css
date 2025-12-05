@@ -268,3 +268,82 @@ body {
   color: #000 !important;
   cursor: help !important;
 }
+
+/* =========================================================
+   21) STICKY NOTES (NOTAS ADHESIVAS PRO)
+   ========================================================= */
+
+/* El Modal en sí */
+.note-modal-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px); /* Efecto vidrio */
+  width: 90%; max-width: 420px;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; flex-direction: column; gap: 15px;
+}
+
+/* Header del modal */
+.note-header-row {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px;
+}
+.note-header-row h3 { margin: 0; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+.note-header-icon { font-size: 1.2rem; background: #fff7ed; padding: 6px; border-radius: 8px; }
+
+/* Área de texto pro */
+.note-textarea {
+  width: 100%;
+  background-color: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 15px;
+  font-family: inherit; font-size: 0.95rem; line-height: 1.5; color: #334155;
+  resize: none; /* Evita que el usuario rompa el diseño */
+  transition: all 0.2s ease;
+  outline: none;
+}
+.note-textarea:focus {
+  background-color: #fff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); /* Anillo de foco suave */
+}
+.note-textarea::placeholder { color: #94a3b8; }
+
+/* Botones de acción */
+.note-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 5px; }
+
+.btn-secondary {
+  background: transparent; border: 1px solid #e2e8f0; color: #64748b;
+  padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: #f1f5f9; color: #ef4444; border-color: #fecaca; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white; border: none;
+  padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+  transition: all 0.2s;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 10px -2px rgba(37, 99, 235, 0.3); }
+
+/* --- MODO OSCURO --- */
+.app-container.dark-mode .note-modal-card {
+  background: #1f2937; border-color: #374151; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.app-container.dark-mode .note-header-row { border-bottom-color: #374151; }
+.app-container.dark-mode .note-header-row h3 { color: #f3f4f6; }
+.app-container.dark-mode .note-header-icon { background: #374151; }
+.app-container.dark-mode .note-textarea {
+  background-color: #111827; border-color: #374151; color: #e2e8f0;
+}
+.app-container.dark-mode .note-textarea:focus {
+  border-color: #60a5fa; background-color: #0f172a; box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+}
+.app-container.dark-mode .btn-secondary { border-color: #374151; color: #9ca3af; }
+.app-container.dark-mode .btn-secondary:hover { background: #374151; color: #f87171; }
