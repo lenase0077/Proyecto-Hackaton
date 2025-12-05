@@ -1,182 +1,167 @@
+/* =============================================================================
+   ÍNDICE DE CONTENIDOS
+   =============================================================================
+   1.  GLOBALES ................. Fuentes, Reset y Variables Raíz
+   2.  TUTORIAL (DRIVER.JS) ..... Personalización del tour guiado
+   3.  MODO MATRIX .............. Easter egg visual (Tema Hacker)
+   4.  NOTAS ADHESIVAS .......... Estilos del modal de comentarios
+   ============================================================================= */
+
+/* =========================================================
+   1. GLOBALES
+   ========================================================= */
+/* Importación de fuente Poppins para UI moderna */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
 
 :root {
+  /* Configuración de tipografía base del sistema */
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   
-  /* REMOVEMOS color-scheme y los colores forzados */
+  /* Optimización de renderizado de texto */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Reset básico pero manteniendo el display flex de body */
+/* Reset básico del Body */
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  place-items: center; /* Centrado vertical/horizontal por defecto */
   min-width: 320px;
   min-height: 100vh;
 }
 
-/* Eliminamos todo el resto que está en App.css */
-
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
 
 /* =========================================================
-   REDISEÑO DEL TUTORIAL (Driver.js Custom Theme)
-   Estilo: Glassmorphism Dark Tech - CORREGIDO
+   2. TUTORIAL INTERACTIVO (DRIVER.JS CUSTOM THEME)
    ========================================================= */
 
-/* 1. LA CAJA FLOTANTE (TARJETA OSCURA) */
+/* Caja del Popover (Tarjeta flotante) */
 .driver-popover {
-  background: rgba(15, 23, 42, 0.98) !important; /* Casi opaco para mejor lectura */
-  backdrop-filter: blur(10px) !important;
+  background: rgba(15, 23, 42, 0.98) !important; /* Fondo oscuro casi opaco */
+  backdrop-filter: blur(10px) !important;       /* Efecto cristal */
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: white !important;
   border-radius: 16px !important;
   box-shadow: 0 10px 40px -10px rgba(0,0,0,0.6) !important;
   padding: 20px !important;
   max-width: 320px !important;
-  font-family: 'Poppins', system-ui, sans-serif !important; /* Fuente consistente */
+  font-family: 'Poppins', system-ui, sans-serif !important;
 }
 
-/* 2. EL TÍTULO */
+/* Título del paso del tutorial */
 .driver-popover-title {
   font-size: 1.2rem !important;
   font-weight: 700 !important;
   margin-bottom: 8px !important;
-  background: linear-gradient(90deg, #60a5fa, #a78bfa) !important;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa) !important; /* Gradiente de texto */
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   display: inline-block !important;
   line-height: 1.3 !important;
 }
 
-/* 3. EL TEXTO NORMAL */
+/* Descripción del paso */
 .driver-popover-description {
-  color: #e2e8f0 !important; /* Blanco hueso, más legible que gris */
+  color: #e2e8f0 !important; /* Blanco hueso para mejor lectura */
   font-size: 0.9rem !important;
   line-height: 1.5 !important;
   margin-bottom: 20px !important;
   font-weight: 400 !important;
 }
 
-/* 4. BOTÓN "SIGUIENTE" (El principal) - CORREGIDO */
+/* Botón "Siguiente" */
 .driver-popover-next-btn {
   background: linear-gradient(90deg, #3b82f6, #7c3aed) !important;
   border: none !important;
   color: white !important;
   border-radius: 8px !important;
   padding: 8px 16px !important;
-  
-  /* TIPOGRAFÍA ARREGLADA */
-  font-family: inherit !important; /* Usa Poppins igual que el resto */
+  font-family: inherit !important;
   font-size: 0.8rem !important;
-  font-weight: 600 !important; /* Semi-bold (no 100, que era el problema) */
-  text-transform: none !important; /* Quitamos mayúsculas forzadas para que se vea más limpio */
+  font-weight: 600 !important;
+  text-transform: none !important;
   letter-spacing: 0.5px !important;
-  text-shadow: none !important; /* Aseguramos que no haya sombra en texto */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important; /* Sombra suave en la caja */
-  
+  text-shadow: none !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease !important;
   cursor: pointer !important;
 }
-
 .driver-popover-next-btn:hover {
   transform: translateY(-1px) !important;
-  box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.5) !important; /* Resplandor al pasar mouse */
+  box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.5) !important;
 }
 
-/* 5. BOTÓN "ANTERIOR" - CORREGIDO */
+/* Botón "Anterior" */
 .driver-popover-prev-btn {
   background: transparent !important;
   border: 1px solid rgba(255,255,255,0.2) !important; 
   color: #cbd5e1 !important;
   border-radius: 8px !important;
   padding: 7px 14px !important;
-  
-  margin-left: 15px !important; /* Separa el botón del texto "X of Y" */
-  
-  /* TIPOGRAFÍA ARREGLADA */
+  margin-left: 15px !important;
   font-family: inherit !important;
   font-size: 0.8rem !important;
   font-weight: 500 !important;
   text-transform: none !important;
   text-shadow: none !important;
-  
   transition: all 0.2s ease !important;
   cursor: pointer !important;
 }
-
 .driver-popover-prev-btn:hover {
   background: rgba(255,255,255,0.1) !important;
   color: white !important;
   border-color: rgba(255,255,255,0.5) !important;
 }
 
-/* 6. LA FLECHITA (Triángulo) */
+/* Flechas indicadoras del Popover */
 .driver-popover-arrow-side-left.driver-popover-arrow  { border-right-color: #0f172a !important; }
 .driver-popover-arrow-side-right.driver-popover-arrow { border-left-color: #0f172a !important; }
 .driver-popover-arrow-side-top.driver-popover-arrow   { border-bottom-color: #0f172a !important; }
 .driver-popover-arrow-side-bottom.driver-popover-arrow{ border-top-color: #0f172a !important; }
 
-/* 7. TEXTO DE PROGRESO (1 de 5) */
+/* Texto de progreso (ej: 1 de 5) */
 .driver-popover-progress-text {
   color: #64748b !important;
   font-size: 0.75rem !important;
 }
 
-/* 8. BOTÓN CERRAR (X) */
+/* Botón de cierre (X) */
 .driver-popover-close-btn {
   color: #94a3b8 !important;
   padding: 5px !important;
 }
 .driver-popover-close-btn:hover {
-  color: #ef4444 !important; /* Rojo */
+  color: #ef4444 !important;
 }
 
+
 /* =========================================================
-   EASTER EGG: MATRIX MODE
+   3. MODO MATRIX (EASTER EGG)
    ========================================================= */
 
+/* Contenedor principal en modo Matrix */
 .matrix-mode {
   background-color: #000 !important;
   font-family: 'Courier New', Courier, monospace !important;
   overflow: hidden;
 }
 
-/* Regla Maestra: Todo texto y borde en verde */
+/* Regla Maestra: Forzar verde neón y bordes */
 .matrix-mode * {
   border-color: #0f0 !important;
   color: #0f0 !important;
   font-family: 'Courier New', Courier, monospace !important;
   text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-  box-shadow: none !important; /* Adiós sombras modernas */
+  box-shadow: none !important;
 }
 
-/* === FIX: CONTENEDORES QUE SE PONÍAN BLANCOS === */
-
-/* 1. Fondo general de componentes principales */
+/* -- CORRECCIONES DE FONDO PARA COMPONENTES -- */
+/* Fuerza fondo negro para evitar cajas blancas */
 .matrix-mode .react-flow__node,
 .matrix-mode button, 
 .matrix-mode .filters-bar,
@@ -192,13 +177,13 @@ body {
 .matrix-mode .achievements-progress,
 .matrix-mode .progress-track,     /* Barra de fondo progreso */
 .matrix-mode .smart-tooltip {
-  background: #000 !important;    /* NEGRO PURO */
+  background: #000 !important;
   background-color: #000 !important;
   border: 1px solid #0f0 !important;
   border-radius: 0 !important;    /* Bordes cuadrados retro */
 }
 
-/* 2. Arreglos específicos de texto dentro de modales */
+/* Corrección de color de textos específicos */
 .matrix-mode h2, 
 .matrix-mode h3, 
 .matrix-mode h4, 
@@ -212,21 +197,17 @@ body {
   text-shadow: none !important;
 }
 
-/* 3. La barra de progreso (relleno) */
+/* Elementos visuales específicos */
 .matrix-mode .progress-fill {
   background: #0f0 !important;
   box-shadow: 0 0 10px #0f0 !important;
   border-radius: 0 !important;
 }
-
-/* 4. Los puntitos de la leyenda */
 .matrix-mode .legend-dot {
   background: #000 !important;
   border: 1px solid #0f0 !important;
-  border-radius: 50% !important; /* Mantener redondos los puntos */
+  border-radius: 50% !important;
 }
-
-/* 5. Iconos y SVGs (Logros, Discord, etc) */
 .matrix-mode .ach-icon,
 .matrix-mode .ach-popup-icon,
 .matrix-mode .btn-discord {
@@ -234,15 +215,15 @@ body {
   border: 1px solid #0f0 !important;
 }
 
-/* 6. Gráficos del Dashboard (SVG Strokes) */
+/* Gráficos SVG (Strokes) */
 .matrix-mode .circular-chart path {
   stroke: #0f0 !important;
 }
 .matrix-mode .circle-bg {
-  stroke: #003300 !important; /* Verde muy oscuro para el fondo del gráfico */
+  stroke: #003300 !important; /* Verde muy oscuro para contraste */
 }
 
-/* 7. React Flow */
+/* React Flow (Líneas del grafo) */
 .matrix-mode .react-flow__edge path {
   stroke: #0f0 !important;
   stroke-width: 2px !important;
@@ -253,14 +234,14 @@ body {
   opacity: 0.2;
 }
 
-/* Animación de pulso para las líneas */
+/* Animación de pulso para las conexiones */
 @keyframes matrix-pulse {
   0% { opacity: 0.5; }
   50% { opacity: 1; filter: drop-shadow(0 0 2px #0f0); }
   100% { opacity: 0.5; }
 }
 
-/* Botones Hover */
+/* Estados Hover en modo Matrix */
 .matrix-mode button:hover,
 .matrix-mode .btn-download:hover,
 .matrix-mode .btn-discord:hover {
@@ -269,14 +250,15 @@ body {
   cursor: help !important;
 }
 
+
 /* =========================================================
-   21) STICKY NOTES (NOTAS ADHESIVAS PRO)
+   4. NOTAS ADHESIVAS (STICKY NOTES UI)
    ========================================================= */
 
-/* El Modal en sí */
+/* Contenedor del Modal de Notas */
 .note-modal-card {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px); /* Efecto vidrio */
+  backdrop-filter: blur(12px);
   width: 90%; max-width: 420px;
   border-radius: 20px;
   padding: 25px;
@@ -286,7 +268,7 @@ body {
   display: flex; flex-direction: column; gap: 15px;
 }
 
-/* Header del modal */
+/* Header de la nota */
 .note-header-row {
   display: flex; justify-content: space-between; align-items: center;
   border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px;
@@ -294,7 +276,7 @@ body {
 .note-header-row h3 { margin: 0; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
 .note-header-icon { font-size: 1.2rem; background: #fff7ed; padding: 6px; border-radius: 8px; }
 
-/* Área de texto pro */
+/* Área de texto (Textarea) */
 .note-textarea {
   width: 100%;
   background-color: #f8fafc;
@@ -302,18 +284,18 @@ body {
   border-radius: 12px;
   padding: 15px;
   font-family: inherit; font-size: 0.95rem; line-height: 1.5; color: #334155;
-  resize: none; /* Evita que el usuario rompa el diseño */
+  resize: none;
   transition: all 0.2s ease;
   outline: none;
 }
 .note-textarea:focus {
   background-color: #fff;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); /* Anillo de foco suave */
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 .note-textarea::placeholder { color: #94a3b8; }
 
-/* Botones de acción */
+/* Botones de acción (Guardar/Eliminar) */
 .note-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 5px; }
 
 .btn-secondary {
@@ -332,7 +314,7 @@ body {
 }
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 10px -2px rgba(37, 99, 235, 0.3); }
 
-/* --- MODO OSCURO --- */
+/* --- Adaptación Modo Oscuro para Notas --- */
 .app-container.dark-mode .note-modal-card {
   background: #1f2937; border-color: #374151; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }

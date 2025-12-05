@@ -1,8 +1,10 @@
-// ============================================================================
-// 1. IMPORTS
-// ============================================================================
-
+// ==================================================================================
+// 1. IMPORTS & DEPENDENCIAS
+// ==================================================================================
+// Librerías principales de React
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+
+// Librería de gráficos (React Flow)
 import ReactFlow, {
   Controls,
   Background,
@@ -11,12 +13,12 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-// Estilos y Componentes
+// Componentes internos y Estilos
 import './App.css';
 import MatrixRain from './components/MatrixRain';
 import CarreraSelector from './components/CarreraSelector';
 
-// Datos y Utilidades
+// Datos (JSON) y Funciones de Utilidad
 import dbMaterias from './data/materias.json';
 import { 
   getLayoutElements, 
@@ -28,32 +30,28 @@ import {
   ACHIEVEMENTS
 } from './utils';
 
+// ==================================================================================
+// 2. COMPONENTES AUXILIARES (ICONOS)
+// ==================================================================================
+/* Logo de Discord SVG optimizado para usar inline */
 const DiscordLogo = () => (
   <svg 
-    width="20" 
-    height="20" 
-    viewBox="0 -28.5 256 256" 
-    fill="currentColor" 
-    xmlns="http://www.w3.org/2000/svg"
+    width="20" height="20" viewBox="0 -28.5 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"
   >
-    <path 
-      fillRule="nonzero" 
-      d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"
-    />
+    <path fillRule="nonzero" d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z" />
   </svg>
 );
 
-// ============================================================================
-// 2. COMPONENTE PRINCIPAL
-// ============================================================================
-
+// ==================================================================================
+// 3. COMPONENTE PRINCIPAL (APP)
+// ==================================================================================
 export default function App() {
 
-  // ============================================================================
-  // 3. GESTIÓN DE ESTADO (STATE)
-  // ============================================================================
+  // ==================================================================================
+  // 3.1 GESTIÓN DE ESTADO (STATE)
+  // ==================================================================================
 
-  // --- Datos Persistentes ---
+  // --- Datos Persistentes (LocalStorage) ---
   const [selectedCarrera, setSelectedCarrera] = useState(() => localStorage.getItem('selectedCarrera') || 'tup');
   
   const [aprobadas, setAprobadas] = useState(() => {
@@ -66,67 +64,65 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // --- Sticky Notes (NUEVO) ---
   const [nodeNotes, setNodeNotes] = useState(() => {
     const saved = localStorage.getItem('nodeNotes');
     return saved ? JSON.parse(saved) : {};
   });
-  const [editingNoteNode, setEditingNoteNode] = useState(null);
 
-  // --- Configuración Visual ---
+  // --- Configuración Visual y Accesibilidad ---
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('appTheme');
     return saved !== 'light'; 
   });
   const [isDyslexic, setIsDyslexic] = useState(() => localStorage.getItem('dyslexicMode') === 'true');
   const [isColorblind, setIsColorblind] = useState(() => localStorage.getItem('colorblindMode') === 'true');
-  const [isMuted, setIsMuted] = useState(() => localStorage.getItem('isMuted') === 'true'); // Estado de Mute/Sonido
+  const [isMuted, setIsMuted] = useState(() => localStorage.getItem('isMuted') === 'true');
 
-  // --- Grafo ---
+  // --- Estado del Grafo (React Flow) ---
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [allEdgesCache, setAllEdgesCache] = useState([]);
   const [viewMode, setViewMode] = useState('todas');
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
 
-  // --- UI & Herramientas ---
+  // --- Estado de UI (Modales y Menús) ---
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isFooterOpen, setIsFooterOpen] = useState(false);
   const [isMatrixMode, setIsMatrixMode] = useState(false);
   
-  // --- Modals y Popups ---
   const [showCalculator, setShowCalculator] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
-  
-  const [ritmoEstudio, setRitmoEstudio] = useState(3);
-  
-  // --- Notificaciones ---
-  const [currentNotification, setCurrentNotification] = useState(null);
-  const [isClosing, setIsClosing] = useState(false);
-  const [mostrarNotificacion, setMostrarNotificacion] = useState(false); // LinkedIn toast
-  const [conteoRegresivo, setConteoRegresivo] = useState(0);
-  const [mostrarNotificacionDiscord, setMostrarNotificacionDiscord] = useState(false); // Discord toast
-  const [conteoDiscord, setConteoDiscord] = useState(0);
+  const [editingNoteNode, setEditingNoteNode] = useState(null); // Modal de notas
 
-  // --- Tutorial ---
+  // --- Estado Interno de Componentes ---
+  const [ritmoEstudio, setRitmoEstudio] = useState(3); // Para calculadora
   const [isTutorialActive, setIsTutorialActive] = useState(false);
 
-  // --- Referencias de Audio ---
+  // --- Notificaciones y Toast ---
+  const [currentNotification, setCurrentNotification] = useState(null); // Logros
+  const [isClosing, setIsClosing] = useState(false); // Animación logro
+  const [mostrarNotificacion, setMostrarNotificacion] = useState(false); // LinkedIn
+  const [conteoRegresivo, setConteoRegresivo] = useState(0);
+  const [mostrarNotificacionDiscord, setMostrarNotificacionDiscord] = useState(false); // Discord
+  const [conteoDiscord, setConteoDiscord] = useState(0);
+
+  // --- Referencias (Audio) ---
   const currentaudioLevel = useRef(null);
   const currentaudioVictory = useRef(null);
-  const isCelebrationActive = useRef(false); 
+  const isCelebrationActive = useRef(false);
 
-  // ============================================================================
-  // 4. LÓGICA DE NEGOCIO (HELPERS)
-  // ============================================================================
-
-  // Cálculos Estadísticos
+  // ==================================================================================
+  // 3.2 LÓGICA DERIVADA (CÁLCULOS AL VUELO)
+  // ==================================================================================
+  
+  // Estadísticas básicas
   const totalMaterias = nodes.length;
   const aprobadasCount = nodes.filter(n => aprobadas.includes(n.id)).length;
   const porcentaje = totalMaterias > 0 ? Math.round((aprobadasCount / totalMaterias) * 100) : 0;
 
+  // Calcular materias disponibles para cursar (lógica de correlativas)
   const disponiblesCount = nodes.filter(n => {
     if (aprobadas.includes(n.id)) return false;
     const mat = n.data?.originalData;
@@ -138,7 +134,7 @@ export default function App() {
     return tieneCursadas && tieneFinales;
   }).length;
 
-  // Frase Motivacional
+  // Generador de frases motivacionales según progreso
   const getMotivationalQuote = (porc) => {
     if (porc === 0) return "¡Todo camino de mil millas comienza con un primer paso! 🚀";
     if (porc < 25) return "¡Buen comienzo! La constancia es la clave del éxito. 🌱";
@@ -148,7 +144,7 @@ export default function App() {
     return "¡FELICITACIONES! Has completado la carrera. ¡Sos leyenda! 🏆";
   };
 
-  // Sistema de Logros
+  // Función Helper para activar logros
   const triggerAchievement = (achId) => {
     if (unlockedAchievements.includes(achId) || isTutorialActive) return;
 
@@ -159,7 +155,7 @@ export default function App() {
     setIsClosing(false); 
     setCurrentNotification(ach);
 
-    if (!isMuted) { // CHECK DE MUTE AÑADIDO
+    if (!isMuted) {
         const audio = new Audio('/sounds/Archivement.mp3');
         audio.volume = 0.8;
         audio.playbackRate = 1;
@@ -167,6 +163,7 @@ export default function App() {
         audio.play().catch(() => {});
     }
 
+    // Auto-cierre de la notificación
     setTimeout(() => {
       setIsClosing(true);
       setTimeout(() => {
@@ -176,58 +173,70 @@ export default function App() {
     }, 4000);
   };
 
+  // ==================================================================================
+  // 3.3 EFECTOS (SIDE EFFECTS)
+  // ==================================================================================
 
-  // ============================================================================
-  // 5. EFECTOS (SIDE EFFECTS)
-  // ============================================================================
-
-  // Persistencia
+  // A) Persistencia en LocalStorage
   useEffect(() => localStorage.setItem('dyslexicMode', isDyslexic), [isDyslexic]);
   useEffect(() => localStorage.setItem('colorblindMode', isColorblind), [isColorblind]);
   useEffect(() => localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'), [isDarkMode]);
   useEffect(() => localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)), [aprobadas]);
   useEffect(() => localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements)), [unlockedAchievements]);
-  useEffect(() => localStorage.setItem('isMuted', isMuted), [isMuted]); // Persistencia de Mute
+  useEffect(() => localStorage.setItem('isMuted', isMuted), [isMuted]);
+  useEffect(() => localStorage.setItem('nodeNotes', JSON.stringify(nodeNotes)), [nodeNotes]); // Persistencia de notas
 
-  // Responsive & Konami
+  // B) Listeners Globales (Resize y Konami Code)
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
 
     const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     let keyIndex = 0;
+    
+    // --- CORRECCIÓN: LÓGICA DE AUDIO FUERA DEL SETTER ---
     const handleKeyDown = (e) => {
       if (e.key === konamiCode[keyIndex]) {
         keyIndex++;
         if (keyIndex === konamiCode.length) {
-          setIsMatrixMode(p => {
-              triggerAchievement('the_chosen_one');
-              const newMode = !p;
-              if (newMode && !isMuted) { // CHECK DE MUTE AÑADIDO
-                  const audio = new Audio('/sounds/matrix.mp3');
-                  audio.volume = 1.0;
-                  audio.play().catch(() => {});
-              }
-              return newMode;
-          });
-          keyIndex = 0;
+          
+          triggerAchievement('the_chosen_one');
+          
+          // Si NO estamos en modo Matrix y NO está muteado -> Reproducir
+          if (!isMatrixMode && !isMuted) {
+              const audio = new Audio('/sounds/Matrix.mp3');
+              audio.volume = 0.5;
+              // Añadimos catch para evitar errores de consola si falta el archivo
+              audio.play().catch(err => console.log("Error reproduciendo audio Matrix:", err));
+          }
+          
+          // Cambiamos el modo
+          setIsMatrixMode(prev => !prev);
+          
+          keyIndex = 0; // Resetear índice
         }
-      } else { keyIndex = 0; }
+      } else { 
+        keyIndex = 0; 
+      }
     };
+    
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isMatrixMode, isMuted]); // isMuted AÑADIDO A DEPENDENCIAS
+  }, [isMatrixMode, isMuted]); // Dependencias clave para que handleKeyDown tenga el estado fresco
 
-  // Carga de Carrera y Grafo
+  // C) Carga Inicial y Cambio de Carrera (Generación del Grafo)
   useEffect(() => {
     const listaMaterias = dbMaterias[selectedCarrera] || [];
     const { nodes: layoutNodes, edges: layoutEdges } = getLayoutElements(listaMaterias, isMobile);
+    
+    // Aplicar estilos base y notas
     const styledNodes = updateNodeStyles(layoutNodes, layoutEdges, aprobadas, isDarkMode, isColorblind, nodeNotes);
     
+    // Aplicar highlighting inicial
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
         styledNodes, layoutEdges, null, isDarkMode, 'todas', isColorblind, aprobadas
     );
@@ -236,12 +245,12 @@ export default function App() {
     setEdges(finalEdges);
     setAllEdgesCache(layoutEdges);
     setViewMode('todas');
-  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas]);
+  }, [selectedCarrera, isMobile, setNodes, setEdges, isDarkMode, isColorblind, aprobadas, nodeNotes]);
 
-  // Actualización Visual Rápida
+  // D) Actualización Visual Rápida (Hover y Filtros)
   useEffect(() => {
     if (nodes.length === 0) return;
-    const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind);
+    const styledNodes = updateNodeStyles(nodes, edges, aprobadas, isDarkMode, isColorblind, nodeNotes);
     const { nodes: finalNodes, edges: finalEdges } = applyHighlightStyles(
         styledNodes, 
         hoveredNodeId ? edges : filterEdgesByMode(allEdgesCache, viewMode, styledNodes, aprobadas), 
@@ -251,7 +260,7 @@ export default function App() {
     setEdges(finalEdges);
   }, [hoveredNodeId, viewMode]);
 
-  // Monitor Logros Automáticos
+  // E) Monitor de Logros Automáticos
   useEffect(() => {
     if (nodes.length === 0) return;
     ACHIEVEMENTS.forEach(ach => {
@@ -259,107 +268,72 @@ export default function App() {
     });
   }, [aprobadas, nodes, unlockedAchievements]);
 
-  // Tutorial
+  // F) Tutorial Interactivo (Driver.js)
   useEffect(() => {
     const tutorialVisto = localStorage.getItem('tutorial_visto_v1');
-    
-    //Si el tutorial YA está activo, NO hacemos nada (evita reinicio al cambiar carrera)
     if (isTutorialActive) return;
 
     if (!tutorialVisto && nodes.length > 0 && window.driver) {
       const driver = window.driver.js.driver;
-
-      // Función auxiliar para limpiar todo correctamente
       const finalizarTutorial = () => {
           localStorage.setItem('tutorial_visto_v1', 'true');
           setIsTutorialActive(false);
-          // Forzamos la destrucción si quedó algo colgado
           if (window.tourDriver) {
               window.tourDriver.destroy();
               window.tourDriver = null;
           }
       };
-
-      // Exponemos la función al window para el botón de "Saltar" en el HTML
       window.cerrarTutorial = finalizarTutorial;
       
       const driverObj = driver({
-        showProgress: true, 
-        animate: true,
-        allowClose: false,
-        nextBtnText: 'Siguiente ▶️', 
-        prevBtnText: 'Anterior', 
-        doneBtnText: '¡Comenzar! 🚀',
+        showProgress: true, animate: true, allowClose: false,
+        nextBtnText: 'Siguiente ▶️', prevBtnText: 'Anterior', doneBtnText: '¡Comenzar! 🚀',
         steps: [
           { element: '.utn-logo-svg', popover: { title: '¡Bienvenido a UTN Pathfinder!', description: `
               Tu mapa interactivo para hackear la carrera y planificar tu futuro.
-              <br/><br/>
               <div style="display: flex; justify-content: flex-end; margin-top: 15px;">
-                  <button 
-                    onclick="window.cerrarTutorial()" 
-                    style="
-                      background: rgba(255, 255, 255, 0.05); 
-                      border: 1px solid rgba(156, 163, 175, 0.4); 
-                      color: #cbd5e1; 
-                      border-radius: 30px; 
-                      padding: 8px 16px; 
-                      cursor: pointer; 
-                      font-size: 0.75rem; 
-                      font-weight: 600; 
-                      letter-spacing: 1px;
-                      transition: all 0.3s ease;
-                      display: flex;
-                      align-items: center;
-                      gap: 6px;
-                      text-transform: uppercase;
-                    "
-                    onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.color='#fff'; this.style.borderColor='rgba(255, 255, 255, 0.6)';" 
-                    onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.color='#cbd5e1'; this.style.borderColor='rgba(156, 163, 175, 0.4)';"
-                  >
-                    <span>Saltar</span> 
-                    <span style="font-size: 1rem; line-height: 0;">×</span>
+                  <button onclick="window.cerrarTutorial()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(156, 163, 175, 0.4); color: #cbd5e1; border-radius: 30px; padding: 8px 16px; cursor: pointer; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                    <span>Saltar</span> <span style="font-size: 1rem; line-height: 0;">×</span>
                   </button>
-              </div>
-            ` } },
+              </div>` } },
           { element: '#carrera-selector-tour', popover: { title: 'Elige tu destino', description: 'Selecciona tu carrera aquí.' } },
           { element: '.react-flow', popover: { title: 'Mapa Interactivo', description: 'Haz clic para aprobar materias.' } },
           { element: '#btn-calculator-tour', popover: { title: 'Oráculo', description: 'Predice tu fecha de graduación.' } },
           { element: '#btn-critical-tour', popover: { title: '🔥 Ruta Crítica', description: 'El camino más largo de correlativas.' } }
         ],
-        // Esto se ejecuta al dar click en "¡Comenzar!" o al cerrar con la X o ESC
-        onDestroyStarted: () => {
-           finalizarTutorial(); // Llamamos a nuestra función de limpieza
-           driverObj.destroy(); // Destruimos la instancia visual
-        }
+        onDestroyStarted: () => { finalizarTutorial(); driverObj.destroy(); }
       });
 
-      // Guardamos referencia y activamos estado
       window.tourDriver = driverObj;
       setIsTutorialActive(true); 
-      
       setTimeout(() => { driverObj.drive(); }, 1500);
     }
-    // Quitamos isTutorialActive de las dependencias para evitar bucles
   }, [nodes.length]);
 
-  // ============================================================================
-  // 6. HANDLERS
-  // ============================================================================
-  
-  const handleToggleMute = () => { // Handler para mutear/desmutear
+
+  // ==================================================================================
+  // 3.4 EVENT HANDLERS (MANEJADORES DE EVENTOS)
+  // ==================================================================================
+
+  // Audio Handler
+  const handleToggleMute = () => {
     const newState = !isMuted;
     setIsMuted(newState);
-
     if (newState) {
-      // Detener todos los audios si el modo mute se activa
       if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
       if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
     }
   };
 
+  // Carreras
+  const handleCarreraChange = (nuevaCarrera) => {
+    setSelectedCarrera(nuevaCarrera);
+    localStorage.setItem('selectedCarrera', nuevaCarrera);
+  };
 
+  // Notas Adhesivas (Sticky Notes)
   const onNodeContextMenu = useCallback((event, node) => {
-    event.preventDefault(); // Evita el menú del navegador
+    event.preventDefault(); // Bloquear menú del navegador
     setEditingNoteNode({ 
         id: node.id, 
         nombre: node.data.originalData.nombre,
@@ -372,17 +346,13 @@ export default function App() {
     if (text && text.trim()) {
         newNotes[id] = text.trim();
     } else {
-        delete newNotes[id]; // Si está vacío, borrar
+        delete newNotes[id];
     }
     setNodeNotes(newNotes);
-    setEditingNoteNode(null); // Cerrar modal
+    setEditingNoteNode(null);
   };
 
-  const handleCarreraChange = (nuevaCarrera) => {
-    setSelectedCarrera(nuevaCarrera);
-    localStorage.setItem('selectedCarrera', nuevaCarrera);
-  };
-
+  // Redes Sociales y Compartir
   const handleShareLinkedIn = () => {
     const nombres = { 'tup': 'TUP', 'admi': 'TUA', 'moldes': 'Moldes', 'automotriz': 'Automotriz' };
     const carrera = nombres[selectedCarrera] || 'UTN';
@@ -400,22 +370,19 @@ export default function App() {
   };
 
   const handleDiscordClick = async (e) => {
-    e.preventDefault(); // Evitamos que el link abra la página inmediatamente
-    
-    triggerAchievement('the_dojo'); // Disparamos el logro aquí
-
+    e.preventDefault();
+    triggerAchievement('the_dojo');
     setMostrarNotificacionDiscord(true);
-    
     for (let i = 3; i > 0; i--) { 
         setConteoDiscord(i); 
         await new Promise(r => setTimeout(r, 1000)); 
     }
-    
     setConteoDiscord(0);
     window.open('https://discord.gg/yNKDGSac9j', '_blank');
     setTimeout(() => setMostrarNotificacionDiscord(false), 1000);
   };
 
+  // Descargar Imagen
   const downloadImage = useCallback(() => {
     triggerAchievement('photographer');
     const elem = document.querySelector('.react-flow');
@@ -431,6 +398,7 @@ export default function App() {
     });
   }, [isDarkMode, selectedCarrera]);
 
+  // Click en Nodo (Aprobar/Desaprobar)
   const onNodeClick = useCallback((event, node) => {
     if (!node.data?.clickable) return;
     const matId = node.id;
@@ -439,7 +407,7 @@ export default function App() {
     const listaMaterias = dbMaterias[selectedCarrera] || [];
     
     if (isUnchecking) {
-        // Desmarcar en cascada
+        // Lógica de desmarcado en cascada (si desapruebo Análisis 1, se desaprueba Análisis 2)
         const idsAElminar = new Set([matId]);
         const pila = [matId];
         while (pila.length > 0) {
@@ -457,16 +425,17 @@ export default function App() {
         }
         nuevasAprobadas = aprobadas.filter(id => !idsAElminar.has(id));
     } else {
-        // Marcar
+        // Lógica de marcado
         nuevasAprobadas = [...aprobadas, matId];
-        // Efectos
+        
+        // Efectos de sonido y celebración
         const mat = node.data.originalData;
         const nivel = mat.nivel || (mat.posY ? mat.posY + 1 : 1);
         const matsNivel = listaMaterias.filter(m => (m.nivel || (m.posY ? m.posY + 1 : 1)) === nivel);
         const nivelCompleto = matsNivel.every(m => nuevasAprobadas.includes(m.id));
         const carreraCompleta = listaMaterias.every(m => nuevasAprobadas.includes(m.id));
 
-        if (!isMuted) { // CHECK DE MUTE AÑADIDO
+        if (!isMuted) {
             if (carreraCompleta) {
                  if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
                  setTimeout(() => {
@@ -492,28 +461,25 @@ export default function App() {
                  audio.preservesPitch = false;
                  audio.play().catch(() => {});
             }
-        } // FIN CHECK DE MUTE
+        }
     }
     setAprobadas(nuevasAprobadas);
-  }, [aprobadas, selectedCarrera, isMuted]); // isMuted AÑADIDO A DEPENDENCIAS
+  }, [aprobadas, selectedCarrera, isMuted]);
 
-  // ============================================================================
-  // 7. RENDER HELPERS
-  // ============================================================================
+  // ==================================================================================
+  // 3.5 RENDER HELPERS (SUB-COMPONENTES DE RENDERIZADO)
+  // ==================================================================================
 
+  // A) Tooltip Inteligente (Hover en nodos)
   const renderTooltip = () => {
     if (!hoveredNodeId) return null;
     const node = nodes.find(n => n.id === hoveredNodeId);
-    if (!node || !node.data?.originalData) return null; // Pequeño fix de seguridad
+    if (!node || !node.data?.originalData) return null;
 
-    // Si la materia ya está aprobada, normalmente no mostramos tooltip, 
-    // PERO si tiene nota, queremos verla igual.
     const estaAprobada = aprobadas.includes(node.id);
-    
     const mat = node.data.originalData;
     const faltantes = [];
     
-    // Calculamos faltantes solo si NO está aprobada
     if (!estaAprobada) {
         (mat.requiere_para_cursar || []).forEach(reqId => {
             if (!aprobadas.includes(reqId)) {
@@ -531,11 +497,8 @@ export default function App() {
         });
     }
 
-    // Buscamos si hay nota (Asegúrate de haber creado el estado nodeNotes en el paso 1)
-    // Si todavía no creaste el estado, esto dará error, avísame si te falta el Paso 1.
     const userNote = typeof nodeNotes !== 'undefined' ? nodeNotes[node.id] : null;
 
-    // Si no hay faltantes Y no hay nota, no mostramos nada
     if (faltantes.length === 0 && !userNote) return null;
 
     return (
@@ -543,20 +506,12 @@ export default function App() {
         <div className="tooltip-header"><span className="lock-icon">🔒</span><strong>{mat.nombre}</strong></div>
         <div className="tooltip-divider"></div>
         
-        {/* MOSTRAR NOTA SI EXISTE (DISEÑO POST-IT) */}
         {userNote && (
             <div style={{ 
-                marginBottom: '12px', 
-                padding: '10px 12px', 
+                marginBottom: '12px', padding: '10px 12px', borderRadius: '8px', fontSize: '0.85rem', lineHeight: '1.4', display: 'flex', gap: '8px', alignItems: 'flex-start',
                 background: isDarkMode ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb', 
                 border: isDarkMode ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid #fcd34d',
-                borderRadius: '8px', 
                 color: isDarkMode ? '#fbbf24' : '#92400e',
-                fontSize: '0.85rem',
-                lineHeight: '1.4',
-                display: 'flex',
-                gap: '8px',
-                alignItems: 'flex-start'
             }}>
                 <span style={{ fontSize: '1rem' }}>📝</span>
                 <span style={{ fontStyle: 'italic', fontWeight: '500' }}>"{userNote}"</span>
@@ -573,6 +528,7 @@ export default function App() {
     );
   };
 
+  // B) Modal de Estadísticas
   const renderStatsModal = () => {
     if (!showStats) return null;
     const aprobadasReales = nodes.filter(n => aprobadas.includes(n.id)).length;
@@ -615,6 +571,7 @@ export default function App() {
     );
   };
 
+  // C) Modal de Logros
   const renderAchievementsModal = () => {
     if (!showAchievements) return null;
     const unlockedCount = unlockedAchievements.length; 
@@ -640,19 +597,17 @@ export default function App() {
     );
   };
 
-
-  // ============================================================================
-  // 8. RENDER PRINCIPAL
-  // ============================================================================
-
+  // ==================================================================================
+  // 4. RENDER PRINCIPAL (JSX)
+  // ==================================================================================
   return (
     <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isMatrixMode ? 'matrix-mode' : ''} ${isFooterOpen ? 'footer-open' : ''} ${isDyslexic ? 'dyslexic-mode' : ''} ${isColorblind ? 'colorblind-mode' : ''}`}>
       {isMatrixMode && <MatrixRain />}
       
-      {/* HEADER */}
+      {/* --- HEADER SUPERIOR --- */}
       <div className="app-header">
         
-        {/* Top: Logo & Menu Burger */}
+        {/* Logo & Menú Hamburguesa */}
         <div className="header-top-row">
             <div className="logo-section">
                 <svg className="utn-logo-svg" onMouseEnter={() => triggerAchievement('spider_sense')} viewBox="0 0 595.3 699.4" height="40" fill="currentColor" style={{ minWidth: '30px' }}>
@@ -668,9 +623,8 @@ export default function App() {
             </button>
         </div>
 
-        {/* Right Side: Contadores + Herramientas */}
+        {/* Controles Derechos: Contadores, Botones de Herramientas */}
         <div className={`header-right-side ${showMobileMenu ? 'show' : ''}`}>
-              
               <div className="header-row-top"> 
                 <div className="counter-pill aprobadas" title="Finales aprobados de esta carrera"> <span>✅ <strong>{aprobadasCount}</strong></span> </div>
                 <div className="counter-pill disponibles" title="Materias disponibles"><span>🚀 <strong>{disponiblesCount}</strong></span></div>
@@ -680,64 +634,38 @@ export default function App() {
                 <button onClick={() => setShowAchievements(true)} className="btn-download" style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Ver Logros">🏆</button>
                 <button id="btn-calculator-tour" onClick={() => {setShowCalculator(true); triggerAchievement('the_prophecy');}} className="btn-download" style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)', height: '28px', width: '28px', fontSize: '0.9rem' }} title="Oráculo">🔮</button>
                 <div style={{ width: '1px', height: '15px', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }}></div>
-                <a 
-                  href="#" 
-                  onClick={handleDiscordClick}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="btn-discord" 
-                  title="Necesitas ayuda? Unite a nuestra comunidad!"
-                >
+                
+                <a href="#" onClick={handleDiscordClick} target="_blank" rel="noopener noreferrer" className="btn-discord" title="Necesitas ayuda? Unite a nuestra comunidad!">
                   <DiscordLogo />
                 </a>
+
                 <button onClick={() => setIsDarkMode(!isDarkMode)} className="btn-tool" style={{ background: 'rgba(255,255,255,0.15)' , border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Tema">{isDarkMode ? '☀️' : '🌙'}</button>
-                                {/* BOTÓN DE SONIDO */}
-                <button 
-                  onClick={handleToggleMute} 
-                  className={`btn-tool ${isMuted ? 'active' : ''}`} 
-                  title={isMuted ? 'Activar Sonido' : 'Silenciar Sonido'}
-                  style={{ 
-                    fontSize: '0.9rem', 
-                    padding: '0 8px', 
-                    height: '28px', 
-                    fontWeight: 'bold', 
-                    background: isMuted ? '#ef4444' : (isDarkMode ? '#374151' : '#e2e8f0'), 
-                    color: isMuted ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b') 
-                  }}
-                >
-                  {isMuted ? '🔇' : '🔊'}
-                </button>
+                <button onClick={handleToggleMute} className={`btn-tool ${isMuted ? 'active' : ''}`} title={isMuted ? 'Activar Sonido' : 'Silenciar Sonido'} style={{ fontSize: '0.9rem', padding: '0 8px', height: '28px', fontWeight: 'bold', background: isMuted ? '#ef4444' : (isDarkMode ? '#374151' : '#e2e8f0'), color: isMuted ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b') }}>{isMuted ? '🔇' : '🔊'}</button>
                 <button onClick={() => setIsDyslexic(!isDyslexic)} className={`btn-tool ${isDyslexic ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>👁️ Dislexia</button>
                 <button onClick={() => setIsColorblind(!isColorblind)} className={`btn-tool ${isColorblind ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>🎨 Daltónico</button>
-                
-
               </div>
         </div>
 
-        {/* Bottom: Selector de Carrera */}
+        {/* Selector de Carrera */}
         <div id="carrera-selector-tour" className="carrera-selector-container">
              <CarreraSelector currentCarrera={selectedCarrera} onSelect={handleCarreraChange} />
         </div>
       </div>
       
-      {/* BARRA DE FILTROS & ACCIONES */}
+      {/* --- BARRA DE FILTROS & ACCIONES --- */}
       <div className="filters-bar" style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-        
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
         {(() => {
-          // Diccionario de descripciones
           const filterDescriptions = {
             todas: "Visualiza el mapa completo con todas las conexiones de cursada y finales.",
             cursar: "Muestra solo las correlativas necesarias para cursar. Ideal para inscripciones.",
             final: "Muestra solo los requisitos para rendir finales. Útil para planificar mesas.",
             simplificada: "Vista limpia. Oculta el ruido y destaca solo tus materias disponibles inmediatas."
           };
-          
           return ['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
-              /* 🔥 AQUÍ ESTÁ LA MAGIA: El título descriptivo */
               title={filterDescriptions[mode]} 
               style={{
                 padding: '5px 12px', borderRadius: '15px', border: 'none',
@@ -750,45 +678,22 @@ export default function App() {
             </button>
           ));
         })()}
-
         
-<button 
+        <button 
           id="btn-critical-tour" 
-          /* Usamos la descripción detallada de tu compa */
           title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera." 
-          
-          /* FUSIONAMOS LA LÓGICA: Cambia la vista Y dispara el logro */
-          onClick={() => {
-            setViewMode(viewMode === 'critical' ? 'todas' : 'critical');
-            triggerAchievement('priorities'); 
-          }} 
-          
+          onClick={() => { setViewMode(viewMode === 'critical' ? 'todas' : 'critical'); triggerAchievement('priorities'); }} 
           style={{ 
-            /* Estilos base (Igual a los demás filtros para que quede alineado) */
-            padding: '5px 12px', 
-            borderRadius: '15px', 
-            border: 'none', 
-            cursor: 'pointer', 
-            fontSize: '0.85rem', 
-            transition: 'all 0.2s',
-            
-            /* Colores: Rojo/Fuego si está activo, Gris si no */
+            padding: '5px 12px', borderRadius: '15px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s',
             background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), 
             color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), 
-            
-            /* Layout para el emoji */
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '5px',
-
-            /* ✨ EFECTO NEÓN (Conservado) ✨ */
+            display: 'flex', alignItems: 'center', gap: '5px',
             boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none'
           }}
         >
           🔥 Ruta Crítica
         </button>
 
-        {/* Barra de Progreso */}
         <div className="progress-section" onClick={() =>{ setShowStats(true); triggerAchievement('analist');}} style={{ cursor: 'pointer' }} title="Ver estadísticas detalladas">
             <span className="progress-text">{aprobadasCount}/{totalMaterias} ({porcentaje}%)</span>
             <div className="progress-track">
@@ -802,7 +707,7 @@ export default function App() {
         <button onClick={downloadImage} className="btn-download" title="Guardar imagen">📷</button>
       </div>
 
-      {/* ÁREA DEL GRAFO */}
+      {/* --- ÁREA DEL GRAFO (REACT FLOW) --- */}
       <div style={{ flex: 1, position: 'relative' }}>
         {nodes.length > 0 ? (
           <ReactFlow
@@ -826,14 +731,13 @@ export default function App() {
         )}
       </div>
       
-      {/* LEYENDA */}
+      {/* --- HUD INFERIOR (LEYENDA & FOOTER) --- */}
       <div className="legend-container">
         <div className="legend-item"><div className="legend-dot aprobada"></div><span>Aprobada</span></div>
         <div className="legend-item"><div className="legend-dot disponible"></div><span>Disponible</span></div>
         <div className="legend-item"><div className="legend-dot bloqueada"></div><span>Bloqueada</span></div>
       </div>
       
-      {/* FOOTER */}
       <footer className={`app-footer ${isFooterOpen ? 'open' : ''}`}>
         <button className="footer-toggle-btn" onClick={() => { setIsFooterOpen(!isFooterOpen); if (!isFooterOpen) triggerAchievement('credits_watcher'); }}>
           <span style={{ display: 'inline-block', transform: isFooterOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', marginRight: '5px' }}>▲</span>
@@ -860,9 +764,9 @@ export default function App() {
         </div>
       </footer>
 
-      {/* MODALES */}
+      {/* --- MODALES Y POPUPS --- */}
       
-      {/* 1. Calculadora */}
+      {/* 1. Calculadora Predictiva */}
       {showCalculator && (
         <div className="modal-overlay" onClick={() => setShowCalculator(false)}>
           <div className="calculator-card" onClick={e => e.stopPropagation()}>
@@ -905,22 +809,16 @@ export default function App() {
         </div>
       )}
       
-      {/* 2. Toast LinkedIn */}
+      {/* 2. Toast Notifications (LinkedIn & Discord) */}
       <div className={`toast-notification ${mostrarNotificacion ? 'show' : ''}`}>
         {conteoRegresivo > 0 ? <span>📋 Redirigiendo a LinkedIn en <strong>{conteoRegresivo}...</strong></span> : <span>🚀 ¡Texto copiado!</span>}
       </div>
 
-      {/*Toast Discord (Texto Azul) */}
-      <div 
-        className={`toast-notification ${mostrarNotificacionDiscord ? 'show' : ''}`}
-        style={{ backgroundColor: '#5865F2' }} /* Color oficial de Discord */
-      >
-        <span style={{ color: '#ffffff', fontWeight: 'bold' }}>
-            👾 Redirigiendo al Discord en {conteoDiscord}...
-        </span>
+      <div className={`toast-notification ${mostrarNotificacionDiscord ? 'show' : ''}`} style={{ backgroundColor: '#5865F2' }}>
+        <span style={{ color: '#ffffff', fontWeight: 'bold' }}>👾 Redirigiendo al Discord en {conteoDiscord}...</span>
       </div>
 
-      {/* 3. Notificación Logro */}
+      {/* 3. Popup de Logro */}
       {currentNotification && (
         <div className={`achievement-popup ${isClosing ? 'closing' : ''}`}> 
           <div className="ach-popup-icon">{currentNotification.icon}</div>
@@ -932,27 +830,17 @@ export default function App() {
         </div>
       )}
 
-      {/* 4. Render Helpers */}
-      {renderStatsModal()}
-      {renderTooltip()}
-      {renderAchievementsModal()}
-
-      {typeof editingNoteNode !== 'undefined' && editingNoteNode && (
+      {/* 4. Modal de Notas (Sticky Notes) */}
+      {editingNoteNode && (
         <div className="modal-overlay" onClick={() => setEditingNoteNode(null)}>
           <div className="note-modal-card" onClick={e => e.stopPropagation()}>
-            
             <div className="note-header-row">
-                <h3>
-                  <span className="note-header-icon">📝</span> 
-                  Nota Personal
-                </h3>
+                <h3><span className="note-header-icon">📝</span>Nota Personal</h3>
                 <button className="close-btn" onClick={() => setEditingNoteNode(null)}>×</button>
             </div>
-            
             <p style={{ margin: 0, fontSize: '0.9rem', color: isDarkMode ? '#9ca3af' : '#64748b' }}>
                 Agregando comentario para: <strong style={{color: isDarkMode ? '#f3f4f6' : '#1e293b'}}>{editingNoteNode.nombre}</strong>
             </p>
-            
             <textarea
                 id="note-textarea"
                 className="note-textarea"
@@ -962,29 +850,22 @@ export default function App() {
                 rows={5}
                 spellCheck={false}
             />
-            
             <div className="note-actions">
-                <button 
-                    className="btn-secondary"
-                    onClick={() => {
-                        handleSaveNote(editingNoteNode.id, ''); // Borrar
-                    }}
-                >
-                    Eliminar Nota
-                </button>
-                <button 
-                    className="btn-primary"
-                    onClick={() => {
+                <button className="btn-secondary" onClick={() => handleSaveNote(editingNoteNode.id, '')}>Eliminar Nota</button>
+                <button className="btn-primary" onClick={() => {
                         const val = document.getElementById('note-textarea').value;
                         handleSaveNote(editingNoteNode.id, val);
-                    }}
-                >
-                    Guardar
+                    }}>Guardar
                 </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* --- RENDER HELPERS LLAMADOS AL FINAL --- */}
+      {renderStatsModal()}
+      {renderTooltip()}
+      {renderAchievementsModal()}
 
     </div>
   );

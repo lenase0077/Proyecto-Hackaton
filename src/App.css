@@ -1,24 +1,42 @@
+/* =============================================================================
+   ÍNDICE DE CONTENIDOS
+   =============================================================================
+   1.  IMPORTS & FUENTES ....... Fuentes externas (OpenDyslexic, etc.)
+   2.  VARIABLES (TOKENS) ...... Colores, espaciados, sombras y temas (Dark/Colorblind)
+   3.  RESET & BASE ............ Normalización y estilos globales del body
+   4.  LAYOUT GENERAL .......... Contenedor principal y Scrollbars
+   5.  HEADER & NAVEGACIÓN ..... Barra superior, contadores, herramientas
+   6.  REACT FLOW (GRAFO) ...... Nodos, aristas y paneles del diagrama
+   7.  HUD & UI FLOTANTE ....... Leyenda, Toast, Tooltips, Popup Logros
+   8.  COMPONENTES INTERACTIVOS. Calculadora, Barra Progreso, Botones (Discord/DL)
+   9.  MODALES Y PANELES ....... Modal Logros, Dashboard Estadísticas, Footer
+   10. ANIMACIONES ............. Keyframes globales
+   11. ACCESIBILIDAD ........... Modos especiales (Dislexia)
+   12. MEDIA QUERIES ........... Adaptabilidad responsiva (Mobile/Tablet)
+   ============================================================================= */
 
 /* =========================================================
-   0) FUENTE ACCESIBILIDAD (OpenDyslexic)
+   1. IMPORTS & FUENTES
    ========================================================= */
+/* Importa la fuente OpenDyslexic para el modo de accesibilidad */
 @import url('https://cdn.jsdelivr.net/npm/opendyslexic@2.0.0/open-dyslexic.min.css');
 
+
 /* =========================================================
-   1) VARIABLES & TOKENS (Design System)
+   2. VARIABLES (TOKENS DE DISEÑO)
    ========================================================= */
 :root {
-  /* Tipografías */
+  /* -- TIPOGRAFÍAS -- */
   --font-base: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-dys: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
 
-  /* Colores base claros */
-  --bg: #f8fafc;
-  --text: #1e293b;
-  --muted: #64748b;
-  --border: #e2e8f0;
+  /* -- PALETA DE COLORES BASE (Modo Claro) -- */
+  --bg: #f8fafc;        /* Fondo principal */
+  --text: #1e293b;      /* Color de texto principal */
+  --muted: #64748b;     /* Texto secundario/deshabilitado */
+  --border: #e2e8f0;    /* Bordes sutiles */
 
-  /* Accentos */
+  /* -- COLORES DE ACENTO -- */
   --accent-blue: #3b82f6;
   --accent-blue-dark: #2563eb;
   --accent-green: #10b981;
@@ -26,7 +44,7 @@
   --accent-red: #ef4444;
   --accent-purple: #8b5cf6;
 
-  /* Grises */
+  /* -- ESCALA DE GRISES -- */
   --gray-50: #f8fafc;
   --gray-100: #f1f5f9;
   --gray-300: #e2e8f0;
@@ -34,31 +52,32 @@
   --gray-500: #64748b;
   --gray-700: #374151;
 
-  /* Sombras & efectos */
+  /* -- SOMBRAS (Elevación) -- */
   --shadow-sm: 0 2px 5px rgba(0,0,0,0.1);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.2);
   --shadow-xl: 0 20px 50px rgba(0,0,0,0.3);
 
-  /* Transiciones */
+  /* -- TRANSICIONES -- */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-strong: cubic-bezier(0.23, 1, 0.32, 1);
 
-  /* Gradientes */
+  /* -- GRADIENTES -- */
   --grad-blue-green: linear-gradient(90deg, #3b82f6, #10b981);
   --grad-violet-indigo: linear-gradient(135deg, #8b5cf6, #6366f1);
 
-  /* Dimensiones */
+  /* -- BORDES REDONDEADOS -- */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-pill: 50px;
 
-  /* Footer */
+  /* -- DIMENSIONES FIJAS -- */
   --footer-height: 150px;
 }
 
+/* -- TEMA OSCURO (Sobreescribe variables) -- */
 .app-container.dark-mode {
   --bg: #111827;
   --text: #f3f4f6;
@@ -67,8 +86,8 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
+/* -- TEMA DALTONISMO (Tokens específicos para la leyenda) -- */
 .app-container.colorblind-mode {
-  /* Solo se modifican tokens usados por la leyenda */
   --legend-approved-bg: #ffedd5;
   --legend-approved-brd: #d55e00;
   --legend-available-bg: #f0f9ff;
@@ -77,23 +96,28 @@
   --legend-blocked-brd: #000000;
 }
 
+
 /* =========================================================
-   2) RESET & BASE
+   3. RESET & BASE
    ========================================================= */
+/* Reseteo básico de márgenes y modelo de caja */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Configuración de altura completa y fuentes base */
 html, body, #root {
   width: 100%;
   height: 100%;
   font-family: var(--font-base);
-  overflow: hidden;
+  overflow: hidden; /* Evita scroll en el body, lo maneja el container */
   background-color: var(--bg);
   color: var(--text);
 }
 
+
 /* =========================================================
-   3) LAYOUT GENERAL
+   4. LAYOUT GENERAL
    ========================================================= */
+/* Contenedor principal de la aplicación (Flex Column) */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -102,21 +126,100 @@ html, body, #root {
   color: var(--text);
 }
 
-/* =========================================================
-   4) SCROLLBARS (WebKit)
-   ========================================================= */
+/* -- SCROLLBARS PERSONALIZADOS (WebKit) -- */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #555; }
 
+/* Scrollbars para modo oscuro */
 .app-container.dark-mode ::-webkit-scrollbar-track { background: #374151; }
 .app-container.dark-mode ::-webkit-scrollbar-thumb { background: #6b7280; }
 .app-container.dark-mode ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
+
 /* =========================================================
-   5) REACT FLOW (Nodos & Aristas)
+   5. HEADER & NAVEGACIÓN
    ========================================================= */
+/* Barra superior principal */
+.app-header {
+  background: var(--accent-blue);
+  color: #fff;
+  padding: 10px 20px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.3s var(--ease);
+  flex-wrap: wrap;
+}
+.app-container.dark-mode .app-header { background: #1f2937; }
+
+/* Estructura interna del header */
+.header-top-row { display: flex; align-items: center; justify-content: space-between; }
+.logo-section { display: flex; align-items: center; gap: 12px; }
+
+/* Títulos y subtítulos */
+.title-container h1 { margin: 0; font-size: 1.3rem; line-height: 1; }
+.title-container p { margin: 0; font-size: 0.8rem; opacity: 0.9; }
+
+/* Menú hamburguesa (visible solo en móvil) */
+.mobile-menu-toggle {
+  display: none;
+  background: rgba(255,255,255,0.2);
+  border: none; color: #fff;
+  font-size: 1.2rem; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;
+}
+
+/* Contenedor derecho (Contadores + Herramientas) */
+.header-right-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.header-row-top, .header-row-bottom { display: flex; align-items: center; gap: 8px; }
+
+/* Píldoras de contadores (Aprobadas/Disponibles) */
+.counters-container { display: flex; gap: 10px; }
+.counter-pill {
+  padding: 0 12px; border-radius: 20px; font-size: 0.85rem; height: 32px;
+  display: flex; align-items: center; white-space: nowrap;
+}
+.counter-pill.aprobadas {
+  background: rgba(34,197,94,0.25); border: 1px solid rgba(34,197,94,0.5); color: #86efac;
+}
+.counter-pill.disponibles {
+  background: rgba(59,130,246,0.25); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd;
+}
+
+/* Barra de herramientas y selector de carrera */
+.tools-container { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.tools-row { display: flex; gap: 8px; align-items: center; }
+
+/* Botones de herramientas del header */
+.btn-tool {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; padding: 0 12px; height: 32px;
+  border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+}
+.btn-tool:hover { transform: translateY(-2px); background: rgba(255,255,255,0.2); }
+.btn-tool.gold { color: #fcd34d; border-color: rgba(251,191,36,0.4); }
+.btn-tool.purple { color: #d8b4fe; border-color: rgba(167,139,250,0.4); }
+.btn-tool.active { background: var(--accent-amber); border-color: var(--accent-amber); color: #1e293b; font-weight: 700; }
+
+/* Botones circulares (iconos solos) */
+.btn-circle {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+/* Selector de carrera scrolleable */
+.carrera-selector-container { width: 100%; overflow-x: auto; padding-top: 5px; }
+.btn-text { display: none; }
+@media (min-width: 1024px) { .btn-text { display: inline; } }
+
+
+/* =========================================================
+   6. REACT FLOW (GRAFO DE MATERIAS)
+   ========================================================= */
+/* Estilos para los nodos (materias) */
 .react-flow__node {
   cursor: pointer;
   transition: all 0.3s var(--ease);
@@ -126,6 +229,7 @@ html, body, #root {
   box-shadow: 0 12px 20px -5px rgba(0,0,0,0.3);
   z-index: 1000 !important;
 }
+/* Efecto cuando el nodo está seleccionado o en hover relacionado */
 .react-flow__node.selected-hover {
   border-width: 3px !important;
   border-color: var(--accent-amber) !important;
@@ -133,6 +237,7 @@ html, body, #root {
   animation: pulse 2s infinite;
 }
 
+/* Estilos para las conexiones (aristas) */
 .react-flow__edge { pointer-events: none !important; }
 .react-flow__edge.inactive {
   opacity: 0.15 !important;
@@ -144,13 +249,12 @@ html, body, #root {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-/* Panel inferior de ReactFlow cuando abre footer */
+/* Panel inferior de controles (Zoom, etc) */
 .react-flow__panel.bottom { transition: bottom 0.5s var(--ease-strong) !important; }
+/* Ajuste cuando el footer se abre */
 .app-container.footer-open .react-flow__panel.bottom { bottom: var(--footer-height) !important; }
 
-/* =========================================================
-   6) TOOLTIP DE NODO
-   ========================================================= */
+/* Tooltip nativo del nodo (información rápida) */
 .node-tooltip {
   position: absolute;
   background: rgba(0,0,0,0.8);
@@ -165,91 +269,11 @@ html, body, #root {
   backdrop-filter: blur(4px);
 }
 
-/* =========================================================
-   7) FOOTER DESPLEGABLE
-   ========================================================= */
-.app-footer {
-  position: fixed; bottom: 0; left: 0; width: 100%;
-  z-index: 9000;
-  transform: translateY(100%);
-  transition: transform 0.5s var(--ease-strong), opacity 0.5s ease-out;
-  padding: 15px 40px; font-size: 13px;
-  background-color: rgba(248, 250, 252, 0.95);
-  backdrop-filter: blur(12px);
-  color: #64748b;
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.01);
-}
-.app-footer.open {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: all;
-}
-
-.footer-toggle-btn {
-  position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-  height: 30px; padding: 0 25px;
-  background-color: var(--accent-blue); color: #fff;
-  border: none; border-radius: 10px 10px 0 0;
-  font-size: 11px; font-weight: 700; cursor: pointer;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 9002; transition: background 0.3s;
-}
-.footer-toggle-btn:hover { background-color: var(--accent-blue-dark); padding-bottom: 5px; }
-
-.footer-container {
-  max-width: 1200px; margin: 0 auto;
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 15px;
-}
-
-.footer-brand { max-width: 700px; text-align: left; }
-.footer-brand h3 { margin: 0 0 2px 0; color: var(--accent-blue); font-size: 1rem; }
-.footer-brand p { margin: 0 0 8px 0; opacity: 0.8; line-height: 1.3; }
-.copyright { display: block; margin-top: 5px; font-size: 0.75rem; opacity: 0.6; }
-
-.footer-team { display: flex; flex-direction: column; align-items: center; }
-.footer-team h4 {
-  margin: 0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;
-  letter-spacing: 1px; opacity: 0.7; text-align: center;
-}
-
-.team-grid {
-  display: grid; grid-template-columns: auto auto;
-  gap: 4px 25px; text-align: left; justify-content: center;
-}
-
-.team-link {
-  text-decoration: none; color: #475569; font-weight: 500;
-  transition: all 0.3s var(--ease);
-  position: relative; display: inline-block; white-space: nowrap; font-size: 0.85rem;
-}
-.team-link:hover { color: var(--accent-blue); transform: translateY(-1px); text-shadow: 0 0 1px rgba(59,130,246,0.3); }
-.team-link::after {
-  content: ''; position: absolute; width: 0; height: 2px; bottom: -1px; left: 0; right: 0; margin: 0 auto;
-  background-color: var(--accent-blue); transition: width 0.3s var(--ease);
-}
-.team-link:hover::after { width: 100%; }
-
-/* Footer dark */
-.app-container.dark-mode .app-footer {
-  background-color: rgba(17,24,39,0.98); color: #9ca3af; border-top: 1px solid #374151;
-}
-.app-container.dark-mode .footer-toggle-btn {
-  background-color: #374151; color: #e5e7eb; border: 1px solid #4b5563; border-bottom: none;
-}
-.app-container.dark-mode .footer-toggle-btn:hover { background-color: #4b5563; }
-.app-container.dark-mode .footer-brand h3 { color: #60a5fa; }
-.app-container.dark-mode .team-link { color: #cbd5e1; }
-.app-container.dark-mode .team-link:hover { color: #60a5fa; }
-.app-container.dark-mode .team-link::after { background-color: #60a5fa; }
-
-.app-container.footer-open .legend-container { bottom: var(--footer-height); }
 
 /* =========================================================
-   8) LEYENDA (Estados)
+   7. HUD & UI FLOTANTE
    ========================================================= */
+/* -- LEYENDA DE ESTADOS (Abajo izquierda) -- */
 .legend-container {
   position: absolute; bottom: 20px; left: 20px;
   display: flex; gap: 15px; padding: 10px 15px;
@@ -261,10 +285,13 @@ html, body, #root {
 }
 .legend-item { display: flex; align-items: center; gap: 6px; }
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+/* Estados de la leyenda */
 .legend-dot.aprobada { background: #dcfce7; border: 2px solid #16a34a; }
 .legend-dot.disponible { background: #fff; border: 2px solid var(--accent-blue); }
 .legend-dot.bloqueada { background: #f3f4f6; border: 2px solid #9ca3af; }
 
+/* Leyenda en Modo Oscuro */
 .app-container.dark-mode .legend-container {
   background: rgba(31,41,55,0.9); color: var(--text); border-color: var(--border);
 }
@@ -272,7 +299,7 @@ html, body, #root {
 .app-container.dark-mode .legend-dot.disponible { background: #1e293b; border-color: #60a5fa; }
 .app-container.dark-mode .legend-dot.bloqueada { background: #374151; border-color: #6b7280; }
 
-/* Colorblind overrides (usa tokens definidos arriba) */
+/* Leyenda en Modo Daltonismo (Overrides) */
 .app-container.colorblind-mode .legend-dot.aprobada {
   background: var(--legend-approved-bg, #ffedd5);
   border: 2px solid var(--legend-approved-brd, #d55e00);
@@ -286,118 +313,10 @@ html, body, #root {
   border: 2px solid var(--legend-blocked-brd, #000000);
 }
 
-/* =========================================================
-   9) LOGO UTN (Animación)
-   ========================================================= */
-.utn-logo-svg {
-  transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1), fill 0.2s ease;
-  transform-origin: center;
-  filter: drop-shadow(0 0 2px rgba(255,255,255,0.1));
-}
-.utn-logo-svg:hover {
-  transform: translateY(-15px) rotate(360deg);
-  animation: rainbow-party 1.5s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
-  cursor: grab;
-}
+/* Ajuste de posición cuando abre el footer */
+.app-container.footer-open .legend-container { bottom: var(--footer-height); }
 
-/* =========================================================
-   10) ACCESIBILIDAD (Dislexia)
-   ========================================================= */
-.app-container.dyslexic-mode,
-.app-container.dyslexic-mode * {
-  font-family: var(--font-dys) !important;
-  line-height: 1.6 !important;
-  letter-spacing: 0.05em !important;
-}
-
-/* =========================================================
-   11) HEADER
-   ========================================================= */
-.app-header {
-  background: var(--accent-blue);
-  color: #fff;
-  padding: 10px 20px;
-  display: flex; justify-content: space-between; align-items: flex-start;
-  gap: 0; border-bottom: 1px solid rgba(255,255,255,0.1);
-  transition: background 0.3s var(--ease);
-  flex-wrap: wrap;
-}
-.app-container.dark-mode .app-header { background: #1f2937; }
-
-.header-top-row { display: flex; align-items: center; justify-content: space-between; }
-.logo-section { display: flex; align-items: center; gap: 12px; }
-.title-container h1 { margin: 0; font-size: 1.3rem; line-height: 1; }
-.title-container p { margin: 0; font-size: 0.8rem; opacity: 0.9; }
-
-.mobile-menu-toggle {
-  display: none;
-  background: rgba(255,255,255,0.2);
-  border: none; color: #fff;
-  font-size: 1.2rem; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;
-}
-
-.header-right-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.header-row-top, .header-row-bottom { display: flex; align-items: center; gap: 8px; }
-
-.counters-container { display: flex; gap: 10px; }
-.counter-pill {
-  padding: 0 12px; border-radius: 20px; font-size: 0.85rem; height: 32px;
-  display: flex; align-items: center; white-space: nowrap;
-}
-.counter-pill.aprobadas {
-  background: rgba(34,197,94,0.25); border: 1px solid rgba(34,197,94,0.5); color: #86efac;
-}
-.counter-pill.disponibles {
-  background: rgba(59,130,246,0.25); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd;
-}
-
-.tools-container { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.tools-row { display: flex; gap: 8px; align-items: center; }
-
-.btn-tool {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #fff; padding: 0 12px; height: 32px;
-  border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem;
-  display: flex; align-items: center; gap: 6px; transition: all 0.2s;
-}
-.btn-tool:hover { transform: translateY(-2px); background: rgba(255,255,255,0.2); }
-.btn-tool.gold { color: #fcd34d; border-color: rgba(251,191,36,0.4); }
-.btn-tool.purple { color: #d8b4fe; border-color: rgba(167,139,250,0.4); }
-.btn-tool.active { background: var(--accent-amber); border-color: var(--accent-amber); color: #1e293b; font-weight: 700; }
-
-.btn-circle {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: rgba(255,255,255,0.15); border: none; color: #fff;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-}
-
-.carrera-selector-container { width: 100%; overflow-x: auto; padding-top: 5px; }
-.btn-text { display: none; }
-@media (min-width: 1024px) { .btn-text { display: inline; } }
-
-/* =========================================================
-   12) BARRA DE PROGRESO (única versión deduplicada)
-   ========================================================= */
-.progress-section { display: flex; align-items: center; gap: 12px; margin-left: auto; }
-.progress-text { font-size: 0.85rem; font-weight: 600; color: #475569; white-space: nowrap; }
-.progress-track {
-  width: 150px; height: 10px; background-color: var(--border);
-  border-radius: 20px; overflow: hidden; position: relative;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-}
-.progress-fill {
-  height: 100%; background: var(--grad-blue-green);
-  border-radius: 20px; transition: width 0.6s var(--ease);
-  box-shadow: 0 0 10px rgba(16,185,129,0.3);
-}
-.app-container.dark-mode .progress-text { color: #cbd5e1; }
-.app-container.dark-mode .progress-track { background-color: #374151; }
-
-/* =========================================================
-   13) SMART TOOLTIP (Requisitos)
-   ========================================================= */
+/* -- SMART TOOLTIP (Lista de Correlativas a la derecha) -- */
 .smart-tooltip {
   position: absolute; top: 90px; right: 20px; width: 280px;
   background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
@@ -421,6 +340,7 @@ html, body, #root {
 }
 .tooltip-list li:last-child { border-bottom: none; }
 
+/* Smart Tooltip Modo Oscuro */
 .app-container.dark-mode .smart-tooltip {
   background: rgba(31,41,55,0.95);
   border-left-color: #f87171;
@@ -431,25 +351,7 @@ html, body, #root {
 .app-container.dark-mode .tooltip-label { color: #94a3b8; }
 .app-container.dark-mode .tooltip-list li { color: #fca5a5; border-bottom-color: rgba(252,165,165,0.2); }
 
-/* =========================================================
-   14) BOTÓN DESCARGA (utilidad)
-   ========================================================= */
-.btn-download {
-  background: transparent; border: 1px solid rgba(150,150,150,0.3);
-  cursor: pointer; border-radius: var(--radius-sm);
-  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; transition: all 0.2s var(--ease);
-}
-.btn-download:hover {
-  background: var(--accent-blue); border-color: var(--accent-blue);
-  transform: scale(1.1); box-shadow: var(--shadow-sm);
-}
-.app-container.dark-mode .btn-download { border-color: rgba(255,255,255,0.2); color: #fff; }
-.app-container.dark-mode .btn-download:hover { background: var(--accent-amber); border-color: var(--accent-amber); }
-
-/* =========================================================
-   15) TOAST (Mensaje flotante)
-   ========================================================= */
+/* -- TOAST NOTIFICATION (Mensaje flotante inferior) -- */
 .toast-notification {
   position: fixed; bottom: 80px; left: 50%;
   transform: translateX(-50%) translateY(20px);
@@ -466,15 +368,173 @@ html, body, #root {
   box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
 }
 
+/* -- ACHIEVEMENT POPUP (Notificación superior de logro desbloqueado) -- */
+.achievement-popup {
+  position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+  width: 320px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+  padding: 15px 20px; border-radius: var(--radius-lg);
+  border-left: 6px solid var(--accent-amber);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 10000;
+  display: flex; align-items: center; gap: 15px;
+  animation: achievementSlideDown 0.6s cubic-bezier(0.68,-0.55,0.27,1.55) forwards;
+}
+.ach-popup-icon {
+  font-size: 2.5rem; background: #fffbeb; width: 50px; height: 50px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm); animation: spinTrophy 1s ease-out;
+}
+.ach-popup-content { flex: 1; }
+.ach-popup-header { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-amber); font-weight: 800; margin-bottom: 2px; }
+.ach-popup-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 0; line-height: 1.2; }
+.ach-popup-desc { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.achievement-popup.closing {
+  animation: achievementSlideUp 0.6s cubic-bezier(0.68,-0.55,0.27,1.55) forwards;
+}
+
+/* Achievement Popup Modo Oscuro */
+.app-container.dark-mode .achievement-popup {
+  background: rgba(31,41,55,0.95); border-left-color: #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.app-container.dark-mode .ach-popup-icon { background: #374151; }
+.app-container.dark-mode .ach-popup-title { color: var(--text); }
+.app-container.dark-mode .ach-popup-desc { color: #9ca3af; }
+
+
 /* =========================================================
-   16) MODAL DE LOGROS
+   8. COMPONENTES INTERACTIVOS
    ========================================================= */
+/* -- BARRA DE PROGRESO (Header) -- */
+.progress-section { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.progress-text { font-size: 0.85rem; font-weight: 600; color: #475569; white-space: nowrap; }
+.progress-track {
+  width: 150px; height: 10px; background-color: var(--border);
+  border-radius: 20px; overflow: hidden; position: relative;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+.progress-fill {
+  height: 100%; background: var(--grad-blue-green);
+  border-radius: 20px; transition: width 0.6s var(--ease);
+  box-shadow: 0 0 10px rgba(16,185,129,0.3);
+}
+.app-container.dark-mode .progress-text { color: #cbd5e1; }
+.app-container.dark-mode .progress-track { background-color: #374151; }
+
+/* -- CALCULADORA PREDICTIVA (Widget flotante) -- */
+.calculator-card {
+  background: rgba(255,255,255,0.95);
+  width: 90%; max-width: 450px; border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(139,92,246,0.25);
+  overflow: hidden; animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px);
+}
+.calc-header { background: var(--grad-violet-indigo); padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #fff; }
+.calc-header h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+.calc-header .close-btn { color: #fff; opacity: 0.8; font-size: 2rem; }
+.calc-header .close-btn:hover { opacity: 1; }
+.calc-body { padding: 25px; }
+.calc-intro { font-size: 0.9rem; color: var(--muted); margin-bottom: 25px; text-align: center; line-height: 1.5; }
+
+/* Slider de la calculadora */
+.slider-container { margin-bottom: 30px; text-align: center; }
+.slider-container label { display: block; font-weight: 600; color: #1e293b; margin-bottom: 15px; font-size: 0.95rem; }
+.ritmo-badge { background: var(--accent-purple); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-size: 1rem; }
+.ritmo-slider {
+  width: 100%; height: 6px; background: var(--border); border-radius: 5px; outline: none;
+  -webkit-appearance: none; cursor: pointer;
+}
+.ritmo-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent-purple); border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: grab; transition: transform 0.1s;
+}
+.ritmo-slider::-webkit-slider-thumb:active { transform: scale(1.2); }
+.slider-labels {
+  display: flex; justify-content: space-between; margin-top: 8px;
+  font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;
+}
+
+/* Resultados de la calculadora */
+.prediction-result {
+  background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 15px; padding: 20px;
+  text-align: center; transition: all 0.3s var(--ease);
+}
+.pred-label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
+.pred-date {
+  font-size: 2rem; margin: 5px 0;
+  background: -webkit-linear-gradient(45deg, #8b5cf6, #ec4899);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(139,92,246,0.2);
+}
+.pred-details { display: block; font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
+
+/* Calculadora Modo Oscuro */
+.app-container.dark-mode .calculator-card { background: #1e293b; border-color: #334155; }
+.app-container.dark-mode .calc-intro { color: #94a3b8; }
+.app-container.dark-mode .slider-container label { color: #e2e8f0; }
+.app-container.dark-mode .ritmo-slider { background: #334155; }
+.app-container.dark-mode .prediction-result { background: #0f172a; border-color: #334155; }
+
+/* -- BOTÓN DESCARGA (Utilidad header) -- */
+.btn-download {
+  background: transparent; border: 1px solid rgba(150,150,150,0.3);
+  cursor: pointer; border-radius: var(--radius-sm);
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; transition: all 0.2s var(--ease);
+}
+.btn-download:hover {
+  background: var(--accent-blue); border-color: var(--accent-blue);
+  transform: scale(1.1); box-shadow: var(--shadow-sm);
+}
+.app-container.dark-mode .btn-download { border-color: rgba(255,255,255,0.2); color: #fff; }
+.app-container.dark-mode .btn-download:hover { background: var(--accent-amber); border-color: var(--accent-amber); }
+
+/* -- BOTÓN DISCORD (Comunidad) -- */
+.btn-discord {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(88, 101, 242, 0.15);
+  border: 1px solid rgba(59, 71, 204, 0.3);
+  color: #ffffff;
+  text-decoration: none; transition: all 0.2s ease; cursor: pointer;
+}
+.btn-discord:hover {
+  background: #5865F2; border-color: #5865F2;
+  color: white; transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(88, 101, 242, 0.4);
+}
+.app-container.dark-mode .btn-discord {
+  background: rgba(88, 101, 242, 0.2); border-color: rgba(88, 101, 242, 0.5); color: #7289da;
+}
+.app-container.dark-mode .btn-discord:hover { background: #5865F2; color: white; }
+
+/* -- LOGO UTN (Con animación al hover) -- */
+.utn-logo-svg {
+  transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1), fill 0.2s ease;
+  transform-origin: center;
+  filter: drop-shadow(0 0 2px rgba(255,255,255,0.1));
+}
+.utn-logo-svg:hover {
+  transform: translateY(-15px) rotate(360deg);
+  animation: rainbow-party 1.5s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
+  cursor: grab;
+}
+
+
+/* =========================================================
+   9. MODALES Y PANELES GRANDES
+   ========================================================= */
+/* -- OVERLAY GLOBAL PARA MODALES -- */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
   z-index: 9999; display: flex; justify-content: center; align-items: center;
   animation: fadeIn 0.2s ease;
 }
+
+/* -- MODAL DE LOGROS (Lista completa) -- */
 .modal-content.achievements-modal {
   background: #fff; width: 90%; max-width: 500px; max-height: 80vh;
   border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-xl);
@@ -490,13 +550,12 @@ html, body, #root {
 }
 .achievements-list { overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 10px; }
 
+/* Tarjetas individuales de logros */
 .achievement-card {
   display: flex; align-items: center; gap: 15px; padding: 12px;
   border-radius: 10px; border: 1px solid var(--border); transition: all 0.2s var(--ease);
 }
-.achievement-card.locked {
-  background: var(--bg); opacity: 0.7; filter: grayscale(1);
-}
+.achievement-card.locked { background: var(--bg); opacity: 0.7; filter: grayscale(1); }
 .achievement-card.unlocked {
   background: linear-gradient(135deg, #fff, #f0f9ff);
   border-color: var(--accent-blue);
@@ -512,7 +571,7 @@ html, body, #root {
 .ach-info p { margin: 0; font-size: 0.8rem; color: var(--muted); }
 .ach-check { margin-left: auto; color: var(--accent-green); font-weight: bold; font-size: 1.2rem; }
 
-/* Dark modal */
+/* Modal Logros Modo Oscuro */
 .app-container.dark-mode .modal-content { background: #1f2937; color: var(--text); }
 .app-container.dark-mode .modal-header h2 { color: var(--text); }
 .app-container.dark-mode .achievement-card.locked { background: #111827; border-color: #374151; }
@@ -522,102 +581,136 @@ html, body, #root {
 .app-container.dark-mode .ach-info p { color: #9ca3af; }
 .app-container.dark-mode .achievements-progress { background: #111827; color: #cbd5e1; }
 
-/* =========================================================
-   17) CALCULADORA PREDICTIVA
-   ========================================================= */
-.calculator-card {
-  background: rgba(255,255,255,0.95);
-  width: 90%; max-width: 450px; border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(139,92,246,0.25);
-  overflow: hidden; animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px);
-}
-.calc-header { background: var(--grad-violet-indigo); padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #fff; }
-.calc-header h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-.calc-header .close-btn { color: #fff; opacity: 0.8; font-size: 2rem; }
-.calc-header .close-btn:hover { opacity: 1; }
-.calc-body { padding: 25px; }
-.calc-intro { font-size: 0.9rem; color: var(--muted); margin-bottom: 25px; text-align: center; line-height: 1.5; }
 
-.slider-container { margin-bottom: 30px; text-align: center; }
-.slider-container label { display: block; font-weight: 600; color: #1e293b; margin-bottom: 15px; font-size: 0.95rem; }
-.ritmo-badge { background: var(--accent-purple); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-size: 1rem; }
+/* -- DASHBOARD DE MÉTRICAS (Estadísticas) -- */
+.stats-modal-content {
+  background: white;
+  width: 90%; max-width: 700px; border-radius: 20px; padding: 30px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative; animation: scaleIn 0.3s ease;
+  max-height: 90vh; overflow-y: auto; border: 6px solid #e2e8f0;
+}
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+.stat-card {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.stat-title {
+  font-size: 0.9rem; font-weight: 600; color: #64748b; margin-bottom: 15px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+/* Gráficos circulares SVG */
+.chart-container { position: relative; width: 150px; height: 150px; margin-bottom: 10px; }
+.chart-center-text {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center;
+}
+.chart-percentage { font-size: 1.8rem; font-weight: 800; color: #1e293b; line-height: 1; }
+.chart-label { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; text-transform: uppercase; }
+.circular-chart { display: block; margin: 0 auto; max-width: 100%; max-height: 100%; }
+.circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 2.5; }
+.circle {
+  fill: none; stroke-width: 2.5; stroke-linecap: round;
+  animation: progress 1.5s ease-out forwards;
+}
+/* Colores de gráficos */
+.stroke-blue { stroke: #3b82f6; }
+.stroke-green { stroke: #10b981; }
+.stroke-orange { stroke: #f59e0b; }
+.stroke-gray { stroke: #94a3b8; }
+/* Quote motivacional */
+.motivational-quote {
+  margin-top: 30px; padding: 15px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: 12px; color: #1e40af; font-weight: 500;
+  text-align: center; font-size: 1.1rem; border-left: 5px solid #3b82f6;
+}
 
-.ritmo-slider {
-  width: 100%; height: 6px; background: var(--border); border-radius: 5px; outline: none;
-  -webkit-appearance: none; cursor: pointer;
-}
-.ritmo-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: var(--accent-purple); border: 3px solid #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  cursor: grab; transition: transform 0.1s;
-}
-.ritmo-slider::-webkit-slider-thumb:active { transform: scale(1.2); }
-
-.slider-labels {
-  display: flex; justify-content: space-between; margin-top: 8px;
-  font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;
+/* Dashboard Modo Oscuro */
+.app-container.dark-mode .stats-modal-content { background: #1f2937; color: #f3f4f6; border-color: #374151; }
+.app-container.dark-mode .stat-card { background: #111827; border-color: #374151; }
+.app-container.dark-mode .stat-title { color: #94a3b8; }
+.app-container.dark-mode .chart-percentage { color: #f3f4f6; }
+.app-container.dark-mode .circle-bg { stroke: #374151; }
+.app-container.dark-mode .motivational-quote {
+  background: linear-gradient(135deg, #1e3a8a, #172554);
+  color: #bfdbfe; border-left-color: #60a5fa;
 }
 
-.prediction-result {
-  background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 15px; padding: 20px;
-  text-align: center; transition: all 0.3s var(--ease);
-}
-.pred-label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
-.pred-date {
-  font-size: 2rem; margin: 5px 0;
-  background: -webkit-linear-gradient(45deg, #8b5cf6, #ec4899);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  text-shadow: 0 2px 10px rgba(139,92,246,0.2);
-}
-.pred-details { display: block; font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
 
-.app-container.dark-mode .calculator-card { background: #1e293b; border-color: #334155; }
-.app-container.dark-mode .calc-intro { color: #94a3b8; }
-.app-container.dark-mode .slider-container label { color: #e2e8f0; }
-.app-container.dark-mode .ritmo-slider { background: #334155; }
-.app-container.dark-mode .prediction-result { background: #0f172a; border-color: #334155; }
-
-/* =========================================================
-   18) ACHIEVEMENT POPUP
-   ========================================================= */
-.achievement-popup {
-  position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-  width: 320px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-  padding: 15px 20px; border-radius: var(--radius-lg);
-  border-left: 6px solid var(--accent-amber);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 10000;
-  display: flex; align-items: center; gap: 15px;
-  animation: achievementSlideDown 0.6s cubic-bezier(0.68,-0.55,0.27,1.55) forwards;
+/* -- FOOTER DESPLEGABLE -- */
+.app-footer {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  z-index: 9000; transform: translateY(100%);
+  transition: transform 0.5s var(--ease-strong), opacity 0.5s ease-out;
+  padding: 15px 40px; font-size: 13px;
+  background-color: rgba(248, 250, 252, 0.95);
+  backdrop-filter: blur(12px); color: #64748b;
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.01);
 }
-@keyframes achievementSlideDown { 0% { top: -100px; opacity: 0; } 100% { top: 80px; opacity: 1; } }
-.ach-popup-icon {
-  font-size: 2.5rem; background: #fffbeb; width: 50px; height: 50px; border-radius: 50%;
+.app-footer.open { transform: translateY(0); opacity: 1; pointer-events: all; }
+
+/* Botón pestaña para abrir footer */
+.footer-toggle-btn {
+  position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+  height: 30px; padding: 0 25px;
+  background-color: var(--accent-blue); color: #fff;
+  border: none; border-radius: 10px 10px 0 0;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-sm); animation: spinTrophy 1s ease-out;
+  z-index: 9002; transition: background 0.3s;
 }
-@keyframes spinTrophy { from { transform: rotate(-180deg) scale(0); } to { transform: rotate(0) scale(1); } }
-.ach-popup-content { flex: 1; }
-.ach-popup-header { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-amber); font-weight: 800; margin-bottom: 2px; }
-.ach-popup-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 0; line-height: 1.2; }
-.ach-popup-desc { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.footer-toggle-btn:hover { background-color: var(--accent-blue-dark); padding-bottom: 5px; }
 
-.app-container.dark-mode .achievement-popup {
-  background: rgba(31,41,55,0.95); border-left-color: #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+/* Contenido del footer */
+.footer-container {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 15px;
 }
-.app-container.dark-mode .ach-popup-icon { background: #374151; }
-.app-container.dark-mode .ach-popup-title { color: var(--text); }
-.app-container.dark-mode .ach-popup-desc { color: #9ca3af; }
+.footer-brand { max-width: 700px; text-align: left; }
+.footer-brand h3 { margin: 0 0 2px 0; color: var(--accent-blue); font-size: 1rem; }
+.footer-brand p { margin: 0 0 8px 0; opacity: 0.8; line-height: 1.3; }
+.copyright { display: block; margin-top: 5px; font-size: 0.75rem; opacity: 0.6; }
+.footer-team { display: flex; flex-direction: column; align-items: center; }
+.footer-team h4 {
+  margin: 0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;
+  letter-spacing: 1px; opacity: 0.7; text-align: center;
+}
+.team-grid {
+  display: grid; grid-template-columns: auto auto;
+  gap: 4px 25px; text-align: left; justify-content: center;
+}
+.team-link {
+  text-decoration: none; color: #475569; font-weight: 500;
+  transition: all 0.3s var(--ease);
+  position: relative; display: inline-block; white-space: nowrap; font-size: 0.85rem;
+}
+.team-link:hover { color: var(--accent-blue); transform: translateY(-1px); text-shadow: 0 0 1px rgba(59,130,246,0.3); }
+.team-link::after {
+  content: ''; position: absolute; width: 0; height: 2px; bottom: -1px; left: 0; right: 0; margin: 0 auto;
+  background-color: var(--accent-blue); transition: width 0.3s var(--ease);
+}
+.team-link:hover::after { width: 100%; }
 
-.achievement-popup.closing {
-  animation: achievementSlideUp 0.6s cubic-bezier(0.68,-0.55,0.27,1.55) forwards;
+/* Footer Modo Oscuro */
+.app-container.dark-mode .app-footer {
+  background-color: rgba(17,24,39,0.98); color: #9ca3af; border-top: 1px solid #374151;
 }
-@keyframes achievementSlideUp { 0% { top: 80px; opacity: 1; } 100% { top: -100px; opacity: 0; } }
+.app-container.dark-mode .footer-toggle-btn {
+  background-color: #374151; color: #e5e7eb; border: 1px solid #4b5563; border-bottom: none;
+}
+.app-container.dark-mode .footer-toggle-btn:hover { background-color: #4b5563; }
+.app-container.dark-mode .footer-brand h3 { color: #60a5fa; }
+.app-container.dark-mode .team-link { color: #cbd5e1; }
+.app-container.dark-mode .team-link:hover { color: #60a5fa; }
+.app-container.dark-mode .team-link::after { background-color: #60a5fa; }
+
 
 /* =========================================================
-   19) ANIMACIONES CLAVE
+   10. ANIMACIONES (Keyframes)
    ========================================================= */
 @keyframes pulse {
   0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
@@ -632,18 +725,38 @@ html, body, #root {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes achievementSlideDown { 0% { top: -100px; opacity: 0; } 100% { top: 80px; opacity: 1; } }
+@keyframes achievementSlideUp { 0% { top: 80px; opacity: 1; } 100% { top: -100px; opacity: 0; } }
+@keyframes spinTrophy { from { transform: rotate(-180deg) scale(0); } to { transform: rotate(0) scale(1); } }
+@keyframes progress { 0% { stroke-dasharray: 0 100; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translate(50%, 20px); } to   { opacity: 1; transform: translate(50%, 0); } }
+
 
 /* =========================================================
-   20) MEDIA QUERIES
+   11. ACCESIBILIDAD
+   ========================================================= */
+/* Modo Dislexia: Fuerza la fuente y mejora espaciado */
+.app-container.dyslexic-mode,
+.app-container.dyslexic-mode * {
+  font-family: var(--font-dys) !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0.05em !important;
+}
+
+
+/* =========================================================
+   12. MEDIA QUERIES (RESPONSIVE)
    ========================================================= */
 
-/* Tablet/Móvil <= 768px */
+/* Tablet y Móvil (<= 768px) */
 @media (max-width: 768px) {
   /* Header compacto */
   .app-container > div:first-child { padding: 10px 15px !important; }
   .app-container h1 { font-size: 1.1rem !important; }
   .app-container p { font-size: 0.75rem !important; display: none; }
 
+  /* Reorganización del header superior */
   .app-container > div:first-child > div:first-child {
     flex-direction: column; align-items: flex-start !important; gap: 10px !important;
   }
@@ -651,7 +764,7 @@ html, body, #root {
     width: 100%; flex-direction: row; justify-content: space-between; margin-top: 5px;
   }
 
-  /* Barra de filtros (2º hijo) */
+  /* Barra de filtros/herramientas compacta */
   .app-container > div:nth-child(2) {
     justify-content: center; gap: 8px; padding: 10px 5px !important;
   }
@@ -660,7 +773,16 @@ html, body, #root {
     font-size: 0.75rem !important; padding: 4px 10px !important;
   }
 
-  /* Leyenda centrada */
+  /* Barra de progreso apilada */
+  .progress-section {
+    margin-left: 0; width: 100%; justify-content: center;
+    margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(0,0,0,0.05);
+    flex-direction: column; align-items: stretch; gap: 5px;
+  }
+  .progress-text { display: block !important; text-align: center; font-size: 0.75rem; }
+  .progress-track { width: 80% !important; margin: 0 auto; }
+
+  /* Leyenda centrada en la parte inferior */
   .legend-container {
     left: 50%; transform: translateX(-50%);
     bottom: 60px; padding: 5px 10px; width: 90%;
@@ -668,29 +790,18 @@ html, body, #root {
   }
   .app-container.footer-open .legend-container { bottom: 200px; }
 
-  /* Footer en móvil */
+  /* Footer simplificado */
   .app-footer { padding: 15px 20px; }
   .footer-container { flex-direction: column; text-align: center; }
   .team-grid { grid-template-columns: 1fr 1fr; font-size: 0.8rem; }
 
-  /* Progreso (en filtros) */
-  .progress-section {
-    margin-left: 0; width: 100%; justify-content: center;
-    margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(0,0,0,0.05);
-  }
-  .progress-track { width: 60%; }
-
-  /* Smart tooltip reposicionado */
+  /* Smart tooltip reposicionado al centro */
   .smart-tooltip {
     top: auto; bottom: 80px; right: 50%; transform: translateX(50%);
     width: 90%; animation: slideUp 0.3s ease;
   }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translate(50%, 20px); }
-    to   { opacity: 1; transform: translate(50%, 0); }
-  }
 
-  /* Header menú móvil */
+  /* Menú desplegable móvil */
   .header-right-side {
     display: none; width: 100%;
     background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;
@@ -700,207 +811,13 @@ html, body, #root {
   .header-row-top, .header-row-bottom { width: 100%; justify-content: center; flex-wrap: wrap; }
   .header-top-row { width: 100%; margin-bottom: 5px; }
   .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; color: #fff; background: rgba(255,255,255,0.2); }
-
-  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 }
 
-/* Teléfonos muy pequeños <= 480px */
+/* Teléfonos pequeños (<= 480px) */
 @media (max-width: 480px) {
-  /* Botones de accesibilidad: compactos */
+  /* Botones de accesibilidad aún más compactos */
   button[title="Fuente para dislexia"],
   button[title="Modo alto contraste para daltonismo"] {
     font-size: 0.6rem !important; padding: 2px 4px !important;
   }
-}
-
-/* Ajustes responsivos extra para la barra de progreso en layout compacto */
-@media (max-width: 768px) {
-  .progress-section { flex-direction: column; align-items: stretch; width: 100%; gap: 5px; }
-  .progress-text { display: block !important; text-align: center; font-size: 0.75rem; }
-  .progress-track { width: 80% !important; margin: 0 auto; }
-}
-
-/* ===========================================
-   BOTÓN DISCORD
-   =========================================== */
-.btn-discord {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  width: 28px;
-  height: 28px;
-  border-radius: 50%; /* Redondo como el solcito */
-  
-  background: rgba(88, 101, 242, 0.15); /* Azul Discord transparente */
-  border: 1px solid rgba(59, 71, 204, 0.3);
-  color: #ffffff; /* Azul Discord */
-  
-  text-decoration: none; /* Al ser un tag <a> */
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-/* Hover Effect */
-.btn-discord:hover {
-  background: #5865F2; /* Azul Discord Sólido */
-  border-color: #5865F2;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(88, 101, 242, 0.4); /* Resplandor */
-}
-
-/* Modo Oscuro: Ajuste de contraste */
-.app-container.dark-mode .btn-discord {
-  background: rgba(88, 101, 242, 0.2);
-  border-color: rgba(88, 101, 242, 0.5);
-  color: #7289da; /* Un azul un poco más claro para dark mode */
-}
-
-.app-container.dark-mode .btn-discord:hover {
-  background: #5865F2;
-  color: white;
-}
-
-
-/* ===========================================
-   DASHBOARD DE MÉTRICAS (ESTADÍSTICAS)
-   =========================================== */
-
-/* Modal Content (Estilo Tarjeta Grande) */
-.stats-modal-content {
-  background: white;
-  width: 90%;
-  max-width: 700px; /* Ancho cómodo para dos gráficos */
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  position: relative;
-  animation: scaleIn 0.3s ease; /* Usamos tu animación existente */
-  max-height: 90vh; /* Que no se salga de pantalla en vertical */
-  overflow-y: auto;
-  border: 6px solid #e2e8f0;
-}
-
-/* Grid para los gráficos */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-/* Tarjeta individual de gráfico */
-.stat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.stat-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Contenedor SVG */
-.chart-container {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  margin-bottom: 10px;
-}
-
-/* Texto central del anillo */
-.chart-center-text {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center;
-}
-
-.chart-percentage {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #1e293b;
-  line-height: 1;
-}
-
-.chart-label {
-  font-size: 0.7rem;
-  color: #94a3b8;
-  margin-top: 2px;
-  text-transform: uppercase;
-}
-
-/* SVG Shapes */
-.circular-chart {
-  display: block;
-  margin: 0 auto;
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.circle-bg {
-  fill: none;
-  stroke: #e2e8f0;
-  stroke-width: 2.5;
-}
-
-.circle {
-  fill: none;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  animation: progress 1.5s ease-out forwards;
-}
-
-/* Colores de Gráficos */
-.stroke-blue { stroke: #3b82f6; }
-.stroke-green { stroke: #10b981; }
-.stroke-orange { stroke: #f59e0b; }
-.stroke-gray { stroke: #94a3b8; }
-
-/* Animación de carga del anillo */
-@keyframes progress {
-  0% { stroke-dasharray: 0 100; }
-}
-
-/* Frase Motivacional */
-.motivational-quote {
-  margin-top: 30px;
-  padding: 15px;
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  border-radius: 12px;
-  color: #1e40af;
-  font-weight: 500;
-  text-align: center;
-  font-size: 1.1rem;
-  border-left: 5px solid #3b82f6;
-}
-
-/* MODO OSCURO */
-.app-container.dark-mode .stats-modal-content {
-  background: #1f2937;
-  color: #f3f4f6;
-  border-color: #374151;
-}
-.app-container.dark-mode .stat-card {
-  background: #111827;
-  border-color: #374151;
-}
-.app-container.dark-mode .stat-title { color: #94a3b8; }
-.app-container.dark-mode .chart-percentage { color: #f3f4f6; }
-.app-container.dark-mode .circle-bg { stroke: #374151; }
-.app-container.dark-mode .motivational-quote {
-  background: linear-gradient(135deg, #1e3a8a, #172554);
-  color: #bfdbfe;
-  border-left-color: #60a5fa;
 }

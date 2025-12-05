@@ -1,16 +1,13 @@
 // utils.js
+// ============================================================================
+// 1. CONSTANTES Y CONFIGURACIÓN
+// ============================================================================
 
-// ============================================================
-// CONSTANTES DE CONFIGURACIÓN
-// ============================================================
-
+// Dimensiones para el layout del grafo
 const NODE_WIDTH = 250;
 const Y_SPACING = 65;
 
-// ============================================================
-// PALETA DE COLORES
-// ============================================================
-
+// --- PALETA DE COLORES (Temas y Estados) ---
 const THEME = {
     light: {
         aprobada: { bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
@@ -22,7 +19,7 @@ const THEME = {
         disponible: { bg: '#1e293b', border: '#60a5fa', text: '#f8fafc' },
         bloqueada: { bg: '#1f2937', border: '#374151', text: '#4b5563' },
     },
-    // WONG PALETTE (Accesibilidad)
+    // WONG PALETTE (Accesibilidad para Daltónicos)
     colorblind: {
         aprobada: { bg: '#ffedd5', border: '#d55e00', text: '#9a3412' }, // Vermilion
         disponible: { bg: '#f0f9ff', border: '#56b4e9', text: '#0c4a6e' }, // Sky Blue
@@ -30,7 +27,7 @@ const THEME = {
     }
 };
 
-// Colores estándar y de lógica de distancias
+// Colores para las conexiones (Edges) en modo estándar
 const EDGE_COLORS = {
     standard: '#94a3b8',
     longJump: '#a855f7',
@@ -39,22 +36,100 @@ const EDGE_COLORS = {
     hoverFar: '#f97316'
 };
 
-// Colores específicos para modo daltónico
+// Colores de conexiones para modo daltónico
 const LINE_COLORS_ACCESSIBLE = {
     final: '#d55e00',   // Vermilion
     cursada: '#777777', // Dark Gray
     active: '#56b4e9'   // Sky Blue
 };
 
-// ============================================================
-// GENERACIÓN DE LAYOUT (Nodos y Edges)
-// ============================================================
 
+// ============================================================================
+// 2. ALGORITMOS Y CÁLCULOS AUXILIARES
+// ============================================================================
+
+/**
+ * Calcula la "Ruta Crítica" (Critical Path) del plan de estudios.
+ * Identifica la cadena de materias correlativas más larga que determina
+ * la duración mínima de la carrera.
+ */
+export const calculateCriticalPath = (nodes) => {
+    // 1. Mapa de dependencias para acceso rápido
+    const nodeMap = new Map(nodes.map(n => [n.id, n.data.originalData]));
+    
+    // Cache para memoización (evitar recalcular caminos repetidos)
+    const memo = {};
+
+    // Función recursiva para buscar la profundidad de un nodo
+    const getDepth = (id) => {
+        if (id in memo) return memo[id];
+
+        const materia = nodeMap.get(id);
+        if (!materia) return 0;
+
+        // Miramos solo 'requiere_para_cursar' porque eso define la cadena de bloqueo real (cursada)
+        const requisitos = materia.requiere_para_cursar || [];
+        
+        if (requisitos.length === 0) {
+            memo[id] = 1;
+            return 1;
+        }
+
+        // Buscamos el requisito que tenga el camino más largo detrás
+        let maxDepth = 0;
+        for (const reqId of requisitos) {
+            maxDepth = Math.max(maxDepth, getDepth(reqId));
+        }
+
+        memo[id] = maxDepth + 1;
+        return maxDepth + 1;
+    };
+
+    // 2. Encontrar el nodo final con el camino más largo (el cuello de botella final)
+    let maxPathLength = 0;
+    let endNodeId = null;
+
+    nodes.forEach(node => {
+        const depth = getDepth(node.id);
+        if (depth > maxPathLength) {
+            maxPathLength = depth;
+            endNodeId = node.id;
+        }
+    });
+
+    // 3. Reconstruir el camino hacia atrás desde el final
+    const criticalPath = new Set();
+    let currentId = endNodeId;
+
+    while (currentId) {
+        criticalPath.add(currentId);
+        const materia = nodeMap.get(currentId);
+        const requisitos = materia?.requiere_para_cursar || [];
+
+        if (requisitos.length === 0) break;
+
+        // Moverse al requisito que tiene el mayor depth (el camino crítico)
+        // Esto elige la "rama" más larga
+        currentId = requisitos.reduce((a, b) => getDepth(a) > getDepth(b) ? a : b);
+    }
+
+    return criticalPath; // Retorna un Set con los IDs de la ruta crítica
+};
+
+
+// ============================================================================
+// 3. GENERACIÓN DEL GRAFO (NODOS Y EDGES)
+// ============================================================================
+
+/**
+ * Transforma el JSON plano de materias en nodos y edges compatibles con ReactFlow.
+ * Calcula posiciones (x, y) basadas en niveles y columnas.
+ */
 export const getLayoutElements = (materias, isMobile = false) => {
     const nodes = [];
     const edges = [];
     
-    // CONFIGURACIÓN DINÁMICA
+    // CONFIGURACIÓN DINÁMICA DE GRILLA
     const COLUMN_LIMIT = isMobile ? 4 : 20; 
     const CURRENT_X_SPACING = isMobile ? 200 : 265; 
     const CURRENT_NODE_WIDTH = isMobile ? 160 : 200;
@@ -68,13 +143,13 @@ export const getLayoutElements = (materias, isMobile = false) => {
 
     if (!Array.isArray(materias)) return { nodes, edges };
 
-    // 1. MAPA DE NIVELES
+    // 1. MAPA DE NIVELES (Para calcular saltos verticales)
     const nivelMap = {};
     materias.forEach(m => {
         nivelMap[m.id] = m.nivel || (m.posY ? m.posY + 1 : 1);
     });
 
-    // 2. AGRUPAR POR NIVEL
+    // 2. AGRUPAR POR NIVEL (Para organizar filas)
     const materiasPorNivel = {};
     materias.forEach(m => {
         const nivel = m.nivel || (m.posY ? m.posY + 1 : 1);
@@ -87,6 +162,7 @@ export const getLayoutElements = (materias, isMobile = false) => {
         const nivel = parseInt(nivelStr);
         const listaMaterias = materiasPorNivel[nivel];
         
+        // Calcular offset para centrar el grupo en pantalla (solo desktop)
         const numColumnasNivel = Math.min(listaMaterias.length, COLUMN_LIMIT);
         const ANCHO_GRUPO = (numColumnasNivel - 1) * CURRENT_X_SPACING;
         const offsetX = (isMobile ? 0 : (800 - ANCHO_GRUPO) / 2);
@@ -99,6 +175,7 @@ export const getLayoutElements = (materias, isMobile = false) => {
             const x = START_X + (colRelativa * CURRENT_X_SPACING);
             const y = ((nivel - 1) * (Y_SPACING * 2.5)) + (filaRelativa * Y_SPACING);
 
+            // Crear Nodo
             nodes.push({
                 id: materia.id,
                 data: { label: materia.nombre, originalData: materia, clickable: true },
@@ -111,7 +188,7 @@ export const getLayoutElements = (materias, isMobile = false) => {
                 type: 'default',
             });
 
-            // A. Edges de FINAL
+            // A. Crear Edges de FINAL (Líneas sólidas, rojas/naranjas)
             if (materia.requiere_para_final) {
                 materia.requiere_para_final.forEach(reqId => {
                     edges.push({
@@ -126,16 +203,17 @@ export const getLayoutElements = (materias, isMobile = false) => {
                 });
             }
 
-            // B. Edges de CURSADA
+            // B. Crear Edges de CURSADA (Líneas punteadas)
             if (materia.requiere_para_cursar) {
                 materia.requiere_para_cursar.forEach(reqId => {
+                    // Evitar duplicar si ya existe relación de final (la de final tiene prioridad visual)
                     const tieneFinal = materia.requiere_para_final && materia.requiere_para_final.includes(reqId);
                     if (!tieneFinal) {
                         const nivelSource = nivelMap[reqId] || 0;
                         const nivelTarget = nivel;
                         const distancia = Math.abs(nivelTarget - nivelSource);
                         
-                        // Lógica de visualización para saltos grandes
+                        // Lógica de visualización para saltos grandes (correlativas de hace 2 años)
                         const edgeColor = distancia > 1 ? EDGE_COLORS.longJump : EDGE_COLORS.standard;
                         const edgeWidth = distancia > 1 ? 2 : 1; 
 
@@ -161,9 +239,74 @@ export const getLayoutElements = (materias, isMobile = false) => {
     return { nodes, edges };
 };
 
-// ---------------------------------------------------------
-// FUNCIÓN DE ESTILOS (NODOS) - Soporta Colorblind
-// ---------------------------------------------------------
+
+// ============================================================================
+// 4. LÓGICA DE ESTILOS Y FILTRADO (INTERACCIÓN)
+// ============================================================================
+
+/**
+ * Filtra qué conexiones se muestran según el modo seleccionado en la UI.
+ * (Ej: Ver solo correlativas de cursada, ver solo finales, o vista simplificada)
+ */
+export const filterEdgesByMode = (edges, viewMode = 'todas', nodes = [], materiasAprobadasIds = []) => {
+    if (!Array.isArray(edges)) return [];
+    if (viewMode === 'todas') return edges;
+    if (viewMode === 'cursar') return edges.filter(e => e.data?.tipo === 'cursar');
+    if (viewMode === 'final') return edges.filter(e => e.data?.tipo === 'final');
+    
+    // MODO SIMPLIFICADA: Algoritmo "Next Step"
+    // Muestra solo las líneas que conectan materias "disponibles" con las que desbloquean.
+    if (viewMode === 'simplificada') {
+        const nodeMap = new Map();
+        nodes.forEach(n => nodeMap.set(n.id, n));
+        
+        // Identificar qué nodos están "Disponibles" (listos para cursar)
+        const nodosDisponibles = new Set();
+        nodes.forEach(node => {
+            const mat = node.data?.originalData;
+            if (!mat) return;
+            
+            const estaAprobada = materiasAprobadasIds.includes(mat.id);
+            if (!estaAprobada) {
+                const reqCursadas = mat.requiere_para_cursar || [];
+                const tieneCursadas = reqCursadas.every(reqId => materiasAprobadasIds.includes(reqId));
+                const reqFinales = mat.requiere_para_final || [];
+                const tieneFinales = reqFinales.every(reqId => materiasAprobadasIds.includes(reqId));
+                
+                if (tieneCursadas && tieneFinales) {
+                    nodosDisponibles.add(mat.id);
+                }
+            }
+        });
+        
+        // Filtrar edges: solo los que salen de nodos relevantes
+        return edges.filter(edge => {
+            const sourceNode = nodeMap.get(edge.source);
+            const targetNode = nodeMap.get(edge.target);
+            if (!sourceNode || !targetNode) return false;
+            
+            const sourceMat = sourceNode.data?.originalData;
+            const targetMat = targetNode.data?.originalData;
+            if (!sourceMat || !targetMat) return false;
+            
+            const sourceEsDisponibleOAprobado = 
+                nodosDisponibles.has(sourceMat.id) || 
+                materiasAprobadasIds.includes(sourceMat.id);
+            
+            return sourceEsDisponibleOAprobado;
+        });
+    }
+    
+    // Soporte para array de modos (fallback)
+    if (Array.isArray(viewMode)) return edges.filter(e => viewMode.includes(e.data?.tipo));
+    return edges;
+};
+
+
+/**
+ * Actualiza los estilos ESTÁTICOS de los nodos (Colores base: Aprobada/Disponible/Bloqueada).
+ * Se ejecuta cuando cambia el estado de materias aprobadas o el tema.
+ */
 export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode = false, isColorblind = false) => {
     let palette;
     if (isColorblind) {
@@ -218,10 +361,10 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
             }
         }
         
-        // Patrones visuales para daltónicos
+        // Patrones visuales extra para accesibilidad (Daltónicos)
         if (isColorblind) {
             newStyle.borderWidth = '3px';
-            // Bordes punteados para bloqueadas
+            // Bordes punteados para diferenciar por forma/patrón, no solo color
             newStyle.borderStyle = estaAprobada ? 'solid' : (cssClass === "node-blocked" ? 'dashed' : 'solid');
         }
 
@@ -234,87 +377,31 @@ export const updateNodeStyles = (nodes, edges, materiasAprobadasIds, isDarkMode 
     });
 };
 
-// ---------------------------------------------------------
-// FILTRO (Mira data.tipo)
-// ---------------------------------------------------------
-export const filterEdgesByMode = (edges, viewMode = 'todas', nodes = [], materiasAprobadasIds = []) => {
-    if (!Array.isArray(edges)) return [];
-    if (viewMode === 'todas') return edges;
-    if (viewMode === 'cursar') return edges.filter(e => e.data?.tipo === 'cursar');
-    if (viewMode === 'final') return edges.filter(e => e.data?.tipo === 'final');
-    
-    // MODO SIMPLIFICADA: mostrar solo líneas que conectan disponibles con lo que desbloquean
-    if (viewMode === 'simplificada') {
-        // Crear mapa de nodos para acceso rápido
-        const nodeMap = new Map();
-        nodes.forEach(n => nodeMap.set(n.id, n));
-        
-        // Identificar qué nodos están disponibles (no aprobados pero con correlativas cumplidas)
-        const nodosDisponibles = new Set();
-        nodes.forEach(node => {
-            const mat = node.data?.originalData;
-            if (!mat) return;
-            
-            const estaAprobada = materiasAprobadasIds.includes(mat.id);
-            if (!estaAprobada) {
-                const reqCursadas = mat.requiere_para_cursar || [];
-                const tieneCursadas = reqCursadas.every(reqId => materiasAprobadasIds.includes(reqId));
-                const reqFinales = mat.requiere_para_final || [];
-                const tieneFinales = reqFinales.every(reqId => materiasAprobadasIds.includes(reqId));
-                
-                if (tieneCursadas && tieneFinales) {
-                    nodosDisponibles.add(mat.id);
-                }
-            }
-        });
-        
-        // Filtrar edges: solo los que salen de nodos disponibles o aprobados
-        return edges.filter(edge => {
-            const sourceNode = nodeMap.get(edge.source);
-            const targetNode = nodeMap.get(edge.target);
-            
-            if (!sourceNode || !targetNode) return false;
-            
-            const sourceMat = sourceNode.data?.originalData;
-            const targetMat = targetNode.data?.originalData;
-            
-            if (!sourceMat || !targetMat) return false;
-            
-            // Incluir si el source es disponible o aprobado, y va hacia el target
-            const sourceEsDisponibleOAprobado = 
-                nodosDisponibles.has(sourceMat.id) || 
-                materiasAprobadasIds.includes(sourceMat.id);
-            
-            return sourceEsDisponibleOAprobado;
-        });
-    }
-    
-    if (Array.isArray(viewMode)) return edges.filter(e => viewMode.includes(e.data?.tipo));
-    return edges;
-};
 
-// ---------------------------------------------------------
-// HIGHLIGHT ACTUALIZADO (Logic Main + Accessibility Head)
-// ---------------------------------------------------------
+/**
+ * Actualiza los estilos DINÁMICOS (Highlighting) de nodos y edges.
+ * Maneja: Hover, Ruta Crítica y Opacidad en modo Simplificado.
+ */
 export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = false, viewMode = 'todas', isColorblind = false, materiasAprobadasIds = []) => {
     const allNodes = Array.isArray(nodes) ? nodes : [];
     const allEdges = Array.isArray(edges) ? edges : [];
     const edgeIdOf = (edge) => edge.id || `${edge.source}->${edge.target}`;
 
-    // Mapa para calcular distancias en modo standard
+    // Mapa auxiliar
     const nodeMap = new Map();
     allNodes.forEach(n => nodeMap.set(n.id, n));
 
+    // Si estamos en modo crítico, calculamos la ruta
     let criticalPathIds = new Set();
     if (viewMode === 'critical') {
         criticalPathIds = calculateCriticalPath(nodes);
     }
 
-    // 1. SIN HOVER
+    // --- ESCENARIO 1: SIN HOVER (Estado Base o Modos Globales) ---
     if (!hoveredNodeId) {
         const visibleEdges = filterEdgesByMode(allEdges, viewMode, allNodes, materiasAprobadasIds);
         
-        // En modo simplificada, identificar nodos conectados
+        // Para modo simplificada, pre-calculamos nodos con conexiones visibles
         let connectedNodeIds = new Set();
         if (viewMode === 'simplificada') {
             visibleEdges.forEach(edge => {
@@ -325,38 +412,30 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         
         return {
         nodes: allNodes.map(n => {
-            // 1. Copiamos el estilo
+            // Reset de estilos base
             let nodeStyle = { ...n.style };
-            
-            // 2. LIMPIEZA OBLIGATORIA (El Fix)
-            // Reseteamos valores que el modo crítico modifica, para que no se queden "pegados"
             nodeStyle.opacity = 1; 
-            nodeStyle.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1)'; // Sombra normal por defecto
-            nodeStyle.borderWidth = isColorblind ? '3px' : '1px'; // Respetar grosor base
+            nodeStyle.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1)';
+            nodeStyle.borderWidth = isColorblind ? '3px' : '1px';
             
-            // Nota: El color del borde (borderColor) se arregla solo porque 
-            // updateNodeStyles corre antes que esto y lo resetea a verde/azul.
-
             let hidden = false;
 
-            // 3. APLICAR LÓGICA CRÍTICA (Si corresponde)
+            // Lógica Modo Crítico (Highlight Rojo)
             if (viewMode === 'critical') {
                 if (criticalPathIds.has(n.id)) {
-                    // NODO EN RUTA CRÍTICA: Efecto Neón Rojo
                     nodeStyle.opacity = 1;
                     nodeStyle.borderColor = '#ff0033'; 
-                    nodeStyle.boxShadow = '0 0 15px rgba(255, 0, 51, 0.6)'; // Sombra ROJA
+                    nodeStyle.boxShadow = '0 0 15px rgba(255, 0, 51, 0.6)';
                     nodeStyle.borderWidth = '3px';
                     nodeStyle.zIndex = 1000;
                 } else {
-                    // NODO NO IMPORTANTE: Oscurecer
-                    nodeStyle.opacity = 0.1;
+                    nodeStyle.opacity = 0.1; // Oscurecer el resto
                     nodeStyle.borderColor = '#555';
                     nodeStyle.boxShadow = 'none';
                 }
             } 
             
-            // 4. LÓGICA MODO SIMPLIFICADA
+            // Lógica Modo Simplificado (Ocultar nodos sueltos)
             if (viewMode === 'simplificada' && !connectedNodeIds.has(n.id)) {
                 nodeStyle.opacity = 0.1;
                 hidden = true;
@@ -364,81 +443,55 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             
             return { ...n, className: '', style: nodeStyle, hidden };
         }),
-            edges: allEdges.map(edge => {
-            // 1. Lógica común inicial: ver si la línea es visible según filtros normales
+        edges: allEdges.map(edge => {
             const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === edgeIdOf(edge));
             const isFinal = edge.data?.tipo === 'final';
             
-            // Preparamos variables base
             let newStyle = { ...edge.style, opacity: 1 };
-            let animated = isVisible && !isFinal; // Animación por defecto
-            let hidden = !isVisible; // Oculto por defecto si no pasa el filtro
-            
-            // =========================================================
-            // 2. RAMIFICACIÓN: ¿Estamos en modo CRÍTICO o NORMAL?
-            // =========================================================
+            let animated = isVisible && !isFinal;
+            let hidden = !isVisible;
             
             if (viewMode === 'critical') {
-                // --- MODO RUTA CRÍTICA ---
-                // Aquí ignoramos el filtro de visibilidad normal, queremos ver todo pero "apagado"
-                hidden = false; 
-
-                // Verificamos si este edge es parte del camino crítico
-                // (Ambos extremos en la lista Y es una correlativa de cursada)
+                // Modo Ruta Crítica: Solo mostrar edges que conectan nodos críticos Y son de cursada
+                hidden = false; // Mostramos todos pero manipulamos opacidad
                 const isCriticalEdge = criticalPathIds.has(edge.source) && 
                                     criticalPathIds.has(edge.target) && 
                                     edge.data?.tipo === 'cursar';
 
                 if (isCriticalEdge) {
-                    // ES CRÍTICO: Rojo, grueso y animado
                     newStyle.opacity = 1;
-                    newStyle.stroke = '#ff0033'; // Rojo Neón
+                    newStyle.stroke = '#ff0033';
                     newStyle.strokeWidth = 3;
                     newStyle.zIndex = 1000;
                     animated = true; 
                 } else {
-                    // NO ES CRÍTICO: Casi invisible (ghost)
-                    newStyle.opacity = 0.05; 
-                    newStyle.stroke = '#555'; // Gris oscuro para que no moleste
+                    newStyle.opacity = 0.05; // Ghost edges
+                    newStyle.stroke = '#555';
                     animated = false;
                 }
-            
             } else {
-                // --- MODO NORMAL (Standard / Colorblind) ---
-                // Aquí respetamos la lógica de colores original
-                
+                // Modo Normal / Colorblind
                 let strokeColor;
                 if (isColorblind) {
                     strokeColor = isFinal ? LINE_COLORS_ACCESSIBLE.final : LINE_COLORS_ACCESSIBLE.cursada;
                 } else {
-                    // Mantenemos el color original que venía del layout
                     strokeColor = edge.style.stroke; 
                 }
-
                 newStyle.stroke = strokeColor;
-                // Grosor: si es final o salto largo, es más grueso
                 newStyle.strokeWidth = isFinal ? 2 : (edge.style.stroke === EDGE_COLORS.longJump ? 2 : 1);
             }
 
-            // =========================================================
-            // 3. RETORNO ÚNICO FINAL
-            // =========================================================
-            return {
-                ...edge,
-                className: '',
-                hidden: hidden,
-                animated: animated,
-                style: newStyle
-            };
+            return { ...edge, className: '', hidden: hidden, animated: animated, style: newStyle };
         })
         };
     }
 
-    // 2. CON HOVER
+    // --- ESCENARIO 2: CON HOVER (Usuario pasa el mouse por un nodo) ---
     const visibleEdges = filterEdgesByMode(allEdges, viewMode, allNodes, materiasAprobadasIds);
     const connectedEdgeIds = new Set();
     const connectedNodeIds = new Set([hoveredNodeId]);
 
+    // Buscar vecinos inmediatos
     visibleEdges.forEach(edge => {
         if (edge.source === hoveredNodeId || edge.target === hoveredNodeId) {
             connectedEdgeIds.add(edgeIdOf(edge));
@@ -447,7 +500,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         }
     });
 
-    // A. Estilar NODOS
+    // A. Highlight NODOS
     const highlightedNodes = allNodes.map(node => {
         const isHovered = node.id === hoveredNodeId;
         const isNeighbor = connectedNodeIds.has(node.id);
@@ -463,15 +516,14 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             className = 'selected-hover';
         } else if (isNeighbor) {
             newStyle.opacity = 1;
-            // Vecinos en azul/celeste
             newStyle.borderColor = isColorblind ? '#56b4e9' : (isDarkMode ? '#60a5fa' : '#3b82f6');
             newStyle.borderWidth = '3px';
             newStyle.zIndex = 1500;
             className = 'connected';
         } else {
+            // Nodos no relacionados se desvanecen
             newStyle.opacity = 0.2;
             newStyle.zIndex = 1;
-            // En modo simplificada, ocultar completamente los nodos no conectados en hover
             if (viewMode === 'simplificada') {
                 newStyle.opacity = 0.1;
                 hidden = false;
@@ -480,7 +532,7 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         return { ...node, className, style: newStyle, hidden };
     });
 
-    // B. Estilar EDGES
+    // B. Highlight EDGES
     const highlightedEdges = allEdges.map(edge => {
         const eid = edgeIdOf(edge);
         const isVisible = visibleEdges.some(ve => edgeIdOf(ve) === eid);
@@ -490,14 +542,12 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
         
         if (isConnected) {
             let highlightColor;
-
             if (isColorblind) {
-                // Modo accesible simple: Rojo/Naranja para final, Celeste para activo
                 highlightColor = edge.data?.tipo === 'final' 
                     ? LINE_COLORS_ACCESSIBLE.final 
                     : LINE_COLORS_ACCESSIBLE.active;
             } else {
-                // Modo standard complejo: Distancias y saltos
+                // Cálculo de distancia para degradado visual
                 const sourceNode = nodeMap.get(edge.source);
                 const targetNode = nodeMap.get(edge.target);
                 const sourceLevel = sourceNode?.data?.originalData?.nivel || 0;
@@ -514,24 +564,12 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
             }
 
             return {
-                ...edge,
-                hidden: false,
-                className: 'active',
-                animated: true,
-                style: {
-                    ...edge.style,
-                    stroke: highlightColor,
-                    strokeWidth: 3,
-                    opacity: 1,
-                    zIndex: 2000
-                }
+                ...edge, hidden: false, className: 'active', animated: true,
+                style: { ...edge.style, stroke: highlightColor, strokeWidth: 3, opacity: 1, zIndex: 2000 }
             };
         } else {
             return {
-                ...edge,
-                hidden: true, // Ocultar no conectados en hover para limpieza
-                className: '',
-                animated: false,
+                ...edge, hidden: true, className: '', animated: false,
                 style: { ...edge.style, opacity: 0 }
             };
         }
@@ -540,9 +578,12 @@ export const applyHighlightStyles = (nodes, edges, hoveredNodeId, isDarkMode = f
     return { nodes: highlightedNodes, edges: highlightedEdges };
 };
 
-// ============================================================
-// FUNCIONES DE CELEBRACIÓN (CONFETTI)
-// ============================================================
+
+// ============================================================================
+// 5. GAMIFICACIÓN Y EFECTOS VISUALES
+// ============================================================================
+
+// --- Efectos de Confetti ---
 
 // Efecto 1: Explosión pequeña (para completar Nivel/Año)
 export const triggerLevelConfetti = () => {
@@ -558,29 +599,16 @@ export const triggerLevelConfetti = () => {
 };
   
 // Efecto 2: Lluvia masiva (para Final de Carrera)
-// Colores: AZUL, VERDE, NARANJA (Tema UTN Pathfinder)
 export const triggerVictoryConfetti = () => {
     if (!window.confetti) return;
     
     const duration = 3000;
     const end = Date.now() + duration;
-    const colors = ['#3b82f6', '#10b981', '#f59e0b']; // Los colores de tu app
+    const colors = ['#3b82f6', '#10b981', '#f59e0b']; // Azul, Verde, Naranja (Marca de la App)
   
     (function frame() {
-      window.confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: colors
-      });
-      window.confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: colors
-      });
+      window.confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
+      window.confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
   
       if (Date.now() < end) {
         requestAnimationFrame(frame);
@@ -588,11 +616,7 @@ export const triggerVictoryConfetti = () => {
     }());
 };
 
-
-// ============================================================
-// LOGROS / ACHIEVEMENTS
-// ============================================================
-
+// --- Lista de Logros (Data) ---
 
 export const ACHIEVEMENTS = [
     {
@@ -629,7 +653,7 @@ export const ACHIEVEMENTS = [
         title: 'Mitad de Camino',
         description: 'Alcanzaste el 50% de la carrera.',
         icon: '🏃',
-        //Filtramos aprobadas para contar solo las que existen en los nodos actuales
+        // Calcula porcentaje real basado en nodos cargados
         condition: (aprobadas, nodes) => {
             const aprobadasEstaCarrera = nodes.filter(n => aprobadas.includes(n.id)).length;
             return (aprobadasEstaCarrera / nodes.length) >= 0.5;
@@ -645,132 +669,14 @@ export const ACHIEVEMENTS = [
             return aprobadasEstaCarrera === nodes.length && nodes.length > 0;
         }
     },
-    {
-         id: 'spider_sense',
-        title: 'Sentido Arácnido',
-        description: 'Encontraste el secreto en el logo.',
-        icon: '🕷️',
-        condition: () => false
-    },
-    {
-        id: 'credits_watcher',
-        title: 'Honor a quien honor merece',
-        description: 'Revisaste los créditos del equipo.',
-        icon: '👏',
-        condition: () => false
-    },
-    {
-        id: 'the_chosen_one',
-        title: 'El Elegido',
-        description: 'Tomaste la pastilla roja y despertaste de la simulación.',
-        icon: '💊',
-        condition: () => false 
-    },
-    {
-        id: 'analist',
-        title: 'El Analista',
-        description: 'Descubriste la opcion de estadisticas avanzadas.',
-        icon: '📊',
-        condition: () => false 
-    },
-    {
-        id: 'the_dojo',
-        title: 'El Dojo',
-        description: 'Iniciaste en el dojo de la comunidad.',
-        icon: '🐱‍👤',
-        condition: () => false 
-    },
-    {
-        id: 'workman',
-        title: 'Trabajador',
-        description: 'Utilizaste la herramienta de linkedIn',
-        icon: '💼',
-        condition: () => false 
-    },
-    {
-        id: 'photographer',
-        title: 'Fotógrafo',
-        description: 'Utilizaste la herramienta de captura de pantalla',
-        icon: '📸',
-        condition: () => false 
-    },
-    {
-        id: 'the_prophecy',
-        title: 'La Profecía',
-        description: 'Quisiste ver el futuro utilizando la herramienta de proyección de cursada',
-        icon: '🔮',
-        condition: () => false 
-    },
-    {
-        id: 'priorities',
-        title: 'Prioridades',
-        description: 'Verificaste que materias pueden atrasarte la graduación',
-        icon: '⏳',
-        condition: () => false 
-    }
+    // Logros ocultos o accionables por click
+    { id: 'spider_sense', title: 'Sentido Arácnido', description: 'Encontraste el secreto en el logo.', icon: '🕷️', condition: () => false },
+    { id: 'credits_watcher', title: 'Honor a quien honor merece', description: 'Revisaste los créditos del equipo.', icon: '👏', condition: () => false },
+    { id: 'the_chosen_one', title: 'El Elegido', description: 'Tomaste la pastilla roja y despertaste de la simulación.', icon: '💊', condition: () => false },
+    { id: 'analist', title: 'El Analista', description: 'Descubriste la opcion de estadisticas avanzadas.', icon: '📊', condition: () => false },
+    { id: 'the_dojo', title: 'El Dojo', description: 'Iniciaste en el dojo de la comunidad.', icon: '🐱‍👤', condition: () => false },
+    { id: 'workman', title: 'Trabajador', description: 'Utilizaste la herramienta de linkedIn', icon: '💼', condition: () => false },
+    { id: 'photographer', title: 'Fotógrafo', description: 'Utilizaste la herramienta de captura de pantalla', icon: '📸', condition: () => false },
+    { id: 'the_prophecy', title: 'La Profecía', description: 'Quisiste ver el futuro utilizando la herramienta de proyección de cursada', icon: '🔮', condition: () => false },
+    { id: 'priorities', title: 'Prioridades', description: 'Verificaste que materias pueden atrasarte la graduación', icon: '⏳', condition: () => false }
 ];
-
-//RUTA CRITICA=================================================
-
-export const calculateCriticalPath = (nodes) => {
-    // 1. Mapa de dependencias para acceso rápido
-    const nodeMap = new Map(nodes.map(n => [n.id, n.data.originalData]));
-    
-    // Cache para memoización (evitar recalcular caminos repetidos)
-    const memo = {};
-
-    // Función recursiva para buscar la profundidad de un nodo
-    const getDepth = (id) => {
-        if (id in memo) return memo[id];
-
-        const materia = nodeMap.get(id);
-        if (!materia) return 0;
-
-        // Miramos solo 'requiere_para_cursar' porque eso define la cadena de bloqueo real
-        const requisitos = materia.requiere_para_cursar || [];
-        
-        if (requisitos.length === 0) {
-            memo[id] = 1;
-            return 1;
-        }
-
-        // Buscamos el requisito que tenga el camino más largo detrás
-        let maxDepth = 0;
-        for (const reqId of requisitos) {
-            maxDepth = Math.max(maxDepth, getDepth(reqId));
-        }
-
-        memo[id] = maxDepth + 1;
-        return maxDepth + 1;
-    };
-
-    // 2. Encontrar el nodo final con el camino más largo (el cuello de botella final)
-    let maxPathLength = 0;
-    let endNodeId = null;
-
-    nodes.forEach(node => {
-        const depth = getDepth(node.id);
-        if (depth > maxPathLength) {
-            maxPathLength = depth;
-            endNodeId = node.id;
-        }
-    });
-
-    // 3. Reconstruir el camino hacia atrás desde el final
-    const criticalPath = new Set();
-    let currentId = endNodeId;
-
-    while (currentId) {
-        criticalPath.add(currentId);
-        const materia = nodeMap.get(currentId);
-        const requisitos = materia?.requiere_para_cursar || [];
-
-        if (requisitos.length === 0) break;
-
-        // Moverse al requisito que tiene el mayor depth (el camino crítico)
-        // Esto elige la "rama" más larga
-        currentId = requisitos.reduce((a, b) => getDepth(a) > getDepth(b) ? a : b);
-    }
-
-    return criticalPath; // Retorna un Set con los IDs de la ruta crítica
-};
