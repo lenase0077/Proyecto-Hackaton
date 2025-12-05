@@ -361,15 +361,71 @@ export default function App() {
 
   // Redes Sociales y Compartir
   const handleShareLinkedIn = () => {
+    // 1. Configuración de datos básicos
     const nombres = { 'tup': 'TUP', 'admi': 'TUA', 'moldes': 'Moldes', 'automotriz': 'Automotriz' };
     const carrera = nombres[selectedCarrera] || 'UTN';
-    const texto = `🚀 Progreso Académico: ${carrera}\nCompletado: ${porcentaje}%\n✅ Materias: ${aprobadasCount}/${totalMaterias}\n\n#UTN #Pathfinder`;
+
+    // 2. Generación de la Barra de Progreso Visual [███░░...]
+    const filledBlocks = Math.round((porcentaje / 100) * 10);
+    const emptyBlocks = 10 - filledBlocks;
+    const progressBar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
+
+    // 3. Cálculo de Fecha Estimada (Usando la lógica del "Oráculo")
+    const faltantes = totalMaterias - aprobadasCount;
+    let fechaEstimadaTexto = "¡Graduado!";
     
+    if (faltantes > 0) {
+        // Usa 'ritmoEstudio' que ya tienes en el estado (default: 3 materias/cuatrimestre)
+        const cuatrimestresRestantes = Math.ceil(faltantes / ritmoEstudio);
+        const mesesTotales = cuatrimestresRestantes * 6;
+        const fechaFutura = new Date();
+        fechaFutura.setMonth(fechaFutura.getMonth() + mesesTotales);
+        
+        const fechaRaw = fechaFutura.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        // Capitalizar primera letra (ej: "diciembre" -> "Diciembre")
+        fechaEstimadaTexto = fechaRaw.charAt(0).toUpperCase() + fechaRaw.slice(1);
+    }
+
+    // 4. Identificar el "Próximo Objetivo" (Primera materia disponible)
+    const nextNode = nodes.find(n => {
+        if (aprobadas.includes(n.id)) return false;
+        const mat = n.data?.originalData;
+        if (!mat) return false;
+        
+        // Verificar correlativas
+        const reqCursadas = mat.requiere_para_cursar || [];
+        const reqFinales = mat.requiere_para_final || [];
+        const tieneCursadas = reqCursadas.every(id => aprobadas.includes(id));
+        const tieneFinales = reqFinales.every(id => aprobadas.includes(id));
+        
+        return tieneCursadas && tieneFinales;
+    });
+    
+    const nextGoal = nextNode ? nextNode.data.originalData.nombre : "¡Proyecto Final!";
+    
+    // 5. Construcción del Texto Final
+    const texto = `🚀 Mi Progreso Académico: ${carrera}
+    [${progressBar}] ${porcentaje}% Completado
+
+    📊 Estado Actual:
+    ✅ Materias Aprobadas: ${aprobadasCount} de ${totalMaterias}
+    📅 Fecha Estimada de Graduación: [${fechaEstimadaTexto}]
+    🎯 Próximo Objetivo: [${nextGoal}]
+
+    💡 Gestionando mi carrera con datos reales y sin incertidumbre gracias a #UTNPathfinder.
+
+    #UTN #Programacion #Estudiante #Productividad #Tech`;
+    
+    // 6. Activar Logro y Copiar al Portapapeles
     triggerAchievement('workman');
 
     navigator.clipboard.writeText(texto).then(async () => {
       setMostrarNotificacion(true);
-      for (let i = 3; i > 0; i--) { setConteoRegresivo(i); await new Promise(r => setTimeout(r, 1000)); }
+      // Cuenta regresiva visual antes de abrir LinkedIn
+      for (let i = 3; i > 0; i--) { 
+          setConteoRegresivo(i); 
+          await new Promise(r => setTimeout(r, 1000)); 
+      }
       setConteoRegresivo(0);
       window.open('https://www.linkedin.com/feed/', '_blank');
       setTimeout(() => setMostrarNotificacion(false), 1000);
