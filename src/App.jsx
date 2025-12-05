@@ -531,7 +531,7 @@ export default function App() {
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="btn-discord" 
-                  title="Comunidad Discord"
+                  title="Necesitas ayuda? Unite a nuestra comunidad!"
                 >
                   <DiscordLogo />
                 </a>
