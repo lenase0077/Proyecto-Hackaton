@@ -106,7 +106,7 @@ export default function App() {
   // --- Referencias de Audio ---
   const currentaudioLevel = useRef(null);
   const currentaudioVictory = useRef(null);
-
+  const isCelebrationActive = useRef(false); 
 
   // ============================================================================
   // 4. LÓGICA DE NEGOCIO (HELPERS)
@@ -399,24 +399,54 @@ export default function App() {
         const carreraCompleta = listaMaterias.every(m => nuevasAprobadas.includes(m.id));
 
         if (carreraCompleta) {
-             if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
-             setTimeout(() => {
-                const audio = new Audio('/sounds/victory.mp3');
-                currentaudioVictory.current = audio;
-                audio.volume = 0.9;
-                audio.play().catch(() => {});
-                triggerVictoryConfetti();
-             }, 100);
-        } else if (nivelCompleto) {
-             if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
-             setTimeout(() => {
-                const audio = new Audio('/sounds/Celebracion-Nivel.mp3');
-                currentaudioLevel.current = audio;
-                audio.volume = 0.6;
-                audio.play().catch(() => {});
-                triggerLevelConfetti();
-             }, 100);
-        } else {
+             //ANTI-SPAM: Si ya está sonando/tirando papeles, no hacemos nada
+             if (!isCelebrationActive.current) {
+                 isCelebrationActive.current = true; // Ponemos el semáforo en Rojo
+
+                 if (currentaudioVictory.current) { 
+                    currentaudioVictory.current.pause(); 
+                    currentaudioVictory.current.currentTime = 0; 
+                 }
+                 
+                 setTimeout(() => {
+                    const audio = new Audio('/sounds/victory.mp3');
+                    currentaudioVictory.current = audio;
+                    audio.volume = 0.9;
+                    audio.play().catch(() => {});
+                    triggerVictoryConfetti(); 
+                    
+                    //Después de 4 segundos, permitimos festejar de nuevo
+                    setTimeout(() => {
+                        isCelebrationActive.current = false;
+                    }, 5000);
+                 }, 100);
+             }
+        }
+        else if (nivelCompleto) {
+             //Usamos el mismo semáforo para proteger esto también
+             if (!isCelebrationActive.current) {
+                 isCelebrationActive.current = true; // Bloqueamos
+
+                 if (currentaudioLevel.current) { 
+                    currentaudioLevel.current.pause(); 
+                    currentaudioLevel.current.currentTime = 0; 
+                 }
+
+                 setTimeout(() => {
+                    const audio = new Audio('/sounds/Celebracion-Nivel.mp3');
+                    currentaudioLevel.current = audio;
+                    audio.volume = 0.6;
+                    audio.play().catch(() => {});
+                    triggerLevelConfetti();
+                    
+                    // Liberamos el semáforo después de 3 segundos
+                    setTimeout(() => {
+                        isCelebrationActive.current = false;
+                    }, 5000); 
+                 }, 100);
+             }
+        }
+        else {
              const audio = new Audio('/sounds/pop.mp3');
              audio.volume = 0.4;
              audio.playbackRate = 0.9 + Math.random() * 0.3;
@@ -566,7 +596,7 @@ export default function App() {
         <div className={`header-right-side ${showMobileMenu ? 'show' : ''}`}>
               
               <div className="header-row-top"> 
-                <div className="counter-pill aprobadas" title="Finales aprobados"><span>✅ <strong>{aprobadas.length}</strong></span></div>
+                <div className="counter-pill aprobadas" title="Finales aprobados de esta carrera"> <span>✅ <strong>{aprobadasCount}</strong></span> </div>
                 <div className="counter-pill disponibles" title="Materias disponibles"><span>🚀 <strong>{disponiblesCount}</strong></span></div>
               </div>
 
