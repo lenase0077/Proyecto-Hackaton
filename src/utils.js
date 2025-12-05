@@ -664,7 +664,49 @@ export const ACHIEVEMENTS = [
         title: 'El Elegido',
         description: 'Tomaste la pastilla roja y despertaste de la simulación.',
         icon: '💊',
-        condition: () => false // Se activa manualmente
+        condition: () => false 
+    },
+    {
+        id: 'analist',
+        title: 'El Analista',
+        description: 'Descubriste la opcion de estadisticas avanzadas.',
+        icon: '📊',
+        condition: () => false 
+    },
+    {
+        id: 'the_dojo',
+        title: 'El Dojo',
+        description: 'Iniciaste en el dojo de la comunidad.',
+        icon: '🐱‍👤',
+        condition: () => false 
+    },
+    {
+        id: 'workman',
+        title: 'Trabajador',
+        description: 'Utilizaste la herramienta de linkedIn',
+        icon: '💼',
+        condition: () => false 
+    },
+    {
+        id: 'photographer',
+        title: 'Fotógrafo',
+        description: 'Utilizaste la herramienta de captura de pantalla',
+        icon: '📸',
+        condition: () => false 
+    },
+    {
+        id: 'the_prophecy',
+        title: 'La Profecía',
+        description: 'Quisiste ver el futuro utilizando la herramienta de proyección de cursada',
+        icon: '🔮',
+        condition: () => false 
+    },
+    {
+        id: 'priorities',
+        title: 'Prioridades',
+        description: 'Verificaste que materias pueden atrasarte la graduación',
+        icon: '⏳',
+        condition: () => false 
     }
 ];
 
