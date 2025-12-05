@@ -536,8 +536,31 @@ export default function App() {
                   <DiscordLogo />
                 </a>
                 <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Tema">{isDarkMode ? '☀️' : '🌙'}</button>
+<<<<<<< Updated upstream
                 <button onClick={() => setIsDyslexic(!isDyslexic)} className={`btn-tool ${isDyslexic ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>👁️ Dislexia</button>
                 <button onClick={() => setIsColorblind(!isColorblind)} className={`btn-tool ${isColorblind ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>🎨 Daltónico</button>
+=======
+                                <button 
+                  onClick={handleToggleMute} 
+                  className={`btn-tool ${isMuted ? 'active' : ''}`} 
+                  title={isMuted ? 'Activar Sonido' : 'Silenciar Sonido'}
+                  style={{ 
+                    fontSize: '0.9rem', 
+                    padding: '0 8px', 
+                    height: '28px', 
+                    fontWeight: 'bold', 
+                    background: isMuted ? '#ef4444' : (isDarkMode ? '#374151' : '#e2e8f0'), 
+                    color: isMuted ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b') 
+                  }}
+                >
+                  {isMuted ? '🔇' : '🔊'}
+                </button>
+                <button onClick={() => setIsDyslexic(!isDyslexic)} className={`btn-tool ${isDyslexic ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>👁️ Dislexia</button>
+                <button onClick={() => setIsColorblind(!isColorblind)} className={`btn-tool ${isColorblind ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>🎨 Daltónico</button>
+                
+                {/* BOTÓN DE SONIDO */}
+
+>>>>>>> Stashed changes
               </div>
         </div>
 
