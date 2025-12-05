@@ -80,6 +80,7 @@ export default function App() {
   });
   const [isDyslexic, setIsDyslexic] = useState(() => localStorage.getItem('dyslexicMode') === 'true');
   const [isColorblind, setIsColorblind] = useState(() => localStorage.getItem('colorblindMode') === 'true');
+  const [isMuted, setIsMuted] = useState(() => localStorage.getItem('isMuted') === 'true'); // Estado de Mute/Sonido
 
   // --- Grafo ---
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -96,7 +97,7 @@ export default function App() {
   
   // --- Modals y Popups ---
   const [showCalculator, setShowCalculator] = useState(false);
-  const [showStats, setShowStats] = useState(false); // <--- ESTE FALTABA Y CAUSABA EL ERROR
+  const [showStats, setShowStats] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   
   const [ritmoEstudio, setRitmoEstudio] = useState(3);
@@ -156,11 +157,13 @@ export default function App() {
     setIsClosing(false); 
     setCurrentNotification(ach);
 
-    const audio = new Audio('/sounds/Archivement.mp3');
-    audio.volume = 0.8;
-    audio.playbackRate = 1;
-    audio.preservesPitch = false;
-    audio.play().catch(() => {});
+    if (!isMuted) { // CHECK DE MUTE AÑADIDO
+        const audio = new Audio('/sounds/Archivement.mp3');
+        audio.volume = 0.8;
+        audio.playbackRate = 1;
+        audio.preservesPitch = false;
+        audio.play().catch(() => {});
+    }
 
     setTimeout(() => {
       setIsClosing(true);
@@ -182,7 +185,7 @@ export default function App() {
   useEffect(() => localStorage.setItem('appTheme', isDarkMode ? 'dark' : 'light'), [isDarkMode]);
   useEffect(() => localStorage.setItem('materiasAprobadas', JSON.stringify(aprobadas)), [aprobadas]);
   useEffect(() => localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements)), [unlockedAchievements]);
-  useEffect(() => { localStorage.setItem('nodeNotes', JSON.stringify(nodeNotes)); }, [nodeNotes]);
+  useEffect(() => localStorage.setItem('isMuted', isMuted), [isMuted]); // Persistencia de Mute
 
   // Responsive & Konami
   useEffect(() => {
@@ -195,13 +198,15 @@ export default function App() {
       if (e.key === konamiCode[keyIndex]) {
         keyIndex++;
         if (keyIndex === konamiCode.length) {
-          setIsMatrixMode(p => !p);
-          if (!isMatrixMode) { 
-              const audio = new Audio('/sounds/matrix.mp3');
-              audio.volume = 1.0;
-              audio.play().catch(() => {});
-              triggerAchievement('the_chosen_one');
-          }
+          setIsMatrixMode(p => {
+              const newMode = !p;
+              if (newMode && !isMuted) { // CHECK DE MUTE AÑADIDO
+                  const audio = new Audio('/sounds/matrix.mp3');
+                  audio.volume = 1.0;
+                  audio.play().catch(() => {});
+              }
+              return newMode;
+          });
           keyIndex = 0;
         }
       } else { keyIndex = 0; }
@@ -212,7 +217,7 @@ export default function App() {
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isMatrixMode , triggerAchievement]);
+  }, [isMatrixMode, isMuted]); // isMuted AÑADIDO A DEPENDENCIAS
 
   // Carga de Carrera y Grafo
   useEffect(() => {
@@ -337,6 +342,18 @@ export default function App() {
   // ============================================================================
   // 6. HANDLERS
   // ============================================================================
+  
+  const handleToggleMute = () => { // Handler para mutear/desmutear
+    const newState = !isMuted;
+    setIsMuted(newState);
+
+    if (newState) {
+      // Detener todos los audios si el modo mute se activa
+      if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
+      if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
+    }
+  };
+
 
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault(); // Evita el menú del navegador
@@ -426,64 +443,36 @@ export default function App() {
         const nivelCompleto = matsNivel.every(m => nuevasAprobadas.includes(m.id));
         const carreraCompleta = listaMaterias.every(m => nuevasAprobadas.includes(m.id));
 
-        if (carreraCompleta) {
-             //ANTI-SPAM: Si ya está sonando/tirando papeles, no hacemos nada
-             if (!isCelebrationActive.current) {
-                 isCelebrationActive.current = true; // Ponemos el semáforo en Rojo
-
-                 if (currentaudioVictory.current) { 
-                    currentaudioVictory.current.pause(); 
-                    currentaudioVictory.current.currentTime = 0; 
-                 }
-                 
+        if (!isMuted) { // CHECK DE MUTE AÑADIDO
+            if (carreraCompleta) {
+                 if (currentaudioVictory.current) { currentaudioVictory.current.pause(); currentaudioVictory.current.currentTime = 0; }
                  setTimeout(() => {
                     const audio = new Audio('/sounds/victory.mp3');
                     currentaudioVictory.current = audio;
                     audio.volume = 0.9;
                     audio.play().catch(() => {});
-                    triggerVictoryConfetti(); 
-                    
-                    //Después de 4 segundos, permitimos festejar de nuevo
-                    setTimeout(() => {
-                        isCelebrationActive.current = false;
-                    }, 5000);
+                    triggerVictoryConfetti();
                  }, 100);
-             }
-        }
-        else if (nivelCompleto) {
-             //Usamos el mismo semáforo para proteger esto también
-             if (!isCelebrationActive.current) {
-                 isCelebrationActive.current = true; // Bloqueamos
-
-                 if (currentaudioLevel.current) { 
-                    currentaudioLevel.current.pause(); 
-                    currentaudioLevel.current.currentTime = 0; 
-                 }
-
+            } else if (nivelCompleto) {
+                 if (currentaudioLevel.current) { currentaudioLevel.current.pause(); currentaudioLevel.current.currentTime = 0; }
                  setTimeout(() => {
                     const audio = new Audio('/sounds/Celebracion-Nivel.mp3');
                     currentaudioLevel.current = audio;
                     audio.volume = 0.6;
                     audio.play().catch(() => {});
                     triggerLevelConfetti();
-                    
-                    // Liberamos el semáforo después de 3 segundos
-                    setTimeout(() => {
-                        isCelebrationActive.current = false;
-                    }, 5000); 
                  }, 100);
-             }
-        }
-        else {
-             const audio = new Audio('/sounds/pop.mp3');
-             audio.volume = 0.4;
-             audio.playbackRate = 0.9 + Math.random() * 0.3;
-             audio.preservesPitch = false;
-             audio.play().catch(() => {});
-        }
+            } else {
+                 const audio = new Audio('/sounds/pop.mp3');
+                 audio.volume = 0.4;
+                 audio.playbackRate = 0.9 + Math.random() * 0.3;
+                 audio.preservesPitch = false;
+                 audio.play().catch(() => {});
+            }
+        } // FIN CHECK DE MUTE
     }
     setAprobadas(nuevasAprobadas);
-  }, [aprobadas, selectedCarrera]);
+  }, [aprobadas, selectedCarrera, isMuted]); // isMuted AÑADIDO A DEPENDENCIAS
 
   // ============================================================================
   // 7. RENDER HELPERS
@@ -680,6 +669,23 @@ export default function App() {
                 <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Tema">{isDarkMode ? '☀️' : '🌙'}</button>
                 <button onClick={() => setIsDyslexic(!isDyslexic)} className={`btn-tool ${isDyslexic ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>👁️ Dislexia</button>
                 <button onClick={() => setIsColorblind(!isColorblind)} className={`btn-tool ${isColorblind ? 'active' : ''}`} style={{ fontSize: '0.75rem', padding: '0 8px', height: '28px' }}>🎨 Daltónico</button>
+                
+                {/* BOTÓN DE SONIDO */}
+                <button 
+                  onClick={handleToggleMute} 
+                  className={`btn-tool ${isMuted ? 'active' : ''}`} 
+                  title={isMuted ? 'Activar Sonido' : 'Silenciar Sonido'}
+                  style={{ 
+                    fontSize: '0.9rem', 
+                    padding: '0 8px', 
+                    height: '28px', 
+                    fontWeight: 'bold', 
+                    background: isMuted ? '#ef4444' : (isDarkMode ? '#374151' : '#e2e8f0'), 
+                    color: isMuted ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b') 
+                  }}
+                >
+                  {isMuted ? '🔇' : '🔊'}
+                </button>
               </div>
         </div>
 
