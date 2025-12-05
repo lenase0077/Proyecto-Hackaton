@@ -551,13 +551,34 @@ export default function App() {
       <div style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         
         <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
-        {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
-          <button key={mode} onClick={() => setViewMode(mode)} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === mode ? (mode === 'final' ? '#ef4444' : mode === 'simplificada' ? '#10b981' : '#3b82f6') : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === mode ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s' }}>
-            {mode.charAt(0).toUpperCase() + mode.slice(1)}
-          </button>
-        ))}
+        {(() => {
+          // Diccionario de descripciones
+          const filterDescriptions = {
+            todas: "Visualiza el mapa completo con todas las conexiones de cursada y finales.",
+            cursar: "Muestra solo las correlativas necesarias para cursar. Ideal para inscripciones.",
+            final: "Muestra solo los requisitos para rendir finales. Útil para planificar mesas.",
+            simplificada: "Vista limpia. Oculta el ruido y destaca solo tus materias disponibles inmediatas."
+          };
+          
+          return ['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              /* 🔥 AQUÍ ESTÁ LA MAGIA: El título descriptivo */
+              title={filterDescriptions[mode]} 
+              style={{
+                padding: '5px 12px', borderRadius: '15px', border: 'none',
+                background: viewMode === mode ? (mode === 'final' ? '#ef4444' : mode === 'simplificada' ? '#10b981' : '#3b82f6') : (isDarkMode ? '#374151' : '#e2e8f0'),
+                color: viewMode === mode ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
+                cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s'
+              }}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ));
+        })()}
 
-        <button id="btn-critical-tour" title="Ruta Crítica" onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s', fontWeight: 'bold', marginLeft: '5px', boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <button id="btn-critical-tour" title="Muestra la cadena de materias correlativas más larga. Si te atrasas en una de estas, se alarga la duración total de tu carrera." onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s', fontWeight: 'bold', marginLeft: '5px', boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
           🔥 Ruta Crítica
         </button>
 
