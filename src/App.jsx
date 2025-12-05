@@ -550,16 +550,74 @@ export default function App() {
       {/* BARRA DE FILTROS & ACCIONES */}
       <div style={{ padding: '8px 15px', background: isDarkMode ? '#0a0f18ff' : '#e4e8ecff', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         
-        <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
-        {['todas', 'cursar', 'final', 'simplificada'].map((mode) => (
-          <button key={mode} onClick={() => setViewMode(mode)} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === mode ? (mode === 'final' ? '#ef4444' : mode === 'simplificada' ? '#10b981' : '#3b82f6') : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === mode ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s' }}>
-            {mode.charAt(0).toUpperCase() + mode.slice(1)}
-          </button>
-        ))}
+      <span style={{ fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#252a31ff' }}>Filtros:</span>
+      {['todas', 'cursar', 'final', 'simplificada'].map((mode) => {
+        // Definimos colores base únicos para cada modo cuando está activo
+        let activeColor = '#3b82f6'; // Default para 'todas'
+        let label = mode.charAt(0).toUpperCase() + mode.slice(1);
 
-        <button id="btn-critical-tour" title="Ruta Crítica" onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')} style={{ padding: '5px 12px', borderRadius: '15px', border: 'none', background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s', fontWeight: 'bold', marginLeft: '5px', boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
-          🔥 Ruta Crítica
-        </button>
+        if (mode === 'cursar') {
+          activeColor = '#f59e0b'; // Amarillo para 'cursar'
+        } else if (mode === 'final') {
+          activeColor = '#ef4444'; // Rojo para 'final'
+        } else if (mode === 'simplificada') {
+          activeColor = '#10b981'; // Verde para 'simplificada'
+        }
+
+        // Estilos basados en si el modo actual es el activo
+        const isActive = viewMode === mode;
+        const buttonStyle = {
+          padding: '5px 12px',
+          borderRadius: '15px',
+          border: 'none',
+          // Fondo: Color activo si está seleccionado, de lo contrario, color por defecto (claro u oscuro)
+          background: isActive ? activeColor : (isDarkMode ? '#374151' : '#e2e8f0'),
+          // Color de texto: Blanco si está seleccionado, de lo contrario, color por defecto (claro u oscuro)
+          color: isActive ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'),
+          cursor: 'pointer',
+          fontSize: '0.85rem',
+          transition: 'all 0.2s',
+          marginLeft: '5px', // Separación entre botones
+          fontWeight: isActive ? 'bold' : 'normal',
+          // Añadir una ligera sombra para destacarlo cuando está activo, similar a 'Ruta Crítica'
+          boxShadow: isActive ? `0 0 8px ${activeColor}50` : 'none', 
+        };
+
+        return (
+          <button
+            key={mode}
+            onClick={() => setViewMode(mode)}
+            style={buttonStyle}
+            title={`Ver materias en modo ${label.toLowerCase()}`}
+          >
+            {label}
+          </button>
+        );
+      })}
+
+      <button 
+        id="btn-critical-tour" 
+        title="Ruta Crítica" 
+        onClick={() => setViewMode(viewMode === 'critical' ? 'todas' : 'critical')} 
+        style={{ 
+          padding: '5px 12px', 
+          borderRadius: '15px', 
+          border: 'none', 
+          background: viewMode === 'critical' ? '#ff0033' : (isDarkMode ? '#374151' : '#e2e8f0'), 
+          color: viewMode === 'critical' ? 'white' : (isDarkMode ? '#9ca3af' : '#64748b'), 
+          cursor: 'pointer', 
+          fontSize: '0.85rem', 
+          transition: 'all 0.2s', 
+          fontWeight: 'bold', 
+          marginLeft: '5px', 
+          boxShadow: viewMode === 'critical' ? '0 0 10px rgba(255,0,51,0.5)' : 'none', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '5px' 
+        }}
+      >
+        🔥 Ruta Crítica
+      </button>
 
         {/* Barra de Progreso */}
         <div className="progress-section" onClick={() => setShowStats(true)} style={{ cursor: 'pointer' }} title="Ver estadísticas detalladas">
