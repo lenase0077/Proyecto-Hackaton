@@ -629,14 +629,21 @@ export const ACHIEVEMENTS = [
         title: 'Mitad de Camino',
         description: 'Alcanzaste el 50% de la carrera.',
         icon: '🏃',
-        condition: (aprobadas, nodes) => (aprobadas.length / nodes.length) >= 0.5
+        //Filtramos aprobadas para contar solo las que existen en los nodos actuales
+        condition: (aprobadas, nodes) => {
+            const aprobadasEstaCarrera = nodes.filter(n => aprobadas.includes(n.id)).length;
+            return (aprobadasEstaCarrera / nodes.length) >= 0.5;
+        }
     },
     {
         id: 'graduate',
         title: '¡Recibido!',
         description: 'Completaste todas las materias.',
         icon: '🎓',
-        condition: (aprobadas, nodes) => aprobadas.length === nodes.length && nodes.length > 0
+        condition: (aprobadas, nodes) => {
+            const aprobadasEstaCarrera = nodes.filter(n => aprobadas.includes(n.id)).length;
+            return aprobadasEstaCarrera === nodes.length && nodes.length > 0;
+        }
     },
     {
          id: 'spider_sense',
@@ -651,6 +658,13 @@ export const ACHIEVEMENTS = [
         description: 'Revisaste los créditos del equipo.',
         icon: '👏',
         condition: () => false
+    },
+    {
+        id: 'the_chosen_one',
+        title: 'El Elegido',
+        description: 'Tomaste la pastilla roja y despertaste de la simulación.',
+        icon: '💊',
+        condition: () => false // Se activa manualmente
     }
 ];
 
