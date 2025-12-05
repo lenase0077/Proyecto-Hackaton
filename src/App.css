@@ -762,16 +762,6 @@ html, body, #root {
   color: white;
 }
 
-¡Entendido! He revisado todos los archivos que subiste (App.jsx, App.css, utils.js y demás). El código está muy limpio y profesional. Has hecho un gran trabajo refactorizando.
-
-Ahora vamos a implementar el Dashboard de Métricas (Estadísticas) al hacer clic en la barra de progreso, integrándolo perfectamente en tu estructura actual.
-
-Aquí tienes el plan de acción en 3 pasos:
-
-Paso 1: Agregar los Estilos del Modal en App.css
-Necesitamos definir cómo se ve la ventana flotante y los gráficos de anillos. Copia este bloque y pégalo al final de tu archivo App.css.
-
-CSS
 
 /* ===========================================
    DASHBOARD DE MÉTRICAS (ESTADÍSTICAS)
@@ -789,6 +779,7 @@ CSS
   animation: scaleIn 0.3s ease; /* Usamos tu animación existente */
   max-height: 90vh; /* Que no se salga de pantalla en vertical */
   overflow-y: auto;
+  border: 6px solid #e2e8f0;
 }
 
 /* Grid para los gráficos */
@@ -899,6 +890,7 @@ CSS
 .app-container.dark-mode .stats-modal-content {
   background: #1f2937;
   color: #f3f4f6;
+  border-color: #374151;
 }
 .app-container.dark-mode .stat-card {
   background: #111827;
