@@ -2,10 +2,20 @@ import React from 'react';
 import './CarreraSelector.css';
 
 const CARRERAS_INFO = {
-  'tup': { label: 'TUP - Programación', icon: '💻' },
-  'admi': { label: 'TUA - Administración', icon: '📑' },
-  'moldes': { label: 'TSMMYD - Moldes y Matrices', icon: '🔨' },
-  'automotriz': { label: 'TSGIA - Automotriz', icon: '🚗' },
+  // Tecnicaturas
+  'TUP': { label: 'TUP - Programación', icon: '💻' },
+  'TecAdmi': { label: 'TUA - Administración', icon: '📑' },
+  'TecAutomotriz': { label: 'TUIA - Ind. Automotriz', icon: '🚗' },
+  'TecMoldes': { label: 'TSMMYD - Moldes y Matrices', icon: '🔨' },
+  
+  // Ingenierías
+  'IngMecanica': { label: 'Ingeniería Mecánica', icon: '⚙️' },
+  'IngCivil': { label: 'Ingeniería Civil', icon: '🏗️' },
+  'IngAutomotriz': { label: 'Ingeniería Automotriz', icon: '🏎️' },
+  'IngElectrica': { label: 'Ingeniería Eléctrica', icon: '⚡' },
+  
+  // Licenciaturas
+  'LOI': { label: 'Lic. Organización Industrial', icon: '🏭' },
 };
 
 export default function CarreraSelector({ currentCarrera, onSelect }) {

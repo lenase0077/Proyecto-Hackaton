@@ -52,7 +52,7 @@ export default function App() {
   // ==================================================================================
 
   // --- Datos Persistentes (LocalStorage) ---
-  const [selectedCarrera, setSelectedCarrera] = useState(() => localStorage.getItem('selectedCarrera') || 'tup');
+  const [selectedCarrera, setSelectedCarrera] = useState(() => localStorage.getItem('selectedCarrera') || 'TUP');
   
   const [aprobadas, setAprobadas] = useState(() => {
     const saved = localStorage.getItem('materiasAprobadas');
@@ -362,7 +362,18 @@ export default function App() {
   // Redes Sociales y Compartir
   const handleShareLinkedIn = () => {
     // 1. Configuración de datos básicos
-    const nombres = { 'tup': 'TUP', 'admi': 'TUA', 'moldes': 'Moldes', 'automotriz': 'Automotriz' };
+    const nombres = {
+        'TUP': 'TUP - Programación', 
+        'TecAdmi': 'TUA - Administración', 
+        'TecAutomotriz': 'Tec. Univ. Automotriz', 
+        'TecMoldes': 'Tec. Sup. Moldes', 
+        'IngMecanica': 'Ingeniería Mecánica',
+        'IngCivil': 'Ingeniería Civil',
+        'IngAutomotriz': 'Ingeniería Automotriz',
+        'IngElectrica': 'Ingeniería Eléctrica',
+        'LOI': 'Lic. Organización Industrial'
+      };
+      
     const carrera = nombres[selectedCarrera] || 'UTN';
 
     // 2. Generación de la Barra de Progreso Visual [███░░...]
@@ -830,42 +841,84 @@ export default function App() {
       {/* --- MODALES Y POPUPS --- */}
       
       {/* 1. Calculadora Predictiva */}
+      {/* Esto es un "Renderizado Condicional". Si 'showCalculator' es falso, nada de esto existe en la página. */}
       {showCalculator && (
         <div className="modal-overlay" onClick={() => setShowCalculator(false)}>
+          {/* El 'e.stopPropagation' evita que si clickeas DENTRO de la tarjeta, se cierre el modal. */}
           <div className="calculator-card" onClick={e => e.stopPropagation()}>
-            <div className="calc-header"><h3>🔮 Oráculo Académico</h3><button className="close-btn" onClick={() => setShowCalculator(false)}>×</button></div>
+            
+            {/* 2. ENCABEZADO: Título y botón de cerrar */}
+            <div className="calc-header">
+              <h3>🔮 Oráculo Académico</h3>
+              <button className="close-btn" onClick={() => setShowCalculator(false)}>×</button>
+            </div>
+
             <div className="calc-body">
+              {/* 3. LÓGICA INMEDIATA: Usamos una función flecha (() => {})() para calcular datos aquí mismo */}
               {(() => {
-                 const aprobadasEstaCarrera = nodes.filter(n => aprobadas.includes(n.id)).length;
-                 const totalEstaCarrera = nodes.length;
-                 return (
-                   <>
-                     <p className="calc-intro">Progreso: {aprobadasEstaCarrera} de {totalEstaCarrera} aprobadas.</p>
-                     <div className="slider-container">
-                       <label>Materias por cuatrimestre<span className="ritmo-badge">{ritmoEstudio}</span></label>
-                       <input type="range" min="1" max="6" step="1" value={ritmoEstudio} onChange={(e) => setRitmoEstudio(parseInt(e.target.value))} className="ritmo-slider" />
-                       <div className="slider-labels"><span>Relax (1)</span><span>Tryhard (6)</span></div>
-                     </div>
-                     <div className="prediction-result">
+                // Filtramos la lista total de 'nodes' para contar cuántos tienen su ID en la lista de 'aprobadas'
+                const aprobadasEstaCarrera = nodes.filter(n => aprobadas.includes(n.id)).length;
+                const totalEstaCarrera = nodes.length;
+                
+                return (
+                  <>
+                    {/* Mostramos el resumen simple: Ej "5 de 40 aprobadas" */}
+                    <p className="calc-intro">Progreso: {aprobadasEstaCarrera} de {totalEstaCarrera} aprobadas.</p>
+
+                    {/* 4. EL SLIDER (La entrada del usuario) */}
+                    <div className="slider-container">
+                      {/* Mostramos el número actual que eligió el usuario (ritmoEstudio) */}
+                      <label>Materias por cuatrimestre<span className="ritmo-badge">{ritmoEstudio}</span></label>
+                      
+                      {/* Este INPUT es el control. 
+                          - value={ritmoEstudio}: El slider se mueve solo si cambia el estado.
+                          - onChange: Cuando lo mueves, actualiza el estado 'ritmoEstudio' y React recalcula todo instantáneamente. 
+                      */}
+                      <input 
+                          type="range" 
+                          min="1" max="6" step="1" 
+                          value={ritmoEstudio} 
+                          onChange={(e) => setRitmoEstudio(parseInt(e.target.value))} 
+                          className="ritmo-slider" 
+                      />
+                      <div className="slider-labels"><span>Relax (1)</span><span>Tryhard (6)</span></div>
+                    </div>
+
+                    {/* 5. EL RESULTADO (La Proyección) */}
+                    <div className="prediction-result">
                         {(() => {
+                          // A. MATEMÁTICA PURA
                           const faltantes = totalEstaCarrera - aprobadasEstaCarrera;
+                          
+                          // Caso borde: Si no falta nada, no calculamos fecha.
                           if (faltantes <= 0) return <div>¡Ya terminaste! 🎉</div>;
+
+                          // Cálculo de Cuatrimestres:
+                          // Math.ceil redondea hacia arriba. (Si te faltan 4 materias y haces 3 por cuatri, necesitas 2 cuatrimestres, no 1.33)
                           const cuatrimestresRestantes = Math.ceil(faltantes / ritmoEstudio);
+                          
+                          // Estimamos 6 meses por cuatrimestre (ciclo lectivo + exámenes)
                           const mesesTotales = cuatrimestresRestantes * 6;
-                          const fechaFutura = new Date();
-                          fechaFutura.setMonth(fechaFutura.getMonth() + mesesTotales);
+
+                          // B. MANIPULACIÓN DE FECHA (Date Object)
+                          const fechaFutura = new Date(); // Toma la fecha y hora exacta de HOY
+                          fechaFutura.setMonth(fechaFutura.getMonth() + mesesTotales); // Le suma los meses calculados
+                          
+                          // C. FORMATEO (Convertir fecha de máquina a texto bonito "Diciembre 2026")
                           const fechaFinal = fechaFutura.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
                           return (
                             <>
                               <span className="pred-label">Te recibirías en:</span>
+                              {/* Mostramos la fecha con la primera letra mayúscula */}
                               <h2 className="pred-date">{fechaFinal.charAt(0).toUpperCase() + fechaFinal.slice(1)}</h2>
                               <span className="pred-details">(Faltan {faltantes} materias)</span>
                             </>
                           );
                         })()} 
-                     </div>
-                   </>
-                 );
+                    </div>
+                  </>
+                );
               })()}
             </div>
           </div>
